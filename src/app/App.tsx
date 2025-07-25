@@ -382,8 +382,8 @@ const AppContent = () => {
       {showBullsAIButton && (
         <button
           onClick={() => navigateTo('bullsai')}
-          className="fixed z-50 right-4"
-          style={{ bottom: '72px' }}
+          className="fixed z-50 left-4"
+          style={{ bottom: '96px' }}
           aria-label="Open BullsAI"
         >
           <div className="relative" style={{ width: 52, height: 52 }}>
@@ -455,3 +455,4 @@ export default function App() {
     </ThemeProvider>
   );
 }
+ 
