@@ -69,6 +69,7 @@ const ExploreScreen = lazyLoad(() => import('./components/ExploreScreen').then(m
 const SavedPostsScreen = lazyLoad(() => import('./components/SavedPostsScreen').then(m => ({ default: m.SavedPostsScreen })));
 const AcademyScreen = lazyLoad(() => import('./components/AcademyScreen').then(m => ({ default: m.AcademyScreen })));
 const BullsAIScreen = lazyLoad(() => import('./components/BullsAIScreen').then(m => ({ default: m.BullsAIScreen })));
+const BullsSignalScreen = lazyLoad(() => import('./components/BullsSignalScreen').then(m => ({ default: m.BullsSignalScreen })));
 const HelpCentreScreen = lazyLoad(() => import('./components/HelpCentreScreen').then(m => ({ default: m.HelpCentreScreen })));
 const TermsScreen = lazyLoad(() => import('./components/TermsScreen').then(m => ({ default: m.TermsScreen })));
 
@@ -279,7 +280,8 @@ const AppContent = () => {
   }
 
   const showBottomNav = ['feed', 'market', 'portfolio', 'myProfile', 'live'].includes(currentScreen);
-  const showBullsAIButton = showBottomNav && currentScreen !== 'bullsai';
+  const showBullsSignalButton = showBottomNav && currentScreen !== 'bullsSignal' && currentScreen !== 'bullsai';
+  const showBullsAIButton = showBottomNav && currentScreen !== 'bullsai' && currentScreen !== 'bullsSignal';
 
   return (
     <div className="relative">
@@ -302,7 +304,7 @@ const AppContent = () => {
         {currentScreen === 'savedPosts' && <SavedPostsScreen onBack={navigateBack} onNavigateToPost={handleNavigateToPost} onNavigateToProfile={handleNavigateToProfile} />}
         {currentScreen === 'search' && <SearchScreen onBack={navigateBack} onNavigateToProfile={handleNavigateToProfile} />}
         {currentScreen === 'notifications' && <NotificationsScreen onBack={navigateBack} onNavigateToPost={handleNavigateToPostById} onNavigateToProfile={handleNavigateToProfile} onNavigateToLive={handleNavigateToLiveById} />}
-        {currentScreen === 'market' && <MarketScreen onBack={navigateBack} onNavigateToCurrencies={() => navigateTo('currency')} />}
+        {currentScreen === 'market' && <MarketScreen onBack={navigateBack} onNavigateToCurrencies={() => navigateTo('currency')} onNavigateToSignal={() => navigateTo('bullsSignal')} />}
         {currentScreen === 'portfolio' && <PortfolioScreen onBack={navigateBack} onAddAsset={() => navigateTo('addAsset')} onViewAsset={(asset) => { setSelectedAsset(asset); navigateTo('assetDetail'); }} />}
         {currentScreen === 'myProfile' && (
           <ProfileScreen
@@ -371,6 +373,7 @@ const AppContent = () => {
         {currentScreen === 'helpCentre' && <HelpCentreScreen onBack={navigateBack} />}
         {currentScreen === 'terms' && <TermsScreen onBack={navigateBack} />}
         {currentScreen === 'bullsai' && <BullsAIScreen onBack={navigateBack} />}
+        {currentScreen === 'bullsSignal' && <BullsSignalScreen onBack={navigateBack} />}
         {currentScreen === 'live' && <LiveScreen onBack={navigateBack} onStartLive={() => { setSelectedScheduledLive(null); navigateTo('startLive'); }} onWatchLive={(live) => { setSelectedPost(live); navigateTo('watchLive'); }} onStartScheduled={(live) => { setSelectedScheduledLive(live); navigateTo('startLive'); }} />}
         {currentScreen === 'watchLive' && selectedPost && <WatchLiveScreen live={selectedPost} onClose={navigateBack} />}
         {currentScreen === 'startLive' && <StartLiveScreen onBack={navigateBack} onGoLive={handleGoLive} scheduledLive={selectedScheduledLive} />}
