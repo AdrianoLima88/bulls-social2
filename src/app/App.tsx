@@ -70,6 +70,7 @@ const SavedPostsScreen = lazyLoad(() => import('./components/SavedPostsScreen').
 const AcademyScreen = lazyLoad(() => import('./components/AcademyScreen').then(m => ({ default: m.AcademyScreen })));
 const BullsAIScreen = lazyLoad(() => import('./components/BullsAIScreen').then(m => ({ default: m.BullsAIScreen })));
 const BullsSignalScreen = lazyLoad(() => import('./components/BullsSignalScreen').then(m => ({ default: m.BullsSignalScreen })));
+const BullsBriefScreen = lazyLoad(() => import('./components/BullsBriefScreen').then(m => ({ default: m.BullsBriefScreen })));
 const HelpCentreScreen = lazyLoad(() => import('./components/HelpCentreScreen').then(m => ({ default: m.HelpCentreScreen })));
 const TermsScreen = lazyLoad(() => import('./components/TermsScreen').then(m => ({ default: m.TermsScreen })));
 
@@ -281,7 +282,7 @@ const AppContent = () => {
 
   const showBottomNav = ['feed', 'market', 'portfolio', 'myProfile', 'live'].includes(currentScreen);
   const showBullsSignalButton = showBottomNav && currentScreen !== 'bullsSignal' && currentScreen !== 'bullsai';
-  const showBullsAIButton = showBottomNav && currentScreen !== 'bullsai' && currentScreen !== 'bullsSignal';
+  const showBullsAIButton = showBottomNav && currentScreen !== 'bullsai' && currentScreen !== 'bullsSignal' && currentScreen !== 'bullsBrief';
 
   return (
     <div className="relative">
@@ -298,6 +299,7 @@ const AppContent = () => {
             setFeedFilter={setFeedFilter}
             onNavigateToLive={() => navigateTo('live')}
             onNavigateToPremium={() => navigateTo('premium')}
+            onNavigateToBrief={() => navigateTo('bullsBrief')}
           />
         )}
         {currentScreen === 'explore' && <ExploreScreen onBack={navigateBack} onNavigateToPost={handleNavigateToPost} onNavigateToProfile={handleNavigateToProfile} />}
@@ -374,6 +376,7 @@ const AppContent = () => {
         {currentScreen === 'terms' && <TermsScreen onBack={navigateBack} />}
         {currentScreen === 'bullsai' && <BullsAIScreen onBack={navigateBack} />}
         {currentScreen === 'bullsSignal' && <BullsSignalScreen onBack={navigateBack} />}
+        {currentScreen === 'bullsBrief' && <BullsBriefScreen onBack={navigateBack} />}
         {currentScreen === 'live' && <LiveScreen onBack={navigateBack} onStartLive={() => { setSelectedScheduledLive(null); navigateTo('startLive'); }} onWatchLive={(live) => { setSelectedPost(live); navigateTo('watchLive'); }} onStartScheduled={(live) => { setSelectedScheduledLive(live); navigateTo('startLive'); }} />}
         {currentScreen === 'watchLive' && selectedPost && <WatchLiveScreen live={selectedPost} onClose={navigateBack} />}
         {currentScreen === 'startLive' && <StartLiveScreen onBack={navigateBack} onGoLive={handleGoLive} scheduledLive={selectedScheduledLive} />}

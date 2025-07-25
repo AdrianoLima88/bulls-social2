@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Bell, Compass, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users, Lock, UserPlus, Crown, Coffee, ExternalLink } from 'lucide-react';
+import { Search, Bell, Sun, Compass, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users, Lock, UserPlus, Crown, Coffee, ExternalLink } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { ShareModal } from './ShareModal';
 import { MediaViewModal } from './MediaViewModal';
@@ -32,8 +32,9 @@ export const FeedScreen = ({
   feedFilter = 'all',
   setFeedFilter,
   onNavigateToLive,
-  onNavigateToPremium
-}) => {
+  onNavigateToPremium,
+  onNavigateToBrief,
+}: any) => {
   const { posts: supabasePosts, loading: postsLoading, toggleLike, deletePost: deleteSupabasePost, hasLiked } = usePosts();
   const { posts: followingSupabasePosts, loading: followingLoading } = useFollowingFeed();
   const { user } = useAuth();
@@ -127,6 +128,24 @@ export const FeedScreen = ({
       </header>
 
       <StockTicker />
+
+      {/* BullsBrief morning banner */}
+      {onNavigateToBrief && (
+        <button
+          onClick={onNavigateToBrief}
+          className="mx-4 mt-2 mb-1 flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl px-4 py-2.5 shadow-md hover:opacity-90 transition active:scale-95"
+        >
+          <Sun className="w-5 h-5 text-white flex-shrink-0" />
+          <div className="text-left flex-1">
+            <p className="text-white font-bold text-xs">BullsBrief — Morning Intel</p>
+            <p className="text-white/80 text-[10px]">Your personalized market brief is ready</p>
+          </div>
+          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-xs font-bold">→</span>
+          </div>
+        </button>
+      )}
+
 
       <div className="bg-white shadow-sm flex-shrink-0 border-b border-slate-100">
         <div className="overflow-x-auto scrollbar-hide">
