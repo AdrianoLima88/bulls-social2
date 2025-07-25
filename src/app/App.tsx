@@ -282,7 +282,6 @@ const AppContent = () => {
 
   const showBottomNav = ['feed', 'market', 'portfolio', 'myProfile', 'live'].includes(currentScreen);
   const showBullsSignalButton = showBottomNav && currentScreen !== 'bullsSignal' && currentScreen !== 'bullsai';
-  const showBullsAIButton = showBottomNav && currentScreen !== 'bullsai' && currentScreen !== 'bullsSignal' && currentScreen !== 'bullsBrief';
 
   return (
     <div className="relative">
@@ -300,6 +299,7 @@ const AppContent = () => {
             onNavigateToLive={() => navigateTo('live')}
             onNavigateToPremium={() => navigateTo('premium')}
             onNavigateToBrief={() => navigateTo('bullsBrief')}
+            onNavigateToAI={() => navigateTo('bullsai')}
           />
         )}
         {currentScreen === 'explore' && <ExploreScreen onBack={navigateBack} onNavigateToPost={handleNavigateToPost} onNavigateToProfile={handleNavigateToProfile} />}
@@ -384,29 +384,7 @@ const AppContent = () => {
 
       {showBottomNav && <BottomNav currentScreen={currentScreen} onNavigate={setCurrentScreen} activeLivesCount={activeLives.length} />}
 
-      {/* BullsAI Floating Button */}
-      {showBullsAIButton && (
-        <button
-          onClick={() => navigateTo('bullsai')}
-          className="fixed z-50 left-4"
-          style={{ bottom: '96px' }}
-          aria-label="Open BullsAI"
-        >
-          <div className="relative" style={{ width: 52, height: 52 }}>
-            <div className="absolute inset-0 rounded-full bg-green-500 opacity-20 animate-ping" style={{ animationDuration: '2.5s' }} />
-            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-green-500 to-emerald-700 flex items-center justify-center shadow-xl" style={{ width: 52, height: 52 }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z" opacity="0.3"/>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-            </div>
-            <div className="absolute left-1/2 -translate-x-1/2 bg-green-600 text-white font-black rounded-full leading-none whitespace-nowrap" style={{ bottom: -4, fontSize: 8, padding: '2px 5px' }}>
-              AI
-            </div>
-          </div>
-        </button>
-      )}
+
 
       {/* Chamada de voz ativa */}
       {(callState === 'calling' || callState === 'connected') && callType === 'voice' && (

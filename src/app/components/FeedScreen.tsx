@@ -34,6 +34,7 @@ export const FeedScreen = ({
   onNavigateToLive,
   onNavigateToPremium,
   onNavigateToBrief,
+  onNavigateToAI,
 }: any) => {
   const { posts: supabasePosts, loading: postsLoading, toggleLike, deletePost: deleteSupabasePost, hasLiked } = usePosts();
   const { posts: followingSupabasePosts, loading: followingLoading } = useFollowingFeed();
@@ -116,6 +117,11 @@ export const FeedScreen = ({
           <button onClick={() => setShowInviteModal(true)} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
             <UserPlus className="w-5 h-5 text-white" />
           </button>
+          {onNavigateToAI && (
+            <button onClick={onNavigateToAI} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition relative" title="BullsAI">
+              <Sparkles className="w-5 h-5 text-white" />
+            </button>
+          )}
           <button onClick={onNavigateToNotifications} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition relative">
             <Bell className="w-5 h-5 text-white" />
             {unreadCount > 0 && (
