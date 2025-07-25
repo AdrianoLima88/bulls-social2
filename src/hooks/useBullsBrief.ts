@@ -16,7 +16,7 @@ export interface DailyBrief {
   cachedAt?: number;     // localStorage timestamp
 }
 
-const CACHE_KEY = 'bulls_brief_cache';
+const cacheKey = (userId: string) => `bulls_brief_cache_${userId}`;
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
 export const useBullsBrief = () => {
@@ -24,29 +24,30 @@ export const useBullsBrief = () => {
   const { currentPlan } = useSubscription() as any;
   const { user, profile } = useAuth() as any;
 
-  const [brief, setBrief] = useState<DailyBrief | null>(() => {
-    try {
-      const cached = sessionStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached) as DailyBrief;
-        const age = Date.now() - (parsed.cachedAt ?? 0);
-        if (age < CACHE_TTL_MS) return parsed;
-      }
-    } catch {}
-    return null;
-  });
+  const [brief, setBrief] = useState<DailyBrief | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const generate = useCallback(async (force = false) => {
-    // Return cache if fresh
+    if (!user?.id) { setError('Login required'); return; }
+
+    // Return cache if fresh (user-scoped)
+    const key = cacheKey(user.id);
+    if (!force && !brief) {
+      try {
+        const cached = sessionStorage.getItem(key);
+        if (cached) {
+          const parsed = JSON.parse(cached) as DailyBrief;
+          const age = Date.now() - (parsed.cachedAt ?? 0);
+          if (age < CACHE_TTL_MS) { setBrief(parsed); return; }
+        }
+      } catch {}
+    }
     if (!force && brief) {
       const age = Date.now() - (brief.cachedAt ?? 0);
       if (age < CACHE_TTL_MS) return;
     }
-
-    if (!user?.id) { setError('Login required'); return; }
     setLoading(true);
     setError('');
 
@@ -96,7 +97,7 @@ export const useBullsBrief = () => {
       };
 
       setBrief(newBrief);
-      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(newBrief)); } catch {}
+      try { sessionStorage.setItem(cacheKey(user.id), JSON.stringify(newBrief)); } catch {}
     } catch (e: any) {
       setError(e.message || 'Failed to generate brief');
     } finally {
@@ -105,7 +106,7 @@ export const useBullsBrief = () => {
   }, [brief, user?.id, assets, currentPlan, profile]);
 
   const clearCache = useCallback(() => {
-    try { sessionStorage.removeItem(CACHE_KEY); } catch {}
+    try { if (user?.id) sessionStorage.removeItem(cacheKey(user.id)); } catch {}
     setBrief(null);
     setError('');
   }, []);
