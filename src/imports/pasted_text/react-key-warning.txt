@@ -1,0 +1,70 @@
+ Warning: Encountered two children with the same key, `null`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. Component Stack
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/svg
+    at Surface (recharts.js:6061:25)
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/div
+    at ChartLayoutContextProvider2 (recharts.js:25517:28)
+    at CategoricalChartWrapper2 (recharts.js:30799:7)
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/CategoricalChart2
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/div
+    at recharts.js:9275:21
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/div
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/div
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at ChartPreview (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/src/app/components/ChartPreview.tsx?t=1778955752021:22:32)
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/div
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/div
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at PostCard (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/src/app/components/FeedScreen.tsx?t=1778955752021:492:21)
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/div
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/div
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at FeedScreen (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/src/app/components/FeedScreen.tsx?t=1778955752021:32:3)
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/div
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at AppContent (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/src/app/App.tsx?t=1778957939647:237:46)
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at LocaleProvider (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/src/app/contexts/LocaleContext.tsx:876:34)
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at AppProvider (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/src/app/contexts/AppContext.tsx:30:31)
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at AuthProvider (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/src/contexts/AuthContext.tsx:31:32)
+    at code_components_preview_iframe-6c035c6e45a97888.min.js.br:410:15542
+    at FGCmp (app-v3f44zoyq3aauyjz4hpeiywe7vvde7io5yrdqaek3tx4tlmgxsqs.makeproxy-c.figma.site/@id/fginspector:3:55)
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/App
+    at iy (code_components_preview_iframe-6c035c6e45a97888.min.js.br:134:4437)
+    at R (code_components_preview_iframe-6c035c6e45a97888.min.js.br:918:13651)
+    at rm (code_components_preview_iframe-6c035c6e45a97888.min.js.br:972:20098)
+    at A9 (code_components_preview_iframe-6c035c6e45a97888.min.js.br:995:24495)
+    at 1893922b-6562-4396-b804-ace9b59de6c7-v3-figmaiframepreview.figma.site/div
+    at ix (code_components_preview_iframe-6c035c6e45a97888.min.js.br:136:2403)
+    at Ss (code_components_preview_iframe-6c035c6e45a97888.min.js.br:979:269664)
+    at SM (code_components_preview_iframe-6c035c6e45a97888.min.js.br:979:280335)
+    at nB (code_components_preview_iframe-6c035c6e45a97888.min.js.br:119:40094)
+    at mX (code_components_preview_iframe-6c035c6e45a97888.min.js.br:732:29300)
