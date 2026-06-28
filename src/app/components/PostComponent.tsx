@@ -40,7 +40,7 @@ export const Post = ({
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   
-  // Post de News
+  // Post de Notícia
   if (type === 'news') {
     return (
       <div className="bg-white rounded-2xl shadow-md mb-4 overflow-hidden border-l-4 border-purple-600">
@@ -69,7 +69,7 @@ export const Post = ({
           </button>
         </div>
 
-        {/* Título da News */}
+        {/* Título da Notícia */}
         <div className="px-4 pt-4">
           <h2 className="text-2xl font-bold text-slate-900 mb-3 leading-tight">{newsTitle}</h2>
         </div>
@@ -104,12 +104,12 @@ export const Post = ({
 
         {/* Tags Relacionadas */}
         <div className="px-4 pb-3 flex gap-2 flex-wrap">
-          <span className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full border border-purple-200">#Market</span>
+          <span className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full border border-purple-200">#Mercado</span>
           <span className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full border border-purple-200">#Breaking</span>
           <span className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full border border-purple-200">#Economia</span>
         </div>
 
-        {/* Statistics */}
+        {/* Estatísticas */}
         <div className="px-4 py-3 flex items-center justify-between text-sm text-slate-500 bg-slate-50 border-t border-slate-200">
           <div className="flex gap-4">
             <span className="flex items-center gap-1">
@@ -158,7 +158,7 @@ export const Post = ({
     );
   }
 
-  // Post de Education
+  // Post de Educação
   if (type === 'education') {
     const levelColors = {
       'Iniciante': 'bg-green-100 text-green-700 border-green-300',
@@ -216,7 +216,7 @@ export const Post = ({
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-0.5">✓</span>
-                <span>Real market practical examples</span>
+                <span>Exemplos práticos do mercado real</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-0.5">✓</span>
@@ -250,12 +250,12 @@ export const Post = ({
         <div className="px-4 pb-3">
           <button className="w-full bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition transform hover:scale-[1.02] flex items-center justify-center gap-2" onClick={onEducationStartClick}>
             <Award className="w-5 h-5" />
-            <span>Start Learning Now</span>
+            <span>Começar a Aprender Agora</span>
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Statistics */}
+        {/* Estatísticas */}
         <div className="px-4 py-3 flex items-center justify-between text-sm text-slate-600 bg-white/70 border-t border-orange-200">
           <div className="flex gap-4">
             <span className="flex items-center gap-1">
@@ -304,7 +304,7 @@ export const Post = ({
     );
   }
 
-  // Post de Analysis
+  // Post de Análise
   if (type === 'analysis') {
     const upside = targetPrice && currentPrice ? (((targetPrice - currentPrice) / currentPrice) * 100).toFixed(2) : null;
     const recommendationColors = {
@@ -338,7 +338,7 @@ export const Post = ({
               )}
             </div>
             <h3 className="font-bold text-slate-900">{author}</h3>
-            <p className="text-xs text-slate-500">{role} • {time} • 📈 Analysis Técnica</p>
+            <p className="text-xs text-slate-500">{role} • {time} • 📈 Análise Técnica</p>
           </div>
           <button 
             onClick={() => setSaved(!saved)}
@@ -357,14 +357,14 @@ export const Post = ({
                   <Activity className="w-3 h-3" />
                   Preço Atual
                 </p>
-                <p className="text-lg font-bold text-slate-900">€ {currentPrice.toFixed(2)}</p>
+                <p className="text-lg font-bold text-slate-900">R$ {currentPrice.toFixed(2)}</p>
               </div>
               <div className="bg-white rounded-lg p-3 shadow-sm border border-green-200">
                 <p className="text-xs text-slate-600 mb-1 flex items-center gap-1">
                   <Target className="w-3 h-3" />
                   Preço Alvo
                 </p>
-                <p className="text-lg font-bold text-green-600">€ {targetPrice.toFixed(2)}</p>
+                <p className="text-lg font-bold text-green-600">R$ {targetPrice.toFixed(2)}</p>
               </div>
               <div className="bg-white rounded-lg p-3 shadow-sm border border-green-200">
                 <p className="text-xs text-slate-600 mb-1 flex items-center gap-1">
@@ -377,7 +377,7 @@ export const Post = ({
           </div>
         )}
 
-        {/* Content */}
+        {/* Conteúdo */}
         <div className="px-4 pt-4 pb-3">
           <p className="text-slate-700 leading-relaxed text-base">{content}</p>
         </div>
@@ -388,11 +388,11 @@ export const Post = ({
             <div className="rounded-xl overflow-hidden relative shadow-md">
               <img
                 src={image}
-                alt="Analysis"
+                alt="Análise"
                 className="w-full h-auto object-cover"
               />
               <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-2 rounded-full text-xs font-bold text-green-700 shadow-md">
-                📊 Gráfico de Analysis
+                📊 Gráfico de Análise
               </div>
               <div className="absolute top-3 right-3 bg-green-600/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold text-white">
                 Técnica
@@ -401,18 +401,18 @@ export const Post = ({
           </div>
         )}
 
-        {/* Pontos-chave da Analysis */}
+        {/* Pontos-chave da Análise */}
         <div className="px-4 pb-3">
           <div className="bg-green-50 rounded-xl p-3 border border-green-200">
             <p className="text-xs font-bold text-green-800 mb-2">🎯 Pontos-chave da análise:</p>
             <ul className="space-y-1 text-xs text-slate-700">
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-0.5">▪</span>
-                <span>Volume above average in the last 5 sessions</span>
+                <span>Volume acima da média nos últimos 5 pregões</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-0.5">▪</span>
-                <span>RSI indicates growing buying pressure</span>
+                <span>RSI indica força compradora crescente</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-0.5">▪</span>
@@ -422,7 +422,7 @@ export const Post = ({
           </div>
         </div>
 
-        {/* Statistics */}
+        {/* Estatísticas */}
         <div className="px-4 py-3 flex items-center justify-between text-sm text-slate-500 bg-slate-50 border-t border-slate-200">
           <div className="flex gap-4">
             <span className="flex items-center gap-1">
@@ -442,7 +442,7 @@ export const Post = ({
           </div>
           <span className="text-xs font-semibold text-green-600 flex items-center gap-1">
             <TrendingUp className="w-3 h-3" />
-            High confidence
+            Alta confiança
           </span>
         </div>
 
@@ -474,7 +474,7 @@ export const Post = ({
     );
   }
 
-  // Post de Company
+  // Post de Empresa
   if (type === 'company') {
     return (
       <div className="bg-white rounded-2xl shadow-md mb-4 overflow-hidden border-l-4 border-blue-600">
@@ -494,7 +494,7 @@ export const Post = ({
                 Oficial
               </span>
               <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded flex items-center gap-1">
-                ✓ Verified
+                ✓ Verificado
               </span>
             </div>
             <h3 className="font-bold text-slate-900 flex items-center gap-2">
@@ -521,12 +521,12 @@ export const Post = ({
           </div>
         )}
 
-        {/* Content */}
+        {/* Conteúdo */}
         <div className="px-4 pt-4 pb-3">
           <p className="text-slate-700 leading-relaxed text-base font-medium">{content}</p>
         </div>
 
-        {/* Métricas da Company (se houver) */}
+        {/* Métricas da Empresa (se houver) */}
         {companyMetrics && (
           <div className="px-4 pb-3">
             <div className="bg-gradient-to-r from-blue-50 to-sky-50 rounded-xl p-4 border border-blue-200">
@@ -574,12 +574,12 @@ export const Post = ({
         <div className="px-4 pb-3">
           <button className="w-full bg-gradient-to-r from-blue-600 to-sky-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition transform hover:scale-[1.02] flex items-center justify-center gap-2" onClick={onCompanyDetailsClick}>
             <DollarSign className="w-5 h-5" />
-            <span>Ver Detalhes da Company</span>
+            <span>Ver Detalhes da Empresa</span>
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Statistics */}
+        {/* Estatísticas */}
         <div className="px-4 py-3 flex items-center justify-between text-sm text-slate-500 bg-slate-50 border-t border-slate-200">
           <div className="flex gap-4">
             <span className="flex items-center gap-1">
@@ -654,7 +654,7 @@ export const Post = ({
         </button>
       </div>
 
-      {/* Content */}
+      {/* Conteúdo */}
       <div className="px-4 pb-3">
         <p className="text-slate-700 leading-relaxed">{content}</p>
       </div>
@@ -672,13 +672,13 @@ export const Post = ({
         </div>
       )}
 
-      {/* Statistics */}
+      {/* Estatísticas */}
       <div className="px-4 py-2 flex items-center justify-between text-sm text-slate-500">
         <div className="flex gap-3">
-          <span>{liked ? likes + 1 : likes} likes</span>
-          {comments > 0 && <span>{comments} comments</span>}
+          <span>{liked ? likes + 1 : likes} curtidas</span>
+          {comments > 0 && <span>{comments} comentários</span>}
         </div>
-        <span>1.2K views</span>
+        <span>1.2K visualizações</span>
       </div>
 
       {/* Ações */}

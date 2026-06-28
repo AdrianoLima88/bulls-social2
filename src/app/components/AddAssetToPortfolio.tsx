@@ -1,61 +1,88 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Search, TrendingUp, Eye, DollarSign } from 'lucide-react';
-import { useApp } from '../contexts/AppContext';
+import { ArrowLeft, Search, TrendingUp, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import { usePortfolio } from '../../hooks/usePortfolio';
+
+// ─── European & Global assets by type ─────────────────────────
+const POPULAR_ASSETS = {
+  stock: [
+    { code: 'SHEL',  name: 'Shell',         price: 2856.50, currency: 'GBP', exchange: 'LSE' },
+    { code: 'AZN',   name: 'AstraZeneca',   price: 12845.0, currency: 'GBP', exchange: 'LSE' },
+    { code: 'HSBA',  name: 'HSBC Holdings', price: 734.80,  currency: 'GBP', exchange: 'LSE' },
+    { code: 'BP',    name: 'BP',            price: 425.60,  currency: 'GBP', exchange: 'LSE' },
+    { code: 'AAPL',  name: 'Apple',         price: 213.45,  currency: 'USD', exchange: 'NASDAQ' },
+    { code: 'MSFT',  name: 'Microsoft',     price: 432.80,  currency: 'USD', exchange: 'NASDAQ' },
+    { code: 'NVDA',  name: 'NVIDIA',        price: 1245.60, currency: 'USD', exchange: 'NASDAQ' },
+    { code: 'ASML',  name: 'ASML Holding',  price: 845.20,  currency: 'EUR', exchange: 'Euronext' },
+  ],
+  etf: [
+    { code: 'VWCE',  name: 'Vanguard FTSE All-World',  price: 118.50, currency: 'EUR', exchange: 'Xetra' },
+    { code: 'CSPX',  name: 'iShares Core S&P 500',     price: 542.80, currency: 'USD', exchange: 'LSE' },
+    { code: 'VUSA',  name: 'Vanguard S&P 500',         price: 98.45,  currency: 'GBP', exchange: 'LSE' },
+    { code: 'IWDA',  name: 'iShares MSCI World',       price: 98.12,  currency: 'USD', exchange: 'Euronext' },
+    { code: 'EQQQ',  name: 'Invesco NASDAQ-100',       price: 458.30, currency: 'GBP', exchange: 'LSE' },
+    { code: 'ISF',   name: 'iShares FTSE 100',         price: 8.42,   currency: 'GBP', exchange: 'LSE' },
+    { code: 'MEUD',  name: 'Amundi MSCI Europe',       price: 42.15,  currency: 'EUR', exchange: 'Euronext' },
+    { code: 'GLDA',  name: 'iShares Physical Gold',    price: 38.90,  currency: 'USD', exchange: 'LSE' },
+  ],
+  crypto: [
+    { code: 'BTC',   name: 'Bitcoin',    price: 67820,   currency: 'USD', exchange: 'Crypto' },
+    { code: 'ETH',   name: 'Ethereum',   price: 3845,    currency: 'USD', exchange: 'Crypto' },
+    { code: 'BNB',   name: 'BNB',        price: 612,     currency: 'USD', exchange: 'Crypto' },
+    { code: 'SOL',   name: 'Solana',     price: 178.40,  currency: 'USD', exchange: 'Crypto' },
+    { code: 'XRP',   name: 'XRP',        price: 0.612,   currency: 'USD', exchange: 'Crypto' },
+    { code: 'ADA',   name: 'Cardano',    price: 0.485,   currency: 'USD', exchange: 'Crypto' },
+    { code: 'DOT',   name: 'Polkadot',   price: 7.25,    currency: 'USD', exchange: 'Crypto' },
+    { code: 'AVAX',  name: 'Avalanche',  price: 36.80,   currency: 'USD', exchange: 'Crypto' },
+  ],
+  bond: [
+    { code: 'IE-10Y',   name: 'Irish Govt Bond 10Y',    price: 98.50,   currency: 'EUR', exchange: 'NTMA' },
+    { code: 'UK-GILT',  name: 'UK Gilt 10Y',            price: 97.20,   currency: 'GBP', exchange: 'DMO' },
+    { code: 'US-T10Y',  name: 'US Treasury Bond 10Y',   price: 96.80,   currency: 'USD', exchange: 'TreasuryDirect' },
+    { code: 'EU-5Y',    name: 'European Govt Bond 5Y',  price: 99.10,   currency: 'EUR', exchange: 'Euronext' },
+    { code: 'IBTA',     name: 'iShares € Govt Bond',   price: 101.40,  currency: 'EUR', exchange: 'Xetra' },
+    { code: 'VGOV',     name: 'Vanguard UK Gilt',       price: 18.50,   currency: 'GBP', exchange: 'LSE' },
+  ],
+};
+
+const TYPE_CONFIG = {
+  stock:  { label: '📈 Stocks',  desc: 'UK, EU & US shares',     color: 'bg-blue-600',   searchPlaceholder: 'E.g. AAPL, SHEL, ASML...' },
+  etf:    { label: '🌍 ETFs',    desc: 'Diversified funds',      color: 'bg-green-600',  searchPlaceholder: 'E.g. VWCE, CSPX, IWDA...' },
+  crypto: { label: '₿ Crypto',  desc: 'Digital assets',         color: 'bg-orange-500', searchPlaceholder: 'E.g. BTC, ETH, SOL...' },
+  bond:   { label: '🏦 Bonds',   desc: 'Fixed income & gilts',   color: 'bg-purple-600', searchPlaceholder: 'E.g. IE-10Y, UK-GILT...' },
+};
+
+const currencySymbol = (c = 'EUR') => c === 'GBP' ? '£' : c === 'USD' ? '$' : '€';
+
+type AssetType = keyof typeof POPULAR_ASSETS;
 
 export const AddAssetToPortfolio = ({ onBack }) => {
   const { addAsset } = usePortfolio();
-  const [assetType, setAssetType] = useState('acao');
+  const [assetType, setAssetType] = useState<AssetType>('stock');
   const [ticker, setTicker] = useState('');
   const [quantity, setQuantity] = useState('');
   const [avgPrice, setAvgPrice] = useState('');
-  const [purchaseDate, setPurchaseDate] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
+  const [currency, setCurrency] = useState('EUR');
+  const [searchResults, setSearchResults] = useState<typeof POPULAR_ASSETS.stock>([]);
   const [showSearch, setShowSearch] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
 
-  // Sugestões populares
-  const popularAssets = {
-    acao: [
-      { code: 'PETR4', name: 'Petrobras', currentPrice: 38.52 },
-      { code: 'VALE3', name: 'Vale', currentPrice: 65.80 },
-      { code: 'ITUB4', name: 'Itaú Unibanco', currentPrice: 28.45 },
-      { code: 'BBDC4', name: 'Bradesco', currentPrice: 15.20 },
-      { code: 'WEGE3', name: 'WEG', currentPrice: 42.30 },
-      { code: 'MGLU3', name: 'Magazine Luiza', currentPrice: 3.45 }
-    ],
-    fii: [
-      { code: 'HGLG11', name: 'CSHG Logística', currentPrice: 162.50 },
-      { code: 'MXRF11', name: 'Maxi Renda', currentPrice: 10.25 },
-      { code: 'VISC11', name: 'Vinci Shopping Centers', currentPrice: 8.95 },
-      { code: 'KNRI11', name: 'Kinea Renda Imobiliária', currentPrice: 9.80 },
-      { code: 'XPML11', name: 'XP Malls', currentPrice: 10.15 },
-      { code: 'BTLG11', name: 'BTG Pactual Logística', currentPrice: 103.40 }
-    ],
-    crypto: [
-      { code: 'BTC', name: 'Bitcoin', currentPrice: 52340 },
-      { code: 'ETH', name: 'Ethereum', currentPrice: 3250 },
-      { code: 'BNB', name: 'Binance Coin', currentPrice: 425 },
-      { code: 'SOL', name: 'Solana', currentPrice: 105 },
-      { code: 'ADA', name: 'Cardano', currentPrice: 0.85 },
-      { code: 'DOT', name: 'Polkadot', currentPrice: 8.50 }
-    ],
-    renda_fixa: [
-      { code: 'TESOURO-SELIC', name: 'Tesouro Selic 2029', currentPrice: 1050.30 },
-      { code: 'TESOURO-IPCA', name: 'Tesouro IPCA+ 2035', currentPrice: 3250.80 },
-      { code: 'CDB-INTER', name: 'CDB Inter 110% CDI', currentPrice: 1000 },
-      { code: 'LCI-NUBANK', name: 'LCI Nubank 95% CDI', currentPrice: 1000 },
-      { code: 'LCA-XP', name: 'LCA XP 100% CDI', currentPrice: 1000 },
-      { code: 'TESOURO-PREFIXADO', name: 'Tesouro Prefixado 2028', currentPrice: 875.50 }
-    ]
-  };
+  const totalInvested = quantity && avgPrice
+    ? parseFloat(quantity) * parseFloat(avgPrice)
+    : 0;
 
-  const handleSearch = (query) => {
+  const canSave = ticker.trim() && quantity && avgPrice &&
+    parseFloat(quantity) > 0 && parseFloat(avgPrice) > 0;
+
+  const handleSearch = (query: string) => {
     setTicker(query.toUpperCase());
-    if (query.length >= 2) {
-      const results = popularAssets[assetType].filter(
-        asset => 
-          asset.code.includes(query.toUpperCase()) || 
-          asset.name.toLowerCase().includes(query.toLowerCase())
+    setSaved(false);
+    setError('');
+    if (query.length >= 1) {
+      const results = POPULAR_ASSETS[assetType].filter(a =>
+        a.code.toLowerCase().includes(query.toLowerCase()) ||
+        a.name.toLowerCase().includes(query.toLowerCase())
       );
       setSearchResults(results);
       setShowSearch(true);
@@ -64,296 +91,231 @@ export const AddAssetToPortfolio = ({ onBack }) => {
     }
   };
 
-  const selectAsset = (asset) => {
+  const selectAsset = (asset: typeof POPULAR_ASSETS.stock[0]) => {
     setTicker(asset.code);
-    setAvgPrice(asset.currentPrice.toString());
+    setAvgPrice(asset.price.toString());
+    setCurrency(asset.currency);
     setShowSearch(false);
   };
 
-  const totalInvested = quantity && avgPrice ? parseFloat(quantity) * parseFloat(avgPrice) : 0;
+  const handleSave = async () => {
+    if (!canSave) return;
+    setSaving(true);
+    setError('');
+    const { error: err } = await addAsset({
+      code: ticker.trim(),
+      type: assetType,
+      quantity: parseFloat(quantity),
+      avg_price: parseFloat(avgPrice),
+      currency,
+    });
+    setSaving(false);
+    if (err) {
+      setError(typeof err === 'string' ? err : 'Failed to add asset. Please try again.');
+    } else {
+      setSaved(true);
+      setTimeout(() => onBack(), 1200);
+    }
+  };
+
+  const sym = currencySymbol(currency);
 
   return (
     <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
       {/* Header */}
       <header className="bg-green-600 z-50 flex-shrink-0">
         <div className="px-4 py-3 flex items-center justify-between">
-          <button onClick={onBack} className="text-white font-semibold">
-            Cancel
-          </button>
-          <h1 className="text-white font-bold text-lg">Add Ativo</h1>
+          <button onClick={onBack} className="text-white font-semibold text-sm">Cancel</button>
+          <h1 className="text-white font-bold text-lg">Add Asset</h1>
           <button
-            onClick={async () => {
-              if (ticker && quantity && avgPrice) {
-                const { error } = await addAsset({
-                  code: ticker,
-                  quantity: parseFloat(quantity),
-                  avg_price: parseFloat(avgPrice),
-                  type: assetType as 'acao' | 'fii' | 'crypto' | 'internacional'
-                });
-
-                if (error) {
-                  alert('❌ Failed to add ativo. Tente novamente.');
-                  console.error('Error adding asset:', error);
-                } else {
-                  alert(`✅ ${ticker} adicionado com sucesso à sua carteira! 🎉`);
-                  onBack();
-                }
-              }
-            }}
-            className={`font-semibold ${(ticker && quantity && avgPrice) ? 'text-white hover:text-white/90' : 'text-white/50 cursor-not-allowed'}`}
+            onClick={handleSave}
+            disabled={!canSave || saving || saved}
+            className={`text-sm font-bold transition ${canSave && !saving && !saved ? 'text-white' : 'text-white/40'}`}
           >
-            Add
+            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : saved ? '✓' : 'Save'}
           </button>
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 pb-24">
+      <div className="flex-1 overflow-y-auto p-4 pb-10 space-y-4">
+
         {/* Asset Type */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-          <p className="text-slate-700 font-semibold mb-3">Asset Type</p>
+        <div>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Asset Type</p>
           <div className="grid grid-cols-2 gap-2">
-            <button 
-              onClick={() => {
-                setAssetType('acao');
-                setTicker('');
-                setShowSearch(false);
-              }}
-              className={`py-3 px-4 rounded-xl font-semibold transition ${
-                assetType === 'acao' 
-                  ? 'bg-blue-600 text-white shadow-lg' 
-                  : 'bg-slate-100 text-slate-600'
-              }`}
-            >
-              📈 Ações
-            </button>
-            <button 
-              onClick={() => {
-                setAssetType('fii');
-                setTicker('');
-                setShowSearch(false);
-              }}
-              className={`py-3 px-4 rounded-xl font-semibold transition ${
-                assetType === 'fii' 
-                  ? 'bg-green-600 text-white shadow-lg' 
-                  : 'bg-slate-100 text-slate-600'
-              }`}
-            >
-              🏢 FIIs
-            </button>
-            <button 
-              onClick={() => {
-                setAssetType('crypto');
-                setTicker('');
-                setShowSearch(false);
-              }}
-              className={`py-3 px-4 rounded-xl font-semibold transition ${
-                assetType === 'crypto' 
-                  ? 'bg-orange-600 text-white shadow-lg' 
-                  : 'bg-slate-100 text-slate-600'
-              }`}
-            >
-              ₿ Cripto
-            </button>
-            <button 
-              onClick={() => {
-                setAssetType('renda_fixa');
-                setTicker('');
-                setShowSearch(false);
-              }}
-              className={`py-3 px-4 rounded-xl font-semibold transition ${
-                assetType === 'renda_fixa' 
-                  ? 'bg-purple-600 text-white shadow-lg' 
-                  : 'bg-slate-100 text-slate-600'
-              }`}
-            >
-              💰 Renda Fixa
-            </button>
+            {(Object.entries(TYPE_CONFIG) as [AssetType, typeof TYPE_CONFIG.stock][]).map(([key, cfg]) => (
+              <button
+                key={key}
+                onClick={() => { setAssetType(key); setTicker(''); setAvgPrice(''); setShowSearch(false); }}
+                className={`p-3 rounded-xl border-2 text-left transition ${
+                  assetType === key ? 'border-green-600 bg-green-50' : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <p className={`font-semibold text-sm ${assetType === key ? 'text-green-700' : 'text-slate-800'}`}>{cfg.label}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{cfg.desc}</p>
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Search Ativo */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm mb-4 relative">
-          <label className="text-slate-700 font-semibold mb-2 block">
-            Search Ativo *
-          </label>
+        {/* Search */}
+        <div>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Ticker / Symbol</p>
           <div className="relative">
-            <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
-              type="text"
               value={ticker}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder={
-                assetType === 'acao' ? 'Ex: PETR4, VALE3...' :
-                assetType === 'fii' ? 'Ex: HGLG11, MXRF11...' :
-                assetType === 'crypto' ? 'Ex: BTC, ETH...' :
-                'Ex: Tesouro Selic...'
-              }
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 rounded-xl text-slate-700 font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+              onChange={e => handleSearch(e.target.value)}
+              onFocus={() => ticker.length >= 1 && setShowSearch(true)}
+              placeholder={TYPE_CONFIG[assetType].searchPlaceholder}
+              className="w-full pl-9 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
+            {showSearch && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 z-20 overflow-hidden">
+                {searchResults.map(asset => (
+                  <button
+                    key={asset.code}
+                    onClick={() => selectAsset(asset)}
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 text-left border-b border-slate-100 last:border-0"
+                  >
+                    <div>
+                      <span className="font-bold text-slate-900 text-sm">{asset.code}</span>
+                      <span className="text-slate-500 text-xs ml-2">{asset.name}</span>
+                    </div>
+                    <span className="text-slate-600 text-xs font-medium">
+                      {currencySymbol(asset.currency)}{asset.price.toLocaleString('en-IE')}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Returns da Busca */}
-          {showSearch && searchResults.length > 0 && (
-            <div className="absolute left-4 right-4 top-full mt-2 bg-white rounded-xl shadow-lg border border-slate-200 max-h-64 overflow-y-auto z-50">
-              {searchResults.map(asset => (
-                <button
-                  key={asset.code}
-                  onClick={() => selectAsset(asset)}
-                  className="w-full px-4 py-3 hover:bg-slate-50 flex items-center justify-between border-b border-slate-100 last:border-b-0"
-                >
-                  <div className="text-left">
-                    <p className="font-bold text-slate-900">{asset.code}</p>
-                    <p className="text-sm text-slate-500">{asset.name}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-green-600">
-                      € {asset.currentPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                </button>
-              ))}
+          {/* Popular suggestions */}
+          {!ticker && (
+            <div className="mt-3">
+              <p className="text-xs text-slate-400 mb-2">Popular</p>
+              <div className="flex flex-wrap gap-2">
+                {POPULAR_ASSETS[assetType].slice(0, 6).map(a => (
+                  <button
+                    key={a.code}
+                    onClick={() => selectAsset(a)}
+                    className="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full hover:border-green-500 hover:text-green-700 transition"
+                  >
+                    {a.code}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Ativos Populares */}
-        {!ticker && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-            <p className="text-slate-700 font-semibold mb-3">✨ Populares em {
-              assetType === 'acao' ? 'Ações' :
-              assetType === 'fii' ? 'FIIs' :
-              assetType === 'crypto' ? 'Cripto' :
-              'Renda Fixa'
-            }</p>
-            <div className="space-y-2">
-              {popularAssets[assetType].slice(0, 4).map(asset => (
-                <button
-                  key={asset.code}
-                  onClick={() => selectAsset(asset)}
-                  className="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 rounded-xl flex items-center justify-between transition"
-                >
-                  <div className="text-left">
-                    <p className="font-bold text-slate-900">{asset.code}</p>
-                    <p className="text-sm text-slate-500">{asset.name}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-green-600">
-                      € {asset.currentPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
+        {/* Currency */}
+        <div>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Currency</p>
+          <div className="flex gap-2">
+            {['EUR', 'GBP', 'USD'].map(c => (
+              <button
+                key={c}
+                onClick={() => setCurrency(c)}
+                className={`flex-1 py-2.5 rounded-xl border-2 font-semibold text-sm transition ${
+                  currency === c ? 'border-green-600 bg-green-50 text-green-700' : 'border-slate-200 bg-white text-slate-600'
+                }`}
+              >
+                {c === 'EUR' ? '€ EUR' : c === 'GBP' ? '£ GBP' : '$ USD'}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
 
-        {/* Quantidade e Preço */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="text-slate-700 font-semibold mb-2 block">
-                Quantidade *
-              </label>
-              <input
-                type="number"
-                step={assetType === 'crypto' ? '0.00000001' : '1'}
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                placeholder={assetType === 'crypto' ? '0.05' : '100'}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-green-600"
-              />
-            </div>
-            <div>
-              <label className="text-slate-700 font-semibold mb-2 block">
-                Preço Médio *
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">
-                  €
-                </span>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={avgPrice}
-                  onChange={(e) => setAvgPrice(e.target.value)}
-                  placeholder="35.20"
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 rounded-xl text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-green-600"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Data de Compra */}
+        {/* Quantity & Price */}
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-slate-700 font-semibold mb-2 block">
-              Data de Compra (Opcional)
-            </label>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Quantity</p>
             <input
-              type="date"
-              value={purchaseDate}
-              onChange={(e) => setPurchaseDate(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 rounded-xl text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-green-600"
+              type="number"
+              value={quantity}
+              onChange={e => setQuantity(e.target.value)}
+              placeholder="0"
+              min="0"
+              step="any"
+              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Avg Price ({sym})</p>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{sym}</span>
+              <input
+                type="number"
+                value={avgPrice}
+                onChange={e => setAvgPrice(e.target.value)}
+                placeholder="0.00"
+                min="0"
+                step="any"
+                className="w-full pl-7 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Resumo do Investimento */}
-        {quantity && avgPrice && (
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 shadow-sm mb-4 border-2 border-green-200">
-            <p className="text-green-700 font-bold mb-3 flex items-center gap-2">
-              <Eye className="w-4 h-4" />
-              Resumo do Investimento
-            </p>
-            <div className="bg-white rounded-xl p-4">
-              {ticker && (
-                <div className="mb-3 pb-3 border-b border-slate-100">
-                  <p className="text-slate-500 text-sm mb-1">Ativo</p>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-2xl font-black text-green-700">{ticker}</h3>
-                    <span className={`text-xs px-2 py-1 rounded-full font-bold ${
-                      assetType === 'acao' ? 'bg-blue-100 text-blue-700' :
-                      assetType === 'fii' ? 'bg-green-100 text-green-700' :
-                      assetType === 'crypto' ? 'bg-orange-100 text-orange-700' :
-                      'bg-purple-100 text-purple-700'
-                    }`}>
-                      {assetType === 'acao' ? 'AÇÃO' :
-                       assetType === 'fii' ? 'FII' :
-                       assetType === 'crypto' ? 'CRIPTO' :
-                       'RENDA FIXA'}
-                    </span>
-                  </div>
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-4 mb-3">
-                <div>
-                  <p className="text-slate-500 text-sm mb-1">Quantidade</p>
-                  <p className="text-lg font-bold text-slate-900">{parseFloat(quantity).toLocaleString('pt-BR', { maximumFractionDigits: 8 })}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500 text-sm mb-1">Preço Médio</p>
-                  <p className="text-lg font-bold text-slate-900">€ {parseFloat(avgPrice).toFixed(2)}</p>
-                </div>
+        {/* Total */}
+        {totalInvested > 0 && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-semibold text-green-700">Total Invested</span>
               </div>
-              <div className="pt-3 border-t border-slate-100">
-                <p className="text-slate-500 text-sm mb-1">Valor Total Invested</p>
-                <p className="text-2xl font-black text-green-600">
-                  € {totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
+              <span className="text-lg font-bold text-green-700">
+                {sym}{totalInvested.toLocaleString('en-IE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
             </div>
           </div>
         )}
 
-        {/* Dicas */}
-        <div className="bg-blue-50 rounded-2xl p-4 border border-blue-200">
-          <p className="text-blue-900 font-bold mb-2">💡 Dica</p>
-          <p className="text-sm text-blue-800">
-            {assetType === 'acao' && 'Diversifique sua carteira com ações de diferentes setores para reduzir riscos.'}
-            {assetType === 'fii' && 'FIIs distribuem pelo menos 95% dos lucros como dividendos. Ótimos para renda passiva!'}
-            {assetType === 'crypto' && 'Criptomoedas são voláteis. Invista apenas o que você pode perder.'}
-            {assetType === 'renda_fixa' && 'Renda fixa oferece previsibilidade. Ideal para reserva de emergência e objetivos de curto prazo.'}
+        {/* Error */}
+        {error && (
+          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
+        {/* Success */}
+        {saved && (
+          <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+            <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+            <p className="text-sm text-green-700 font-semibold">{ticker} added to your portfolio!</p>
+          </div>
+        )}
+
+        {/* Save button */}
+        <button
+          onClick={handleSave}
+          disabled={!canSave || saving || saved}
+          className={`w-full py-4 rounded-2xl font-bold text-base transition flex items-center justify-center gap-2 ${
+            canSave && !saving && !saved
+              ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
+              : 'bg-slate-200 text-slate-400'
+          }`}
+        >
+          {saving ? <><Loader2 className="w-5 h-5 animate-spin" /> Saving...</>
+           : saved ? <><CheckCircle className="w-5 h-5" /> Saved!</>
+           : 'Add to Portfolio'}
+        </button>
+
+        {/* Tip */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+          <p className="text-xs text-blue-800">
+            💡 <strong>Tip:</strong>{' '}
+            {assetType === 'stock' && 'Diversify across sectors and geographies to reduce risk.'}
+            {assetType === 'etf' && 'ETFs like VWCE give you global diversification in a single fund.'}
+            {assetType === 'crypto' && 'Crypto is highly volatile. Only invest what you can afford to lose.'}
+            {assetType === 'bond' && 'Bonds and gilts provide stability and predictable income.'}
           </p>
         </div>
+
       </div>
     </div>
   );

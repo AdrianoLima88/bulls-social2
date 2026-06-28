@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../utils/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -19,7 +19,6 @@ export interface Post {
   is_premium: boolean;
   created_at: string;
   updated_at: string;
-  // Joined data from profiles
   profiles?: {
     username: string;
     name: string;
@@ -29,28 +28,49 @@ export interface Post {
   };
 }
 
+const POST_SELECT = `
+  id,
+  author_id,
+  type,
+  content,
+  media,
+  charts,
+  documents,
+  tags,
+  likes_count,
+  comments_count,
+  shares_count,
+  views_count,
+  is_pinned,
+  is_premium,
+  created_at,
+  updated_at,
+  profiles:author_id (
+    username,
+    name,
+    avatar_url,
+    verified,
+    user_type
+  )
+`;
+
+const PAGE_SIZE = 20;
+
 export const usePosts = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [likesMap, setLikesMap] = useState<Record<string, boolean>>({});
   const { user } = useAuth();
 
-  // Fetch all posts
-  const fetchPosts = async () => {
+  // Fetch posts with pagination
+  const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('posts')
-        .select(`
-          *,
-          profiles:author_id (
-            username,
-            name,
-            avatar_url,
-            verified,
-            user_type
-          )
-        `)
-        .order('created_at', { ascending: false });
+        .select(POST_SELECT)
+        .order('created_at', { ascending: false })
+        .limit(PAGE_SIZE);
 
       if (error) throw error;
       setPosts(data || []);
@@ -59,7 +79,34 @@ export const usePosts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Fetch likes only for current user
+  const fetchLikes = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from('likes')
+        .select('post_id')
+        .eq('user_id', user.id)
+        .not('post_id', 'is', null);
+
+      const map: Record<string, boolean> = {};
+      data?.forEach(like => {
+        if (like.post_id) map[like.post_id] = true;
+      });
+      setLikesMap(map);
+    } catch (error) {
+      console.error('Error fetching likes:', error);
+    }
+  }, [user]);
+
+  // Update a single post in state without refetching all
+  const updatePostInState = useCallback((updatedPost: Partial<Post> & { id: string }) => {
+    setPosts(prev =>
+      prev.map(p => p.id === updatedPost.id ? { ...p, ...updatedPost } : p)
+    );
+  }, []);
 
   // Create a new post
   const createPost = async (postData: {
@@ -70,10 +117,7 @@ export const usePosts = () => {
     documents?: any;
     tags?: string[];
   }) => {
-    if (!user) {
-      console.error('User not authenticated');
-      return { error: 'Not authenticated' };
-    }
+    if (!user) return { error: 'Not authenticated' };
 
     try {
       const { data, error } = await supabase
@@ -91,30 +135,13 @@ export const usePosts = () => {
           shares_count: 0,
           views_count: 0,
         })
-        .select(`
-          *,
-          profiles:author_id (
-            username,
-            name,
-            avatar_url,
-            verified,
-            user_type
-          )
-        `)
+        .select(POST_SELECT)
         .single();
 
       if (error) throw error;
 
-      console.log('✅ Post criado com contadores:', {
-        id: data.id,
-        likes_count: data.likes_count,
-        comments_count: data.comments_count,
-        shares_count: data.shares_count,
-        views_count: data.views_count
-      });
-
-      // Refresh posts after creating
-      await fetchPosts();
+      // Add new post to top of list without full refetch
+      setPosts(prev => [data, ...prev]);
       return { data, error: null };
     } catch (error) {
       console.error('Error creating post:', error);
@@ -131,12 +158,12 @@ export const usePosts = () => {
         .from('posts')
         .delete()
         .eq('id', postId)
-        .eq('author_id', user.id); // Only allow deleting own posts
+        .eq('author_id', user.id);
 
       if (error) throw error;
 
-      // Refresh posts after deleting
-      await fetchPosts();
+      // Remove from state without refetch
+      setPosts(prev => prev.filter(p => p.id !== postId));
       return { error: null };
     } catch (error) {
       console.error('Error deleting post:', error);
@@ -144,123 +171,91 @@ export const usePosts = () => {
     }
   };
 
-  // Toggle like on a post
+  // Toggle like - optimistic update, no refetch
   const toggleLike = async (postId: string) => {
     if (!user) return { error: 'Not authenticated' };
 
+    const isLiked = likesMap[postId];
+
+    // Optimistic update — update UI immediately
+    setLikesMap(prev => ({ ...prev, [postId]: !isLiked }));
+    updatePostInState({
+      id: postId,
+      likes_count: (posts.find(p => p.id === postId)?.likes_count || 0) + (isLiked ? -1 : 1),
+    });
+
     try {
-      const isLiked = likesMap[postId];
-      const newLikeState = !isLiked;
-
-      // Update local state FIRST for immediate UI feedback
-      setLikesMap(prev => ({
-        ...prev,
-        [postId]: newLikeState
-      }));
-
       if (isLiked) {
-        // Unlike
         const { error } = await supabase
           .from('likes')
           .delete()
           .eq('post_id', postId)
           .eq('user_id', user.id);
-
-        if (error) {
-          // Revert on error
-          setLikesMap(prev => ({
-            ...prev,
-            [postId]: isLiked
-          }));
-          throw error;
-        }
+        if (error) throw error;
       } else {
-        // Like
         const { error } = await supabase
           .from('likes')
-          .insert({
-            post_id: postId,
-            user_id: user.id,
-          });
-
-        if (error) {
-          // Revert on error
-          setLikesMap(prev => ({
-            ...prev,
-            [postId]: isLiked
-          }));
-          throw error;
-        }
+          .insert({ post_id: postId, user_id: user.id });
+        if (error) throw error;
       }
-
-      // Refresh posts in background (don't wait)
-      fetchPosts();
-
       return { error: null };
     } catch (error) {
+      // Revert on error
+      setLikesMap(prev => ({ ...prev, [postId]: isLiked }));
+      updatePostInState({
+        id: postId,
+        likes_count: (posts.find(p => p.id === postId)?.likes_count || 0) + (isLiked ? 1 : -1),
+      });
       console.error('Error toggling like:', error);
       return { error };
     }
   };
 
-  // Get likes for all posts
-  const [likesMap, setLikesMap] = useState<Record<string, boolean>>({});
+  const hasLiked = (postId: string) => likesMap[postId] || false;
 
-  const fetchLikes = async () => {
+  useEffect(() => {
     if (!user) return;
 
-    try {
-      const { data } = await supabase
-        .from('likes')
-        .select('post_id')
-        .eq('user_id', user.id)
-        .not('post_id', 'is', null);
+    fetchPosts();
+    fetchLikes();
 
-      const map: Record<string, boolean> = {};
-      data?.forEach(like => {
-        if (like.post_id) map[like.post_id] = true;
-      });
-      setLikesMap(map);
-    } catch (error) {
-      console.error('Error fetching likes:', error);
-    }
-  };
+    // Realtime: update single post instead of refetching all
+    const channel = supabase
+      .channel('posts_changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'posts' },
+        async (payload) => {
+          // Fetch full post with profile data
+          const { data } = await supabase
+            .from('posts')
+            .select(POST_SELECT)
+            .eq('id', payload.new.id)
+            .single();
+          if (data) setPosts(prev => [data, ...prev.filter(p => p.id !== data.id)]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'posts' },
+        (payload) => {
+          // Only update the changed post
+          updatePostInState(payload.new as Post);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'posts' },
+        (payload) => {
+          setPosts(prev => prev.filter(p => p.id !== payload.old.id));
+        }
+      )
+      .subscribe();
 
-  // Check if user has liked a post
-  const hasLiked = (postId: string) => {
-    return likesMap[postId] || false;
-  };
-
-  // Fetch posts on mount
-  useEffect(() => {
-    if (user) {
-      fetchPosts();
-      fetchLikes();
-
-      // Subscribe to realtime changes
-      const channel = supabase
-        .channel('posts_changes')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'posts' },
-          () => {
-            fetchPosts();
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'likes' },
-          () => {
-            fetchLikes();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchPosts, fetchLikes]);
 
   return {
     posts,

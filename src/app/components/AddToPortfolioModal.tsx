@@ -5,7 +5,7 @@ import { useApp } from '../contexts/AppContext';
 
 interface AddToPortfolioModalProps {
   asset: any;
-  assetType: 'stock' | 'fii' | 'crypto' | 'international';
+  assetType: 'stock' | 'etf' | 'crypto' | 'international';
   onClose: () => void;
 }
 
@@ -15,7 +15,7 @@ export const AddToPortfolioModal: React.FC<AddToPortfolioModalProps> = ({ asset,
   const [avgPrice, setAvgPrice] = useState(asset.price.toString());
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const currency = assetType === 'stock' || assetType === 'fii' ? '€' : '$';
+  const currency = assetType === 'stock' || assetType === 'etf' ? '€' : '$';
   const totalInvested = parseFloat(quantity || '0') * parseFloat(avgPrice || '0');
   const currentValue = parseFloat(quantity || '0') * asset.price;
   const profit = currentValue - totalInvested;
@@ -23,30 +23,30 @@ export const AddToPortfolioModal: React.FC<AddToPortfolioModalProps> = ({ asset,
 
   const handleAdd = () => {
     if (!quantity || parseFloat(quantity) <= 0) {
-      toast.error('Insira uma quantidade válida');
+      toast.error('Please enter a valid quantity');
       return;
     }
 
     if (!avgPrice || parseFloat(avgPrice) <= 0) {
-      toast.error('Insira um preço médio válido');
+      toast.error('Please enter a valid average price');
       return;
     }
 
-    // Mapear tipo do ativo
+    // Map asset type
     const assetTypeMap = {
-      'stock': 'acao',
-      'fii': 'fii',
+      'stock': 'stock',
+      'etf': 'etf',
       'crypto': 'crypto',
-      'international': 'acao'
+      'international': 'stock'
     };
 
-    // Add à carteira
+    // Add to portfolio
     addAsset({
       code: asset.code,
       quantity: parseFloat(quantity),
       avgPrice: parseFloat(avgPrice),
       currentPrice: asset.price,
-      type: assetTypeMap[assetType] as 'acao' | 'fii' | 'crypto' | 'renda_fixa',
+      type: assetTypeMap[assetType] as 'stock' | 'etf' | 'crypto' | 'bond',
       purchaseDate: purchaseDate
     });
 
@@ -79,7 +79,7 @@ export const AddToPortfolioModal: React.FC<AddToPortfolioModalProps> = ({ asset,
             <p className="text-sm text-slate-600 mb-1">Current Asset Price</p>
             <div className="flex items-end gap-2">
               <p className="text-3xl font-bold text-slate-900">
-                {currency} {asset.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                {currency} {asset.price.toLocaleString('en-IE', { minimumFractionDigits: 2 })}
               </p>
               <p className={`text-sm font-semibold mb-1 ${asset.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {asset.change >= 0 ? '+' : ''}{asset.change.toFixed(2)}%
@@ -90,7 +90,7 @@ export const AddToPortfolioModal: React.FC<AddToPortfolioModalProps> = ({ asset,
           {/* Quantity */}
           <div className="mb-6">
             <label className="block text-sm font-bold text-slate-900 mb-2">
-              Quantidade {assetType === 'crypto' ? '(units)' : '(units)'}
+              Quantity (units)
             </label>
             <input
               type="number"
@@ -152,7 +152,7 @@ export const AddToPortfolioModal: React.FC<AddToPortfolioModalProps> = ({ asset,
               
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Quantidade:</span>
+                  <span className="text-slate-600">Quantity:</span>
                   <span className="font-semibold text-slate-900">
                     {quantity} {assetType === 'crypto' ? 'units' : 'units'}
                   </span>
@@ -160,27 +160,27 @@ export const AddToPortfolioModal: React.FC<AddToPortfolioModalProps> = ({ asset,
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Avg Price:</span>
                   <span className="font-semibold text-slate-900">
-                    {currency} {parseFloat(avgPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    {currency} {parseFloat(avgPrice).toLocaleString('en-IE', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Total Invested:</span>
                   <span className="font-semibold text-slate-900">
-                    {currency} {totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    {currency} {totalInvested.toLocaleString('en-IE', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="pt-2 border-t border-slate-200">
                   <div className="flex justify-between mb-1">
                     <span className="text-slate-600 text-sm">Current Value:</span>
                     <span className="font-semibold text-slate-900">
-                      {currency} {currentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {currency} {currentValue.toLocaleString('en-IE', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-bold text-slate-900">Return:</span>
                     <div className="text-right">
                       <span className={`font-bold text-lg ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {profit >= 0 ? '+' : ''}{currency} {Math.abs(profit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        {profit >= 0 ? '+' : ''}{currency} {Math.abs(profit).toLocaleString('en-IE', { minimumFractionDigits: 2 })}
                       </span>
                       <p className={`text-xs font-semibold ${profitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(2)}%

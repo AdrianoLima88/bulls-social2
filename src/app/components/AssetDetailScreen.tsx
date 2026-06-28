@@ -91,7 +91,7 @@ export const AssetDetailScreen = ({ asset, onBack, onAddMore, onSell }) => {
           <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
             <p className="text-white/80 text-sm mb-2">Current Value</p>
             <p className="text-4xl font-black mb-3">
-              {asset.type === 'crypto' || asset.type === 'international' ? '$' : '€'} {current.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {asset.type === 'crypto' || asset.type === 'international' ? '$' : '€'} {current.toLocaleString('en-IE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             
             <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
@@ -99,7 +99,7 @@ export const AssetDetailScreen = ({ asset, onBack, onAddMore, onSell }) => {
             }`}>
               {isPositive ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
               <span className="font-bold">
-                {isPositive ? '+' : ''}{asset.type === 'crypto' || asset.type === 'international' ? '$' : '€'} {Math.abs(profit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({profitPct.toFixed(2)}%)
+                {isPositive ? '+' : ''}{asset.type === 'crypto' || asset.type === 'international' ? '$' : '€'} {Math.abs(profit).toLocaleString('en-IE', { minimumFractionDigits: 2 })} ({profitPct.toFixed(2)}%)
               </span>
             </div>
           </div>
@@ -118,7 +118,7 @@ export const AssetDetailScreen = ({ asset, onBack, onAddMore, onSell }) => {
               <div>
                 <p className="text-slate-500 text-sm mb-1">Quantity</p>
                 <p className="text-lg font-bold text-slate-900">
-                  {asset.quantity.toLocaleString('pt-BR', { maximumFractionDigits: 8 })}
+                  {asset.quantity.toLocaleString('en-IE', { maximumFractionDigits: 8 })}
                 </p>
               </div>
               <div>
@@ -136,7 +136,7 @@ export const AssetDetailScreen = ({ asset, onBack, onAddMore, onSell }) => {
               <div>
                 <p className="text-slate-500 text-sm mb-1">Invested</p>
                 <p className="text-lg font-bold text-slate-900">
-                  {asset.type === 'crypto' || asset.type === 'international' ? '$' : '€'} {invested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {asset.type === 'crypto' || asset.type === 'international' ? '$' : '€'} {invested.toLocaleString('en-IE', { minimumFractionDigits: 2 })}
                 </p>
               </div>
             </div>
@@ -280,7 +280,7 @@ export const AssetDetailScreen = ({ asset, onBack, onAddMore, onSell }) => {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 animate-scale-up">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-slate-900">Remove da Portfolio?</h3>
+              <h3 className="text-xl font-bold text-slate-900">Remove from Portfolio?</h3>
               <button
                 onClick={() => setShowRemoveModal(false)}
                 className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center hover:bg-slate-200 transition"
@@ -290,18 +290,18 @@ export const AssetDetailScreen = ({ asset, onBack, onAddMore, onSell }) => {
             </div>
 
             <div className="mb-6">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
-                <p className="text-sm text-yellow-900">
-                  📚 <span className="font-semibold">Atenção:</span> Você está removendo <span className="font-bold">{asset.code}</span> da sua carteira de acompanhamento educacional.
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                <p className="text-sm text-red-900">
+                  🗑️ You are about to remove <span className="font-bold">{asset.code}</span> from your portfolio. This action cannot be undone.
                 </p>
               </div>
 
               <div className="space-y-2 text-sm text-slate-700">
                 <p>
-                  ⚠️ <span className="font-semibold">O Bulls é uma rede social educacional.</span> Esta ação apenas remove o ativo da sua lista de acompanhamento.
+                  ⚠️ This will permanently remove this asset from your portfolio.
                 </p>
                 <p className="mt-3">
-                  💡 <span className="font-semibold">Nenhuma transação real será realizada.</span> Para comprar ou vender ativos reais, utilize sua corretora de investimentos.
+                  💡 No real transactions will be made. To buy or sell real assets, use your broker.
                 </p>
               </div>
             </div>
@@ -320,7 +320,7 @@ export const AssetDetailScreen = ({ asset, onBack, onAddMore, onSell }) => {
                 }}
                 className="flex-1 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition shadow-lg"
               >
-                Sim, Remove
+                Yes, Remove
               </button>
             </div>
           </div>

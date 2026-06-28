@@ -37,33 +37,38 @@ export const PortfolioScreen = ({ onBack, onAddAsset, onViewAsset }) => {
         </div>
       </header>
 
-      {/* Resumo Total */}
-      <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 flex-shrink-0">
-        <p className="text-white/80 text-sm mb-1">Total Portfolio Value</p>
-        <p className="text-white text-4xl font-bold mb-3">
-          € {currentTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </p>
-        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
-          totalProfit >= 0 ? 'bg-white/20' : 'bg-red-500/30'
-        }`}>
-          {totalProfit >= 0 ? <TrendingUp className="w-5 h-5 text-white" /> : <TrendingDown className="w-5 h-5 text-white" />}
-          <span className="text-white font-bold">
-            {totalProfit >= 0 ? '+' : ''}€ {Math.abs(totalProfit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </span>
-          <span className="text-white/90">({profitPercent.toFixed(2)}%)</span>
-        </div>
-
-        {/* Mini Stats */}
-        <div className="grid grid-cols-2 gap-4 mt-6">
-          <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-            <p className="text-white/80 text-xs mb-1">Invested</p>
-            <p className="text-white font-bold">
-              € {totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+      {/* Resumo Total — compact */}
+      <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-3 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-white/80 text-xs">Total Value</p>
+            <p className="text-white text-2xl font-bold">
+              € {currentTotal.toLocaleString('en-IE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
-          <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-            <p className="text-white/80 text-xs mb-1">Ativos</p>
-            <p className="text-white font-bold">{portfolio.length}</p>
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${
+            totalProfit >= 0 ? 'bg-white/20' : 'bg-red-500/30'
+          }`}>
+            {totalProfit >= 0 ? <TrendingUp className="w-4 h-4 text-white" /> : <TrendingDown className="w-4 h-4 text-white" />}
+            <span className="text-white text-sm font-bold">
+              {totalProfit >= 0 ? '+' : ''}{profitPercent.toFixed(2)}%
+            </span>
+          </div>
+        </div>
+        <div className="flex gap-4 mt-2">
+          <div>
+            <p className="text-white/70 text-xs">Invested</p>
+            <p className="text-white text-sm font-semibold">€ {totalInvested.toLocaleString('en-IE', { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div>
+            <p className="text-white/70 text-xs">Assets</p>
+            <p className="text-white text-sm font-semibold">{portfolio.length}</p>
+          </div>
+          <div>
+            <p className="text-white/70 text-xs">Return</p>
+            <p className="text-white text-sm font-semibold">
+              {totalProfit >= 0 ? '+' : ''}€ {Math.abs(totalProfit).toLocaleString('en-IE', { minimumFractionDigits: 2 })}
+            </p>
           </div>
         </div>
       </div>
@@ -131,13 +136,13 @@ export const PortfolioScreen = ({ onBack, onAddAsset, onViewAsset }) => {
                       <div>
                         <p className="text-xs text-slate-500 mb-1">Current Value</p>
                         <p className="font-bold text-slate-900 text-lg">
-                          {item.type === 'crypto' ? '$' : '€'} {current.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {item.type === 'crypto' ? '$' : '€'} {current.toLocaleString('en-IE', { minimumFractionDigits: 2 })}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-slate-500 mb-1">Return</p>
                         <p className={`font-bold text-lg ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {profit >= 0 ? '+' : ''}{profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {profit >= 0 ? '+' : ''}{profit.toLocaleString('en-IE', { minimumFractionDigits: 2 })}
                         </p>
                         <p className={`text-sm font-semibold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           ({profitPct.toFixed(2)}%)

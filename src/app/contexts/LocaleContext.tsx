@@ -50,7 +50,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'feed.title': 'Bulls',
     'feed.subtitle': 'Market Financeiro',
     'feed.filter.all': 'Todos',
-    'feed.filter.following': 'Following',
+    'feed.filter.following': 'Seguindo',
     'feed.filter.trending': 'Em Alta',
     'feed.all': 'Todos',
     'feed.analyses': 'Análises',

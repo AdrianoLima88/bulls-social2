@@ -92,10 +92,10 @@ export const EditProfileScreen = ({ onBack, onSave, initialData }) => {
     if (file) {
       const { error, url } = await uploadImage(file, 'banner');
       if (error) {
-        alert(`Erro ao fazer upload: ${error}`);
+        alert(`Upload failed: ${error}`);
       } else if (url) {
         setSelectedBanner(url);
-        alert('Banner atualizado com sucesso!');
+        // Banner updated - UI already reflects the change
       }
     }
   };
@@ -105,10 +105,10 @@ export const EditProfileScreen = ({ onBack, onSave, initialData }) => {
     if (file) {
       const { error, url } = await uploadImage(file, 'avatar');
       if (error) {
-        alert(`Erro ao fazer upload: ${error}`);
+        alert(`Upload failed: ${error}`);
       } else if (url) {
         setSelectedProfilePic(url);
-        alert('Foto de perfil atualizada com sucesso!');
+        // Avatar updated - UI already reflects the change
       }
     }
   };
@@ -560,7 +560,7 @@ export const EditProfileScreen = ({ onBack, onSave, initialData }) => {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex items-center justify-between">
-              <h3 className="font-bold text-slate-900">Preview do Profile</h3>
+              <h3 className="font-bold text-slate-900">Profile Preview</h3>
               <button 
                 onClick={() => setShowPreview(false)}
                 className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center"
@@ -571,30 +571,38 @@ export const EditProfileScreen = ({ onBack, onSave, initialData }) => {
             
             {/* Preview Content */}
             <div className="p-4">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 h-24 rounded-xl mb-4"></div>
+              {/* Banner */}
+              <div className="h-24 rounded-xl mb-4 overflow-hidden">
+                {selectedBanner && typeof selectedBanner === 'string' && selectedBanner.startsWith('http') ? (
+                  <img src={selectedBanner} alt="Banner" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-r from-green-500 to-emerald-600" />
+                )}
+              </div>
+              {/* Avatar + Name */}
               <div className="flex items-start gap-4 mb-4">
-                <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center text-white text-xl font-bold -mt-8 border-4 border-white">
-                  MS
+                <div className="w-16 h-16 rounded-full border-4 border-white -mt-10 overflow-hidden flex-shrink-0 shadow">
+                  {selectedProfilePic && typeof selectedProfilePic === 'string' && selectedProfilePic.startsWith('http') ? (
+                    <img src={selectedProfilePic} alt={name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-green-600 flex items-center justify-center text-white text-xl font-bold">
+                      {name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2) || 'U'}
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 pt-2">
                   <h2 className="text-xl font-bold text-slate-900">{name}</h2>
-                  <p className="text-slate-600">{username}</p>
+                  <p className="text-slate-500 text-sm">@{username}</p>
                 </div>
               </div>
               
-              <p className="text-slate-700 mb-3">{bio}</p>
+              <p className="text-slate-700 mb-3 text-sm">{bio}</p>
               
-              <div className="space-y-2 text-sm text-slate-600 mb-4">
-                {jobTitle && <p>💼 {jobTitle} {company && `at ${company}`}</p>}
+              <div className="space-y-1.5 text-sm text-slate-600 mb-4">
+                {jobTitle && <p>💼 {jobTitle}{company ? ` at ${company}` : ''}</p>}
                 {education && <p>🎓 {education}</p>}
                 {location && <p>📍 {location}</p>}
                 {website && <p>🔗 {website}</p>}
-              </div>
-              
-              <div className="flex gap-4 text-sm">
-                <span><strong>234</strong> Followers</span>
-                <span><strong>189</strong> Following</span>
-                <span><strong>45</strong> Posts</span>
               </div>
             </div>
           </div>
@@ -606,7 +614,7 @@ export const EditProfileScreen = ({ onBack, onSave, initialData }) => {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-slate-900">Nova Certificação</h3>
+              <h3 className="text-xl font-bold text-slate-900">New Certification</h3>
               <button 
                 onClick={() => {
                   setShowAddCert(false);

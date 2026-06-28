@@ -30,6 +30,22 @@
 - Hook `useNotifications()` para gerenciar notificações
 - Contador em tempo real de notificações não lidas
 - Marcar como lida / Marcar todas como lidas
+- ✅ Navegação ao tocar na notificação (vai para o post ou perfil)
+
+### 5. ✅ **Push Notifications nativas (OneSignal)** — 2026-06-28
+- Trigger `on_notification_created_push` em `public.notifications` (AFTER INSERT)
+- A cada notificação criada, o Postgres chama (via `pg_net`) a Edge Function `send-notification`
+- A Edge Function envia o push real pelo OneSignal para o celular/PWA do usuário
+- Título "Bulls" + mensagem com o nome de quem curtiu/comentou/seguiu/compartilhou
+- Testado de ponta a ponta (trigger → pg_net → Edge Function → OneSignal): **funcionando**
+- ⚠️ **Importante para iOS:** push web (OneSignal) só funciona no iPhone se o usuário **adicionar o site à Tela de Início** (Compartilhar → Adicionar à Tela de Início). Direto no Safari normal, o iOS não entrega push de site nenhum — isso é uma limitação do próprio iOS, não do código.
+- ⚠️ O usuário também precisa aceitar a permissão de notificações quando o app perguntar (acontece automaticamente ~3s após o login)
+
+### 6. ✅ Feed personalizado ("Seguindo") — 2026-06-28
+- Nova aba "Seguindo" nos chips de categoria do feed (ao lado de "Todos")
+- Hook `src/hooks/useFollowingFeed.ts`: busca a lista de quem o usuário segue (tabela `follows`) e carrega só os posts desses autores, com realtime para novos posts/curtidas/comentários
+- Estado vazio próprio: se o usuário não segue ninguém (ou quem segue não postou nada), mostra mensagem incentivando a seguir outros investidores
+- Filtros, "Pessoas sugeridas" e "Seguindo" revisados/implementados juntos nesta mesma sessão
 
 ---
 
@@ -151,11 +167,12 @@ const {
 
 ## ⚡ **Próximos Passos Sugeridos:**
 
-1. 🔲 Implementar navegação ao clicar em notificação (ir para o post/perfil)
-2. 🔲 Adicionar filtros na tela de notificações (curtidas, comentários, etc.)
-3. 🔲 Implementar "Pessoas sugeridas para seguir"
-4. 🔲 Feed personalizado (posts de quem você segue)
-5. 🔲 Trending topics baseado em compartilhamentos/visualizações
+1. ✅ ~~Implementar navegação ao clicar em notificação (ir para o post/perfil)~~ — feito
+2. ✅ ~~Push notifications nativas no celular (OneSignal)~~ — feito
+3. ✅ ~~Adicionar filtros na tela de notificações (curtidas, comentários, etc.)~~ — revisado; já estava implementado em `NotificationsScreen.tsx` (chips all/like/comment/follow/share)
+4. ✅ ~~Implementar "Pessoas sugeridas para seguir"~~ — revisado; já estava implementado (`SuggestedProfiles.tsx` + `useSuggestedProfiles`, exibido no topo do feed)
+5. ✅ ~~Feed personalizado (posts de quem você segue)~~ — feito em 2026-06-28: nova aba "Seguindo" no feed, hook `useFollowingFeed` busca posts só de quem o usuário segue
+6. 🔲 Trending topics baseado em compartilhamentos/visualizações
 
 ---
 

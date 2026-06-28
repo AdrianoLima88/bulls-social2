@@ -433,7 +433,8 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
                 : 'bg-gradient-to-r from-green-500 to-emerald-600'
               : ''
           }`}
-          style={profile.selectedBanner && typeof profile.selectedBanner === 'string' && profile.selectedBanner.startsWith('data:') ? {
+          style={profile.selectedBanner && typeof profile.selectedBanner === 'string' && 
+            (profile.selectedBanner.startsWith('data:') || profile.selectedBanner.startsWith('http')) ? {
             backgroundImage: `url(${profile.selectedBanner})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
@@ -443,33 +444,25 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
         {/* Profile Info */}
         <div className="px-4">
           <div className="flex items-start justify-between -mt-16 mb-4">
-            <div 
-              className={`w-32 h-32 rounded-full border-4 border-white flex items-center justify-center text-white text-4xl font-bold shadow-lg overflow-hidden ${
-                !profile.selectedProfilePic || (typeof profile.selectedProfilePic === 'string' && !profile.selectedProfilePic.startsWith('data:'))
-                  ? profile.selectedProfilePic
-                    ? (() => {
-                        const gradients = {
-                          green: 'bg-gradient-to-br from-green-500 to-emerald-600',
-                          blue: 'bg-gradient-to-br from-blue-500 to-blue-700',
-                          purple: 'bg-gradient-to-br from-purple-500 to-purple-700',
-                          orange: 'bg-gradient-to-br from-orange-500 to-orange-700',
-                          pink: 'bg-gradient-to-br from-pink-500 to-pink-700',
-                          slate: 'bg-gradient-to-br from-slate-600 to-slate-800'
-                        };
-                        return gradients[profile.selectedProfilePic] || 'bg-green-600';
-                      })()
-                    : 'bg-green-600'
-                  : ''
-              }`}
-              style={profile.selectedProfilePic && typeof profile.selectedProfilePic === 'string' && profile.selectedProfilePic.startsWith('data:') ? {
-                backgroundImage: `url(${profile.selectedProfilePic})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center'
-              } : {}}
-            >
-              {(!profile.selectedProfilePic || (typeof profile.selectedProfilePic === 'string' && !profile.selectedProfilePic.startsWith('data:'))) && 
-                profile.name.split(' ').map(n => n[0]).join('').substring(0, 2)
-              }
+            <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden flex-shrink-0">
+              {(profile.selectedProfilePic && typeof profile.selectedProfilePic === 'string' && 
+                (profile.selectedProfilePic.startsWith('http') || profile.selectedProfilePic.startsWith('data:'))) ? (
+                <img
+                  src={profile.selectedProfilePic}
+                  alt={profile.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-green-600 flex items-center justify-center text-white text-3xl font-bold">
+                  {profile.name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2) || 'U'}
+                </div>
+              )}
             </div>
             <div className="mt-20 flex gap-2 flex-wrap">
               {isOwnProfile ? (
