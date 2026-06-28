@@ -175,6 +175,13 @@ const {
 6. ✅ ~~Trending topics baseado em compartilhamentos/visualizações~~ — feito em 2026-06-28: aba "Trending" do Explore já existia, mas rankeava só por contagem de posts e tinha fallback com dados falsos; agora rankeia por engajamento real (shares×5 + views), compara janela atual (7d) vs anterior (7d) pra marcar Rising/Falling/New, e some o fallback fake — lista vazia mostra "No hashtags found"
    - **Correção adicional (mesmo dia):** a tela de busca (`SearchScreen.tsx`, "Assuntos do momento") usava uma fonte de dados totalmente diferente e 100% fake — o `AppContext.tsx` antigo, com posts mock hardcoded (tags como VALE3, PETR4, ITUB4 etc. com contagens inventadas) e um ícone de tendência estático. Criado hook compartilhado `useTrendingTags` (mesma lógica de engajamento real) e usado tanto no Explore quanto na busca; a busca de posts também passou a consultar o Supabase de verdade em vez do mock. Telas e textos da busca também foram conectados ao sistema de idiomas (`t()`), que estava importado mas nunca usado.
 
+### 7. ✅ Correção: contador de likes/comentários zerado e notificações "vazias" — 2026-06-28
+- **Bug 1 (contador):** quando outro usuário (não o autor do post) curtia ou comentava, `posts.likes_count`/`comments_count` continuavam em 0. Causa: as funções de trigger `increment_post_likes`, `decrement_post_likes`, `increment_comment_count`, `decrement_comment_count` e `update_follow_counts` não eram `SECURITY DEFINER` — rodavam com o RLS do usuário que curtiu/comentou, e a policy de UPDATE em `posts`/`profiles` só permite o próprio dono atualizar a própria linha. O `UPDATE` do contador era então silenciosamente bloqueado pelo RLS (0 linhas afetadas, sem erro). As funções de notificação já eram `SECURITY DEFINER` — por isso a notificação era criada, mas o contador não.
+  - Corrigido via `ALTER FUNCTION ... SECURITY DEFINER` nas 5 funções acima.
+  - Contadores existentes recalculados (`UPDATE posts SET likes_count = (SELECT COUNT...)`, idem `comments_count`, `followers_count`, `following_count`) para corrigir o histórico que já tinha ficado errado.
+- **Bug 2 (notificações "vazias" na tela, mas com badge "1 unread"):** o hook `useNotifications.ts` só buscava a contagem de não lidas no mount (`fetchUnreadCount`, rápido — usado no sino do feed) e nunca disparava a busca da lista completa (`fetchNotifications`, exposta como `refreshNotifications`). A lista só era preenchida se uma notificação nova chegasse via Realtime enquanto a tela estava aberta. `NotificationsScreen.tsx` nunca chamava `refreshNotifications()` ao abrir.
+  - Corrigido adicionando um `useEffect` em `NotificationsScreen.tsx` que chama `refreshNotifications()` ao montar a tela.
+
 ---
 
 ## 🎉 **Status:**

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Heart, MessageCircle, UserPlus, AtSign, Bell, Share2, CheckCheck, Trash2 } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -14,10 +14,17 @@ export const NotificationsScreen = ({ onBack, onNavigateToPost, onNavigateToProf
     getNotificationMessage,
     getTimeAgo,
     unreadCount,
+    refreshNotifications,
   } = useNotifications();
 
   const [activeFilter, setActiveFilter] = useState('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // O hook só busca a contagem de não lidas no mount (rápido, usado no sino do feed).
+  // Esta tela precisa da lista completa, então busca explicitamente ao abrir.
+  useEffect(() => {
+    refreshNotifications();
+  }, [refreshNotifications]);
 
   const filteredNotifications = notifications.filter(notif => {
     if (activeFilter === 'all') return true;
