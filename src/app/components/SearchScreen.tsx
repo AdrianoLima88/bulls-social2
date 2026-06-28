@@ -1,39 +1,64 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Search, TrendingUp, Hash } from 'lucide-react';
-import { useApp } from '../contexts/AppContext';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Search, TrendingUp, Hash, Loader2 } from 'lucide-react';
+import { supabase } from '../../utils/supabase/client';
 import { useLocale } from '../contexts/LocaleContext';
+import { useTrendingTags } from '../../hooks/useTrendingTags';
 
-export const SearchScreen = ({ onBack, onNavigateToProfile }) => {
-  const { posts } = useApp();
+interface SearchPost {
+  id: string;
+  author_id: string;
+  content: string;
+  tags: string[] | null;
+  created_at: string;
+  profiles?: {
+    name: string;
+    username: string;
+    avatar_url: string | null;
+    verified: boolean;
+  };
+}
+
+export const SearchScreen = ({ onBack, onNavigateToProfile }: {
+  onBack: () => void;
+  onNavigateToProfile?: (profile: any) => void;
+}) => {
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchTab, setSearchTab] = useState('all');
+  const [allPosts, setAllPosts] = useState<SearchPost[]>([]);
+  const [postsLoading, setPostsLoading] = useState(true);
 
-  // Extrair trending tags dos posts
-  const getTrendingTags = () => {
-    const tagCounts = {};
-    posts.forEach(post => {
-      if (post.tags) {
-        post.tags.forEach(tag => {
-          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-        });
+  // Trending real: engajamento (shares×5 + views) dos últimos 7 dias vs 7 dias anteriores
+  const { trendingTags, loading: trendingLoading } = useTrendingTags(10);
+
+  // Busca posts reais do Supabase uma vez; a digitação filtra localmente (sem fake data)
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const { data } = await supabase
+          .from('posts')
+          .select(`
+            id, author_id, content, tags, created_at,
+            profiles:author_id ( name, username, avatar_url, verified )
+          `)
+          .order('created_at', { ascending: false })
+          .limit(200);
+        setAllPosts((data || []) as unknown as SearchPost[]);
+      } catch {
+        setAllPosts([]);
+      } finally {
+        setPostsLoading(false);
       }
-    });
+    };
+    fetchPosts();
+  }, []);
 
-    return Object.entries(tagCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([tag, count]) => ({ tag, count }));
-  };
-
-  const trendingTags = getTrendingTags();
-
-  // Filtrar posts baseado na busca
-  const searchResults = searchQuery.trim() 
-    ? posts.filter(post => 
-        post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.authorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  const query = searchQuery.trim().toLowerCase();
+  const searchResults = query
+    ? allPosts.filter(post =>
+        post.content?.toLowerCase().includes(query) ||
+        post.profiles?.name?.toLowerCase().includes(query) ||
+        post.profiles?.username?.toLowerCase().includes(query) ||
+        post.tags?.some(tag => tag.toLowerCase().includes(query))
       )
     : [];
 
@@ -47,11 +72,11 @@ export const SearchScreen = ({ onBack, onNavigateToProfile }) => {
               <ArrowLeft className="w-5 h-5 text-white" />
             </button>
             <div className="flex-1 relative">
-              <input 
+              <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search people, posts, topics..."
+                placeholder={t('search.placeholder')}
                 className="w-full bg-white text-slate-900 placeholder-slate-400 rounded-full px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-white"
                 autoFocus
               />
@@ -63,24 +88,32 @@ export const SearchScreen = ({ onBack, onNavigateToProfile }) => {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        {searchQuery.trim() ? (
-          // Returns da busca
+        {query ? (
+          // Resultados da busca (posts reais do Supabase)
           <div className="p-4">
-            {searchResults.length > 0 ? (
+            {postsLoading ? (
+              <div className="flex items-center justify-center py-12 text-slate-400">
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                {t('search.searching')}
+              </div>
+            ) : searchResults.length > 0 ? (
               <>
                 <h2 className="font-bold text-lg mb-3 text-slate-900">
-                  {searchResults.length} {searchResults.length === 1 ? 'resultado' : 'resultados'}
+                  {searchResults.length} {searchResults.length === 1 ? t('search.result') : t('search.results')}
                 </h2>
                 <div className="space-y-2">
                   {searchResults.map(post => (
                     <div key={post.id} className="bg-white p-4 rounded-xl shadow-sm">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
-                          {post.authorName[0]}
+                        <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden">
+                          {post.profiles?.avatar_url
+                            ? <img src={post.profiles.avatar_url} alt={post.profiles?.name || ''} className="w-full h-full object-cover" />
+                            : (post.profiles?.name?.[0] || 'U')
+                          }
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900 text-sm">{post.authorName}</p>
-                          <p className="text-xs text-slate-500">{post.authorUsername}</p>
+                          <p className="font-bold text-slate-900 text-sm">{post.profiles?.name || 'User'}</p>
+                          <p className="text-xs text-slate-500">@{post.profiles?.username || 'user'}</p>
                         </div>
                       </div>
                       <p className="text-slate-700 text-sm line-clamp-3">{post.content}</p>
@@ -102,22 +135,24 @@ export const SearchScreen = ({ onBack, onNavigateToProfile }) => {
                 <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center mb-4">
                   <Search className="w-10 h-10 text-slate-400" />
                 </div>
-                <p className="text-slate-500 text-center font-semibold">Nenhum resultado encontrado</p>
-                <p className="text-slate-400 text-sm text-center mt-1">
-                  Tente buscar por outro termo
-                </p>
+                <p className="text-slate-500 text-center font-semibold">{t('search.noResults')}</p>
+                <p className="text-slate-400 text-sm text-center mt-1">{t('search.tryAnotherTerm')}</p>
               </div>
             )}
           </div>
         ) : (
-          // Trending topics
+          // Assuntos do momento — ranqueado por engajamento real (shares/views), sem dados fake
           <div className="p-4">
             <h2 className="font-bold text-lg mb-4 text-slate-900 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-green-600" />
-              Assuntos do momento
+              {t('search.trending')}
             </h2>
             <div className="space-y-2">
-              {trendingTags.length > 0 ? (
+              {trendingLoading ? (
+                <div className="flex items-center justify-center py-12 text-slate-400">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                </div>
+              ) : trendingTags.length > 0 ? (
                 trendingTags.map((item, index) => (
                   <button
                     key={index}
@@ -131,18 +166,24 @@ export const SearchScreen = ({ onBack, onNavigateToProfile }) => {
                       <div className="flex-1">
                         <p className="font-bold text-slate-900">#{item.tag}</p>
                         <p className="text-sm text-slate-500">
-                          {item.count} {item.count === 1 ? 'post' : 'posts'}
+                          {item.count} {item.count === 1 ? t('search.post') : t('search.posts')}
                         </p>
                       </div>
-                      <div className="text-slate-400">
-                        <TrendingUp className="w-5 h-5" />
+                      <div className={`flex items-center gap-1 text-xs font-semibold flex-shrink-0 ${
+                        item.change === 'up' ? 'text-green-600'
+                        : item.change === 'down' ? 'text-red-500'
+                        : 'text-blue-600'
+                      }`}>
+                        {item.change === 'up' && `↑ ${t('search.rising')}`}
+                        {item.change === 'down' && `↓ ${t('search.falling')}`}
+                        {item.change === 'new' && `✦ ${t('search.new')}`}
                       </div>
                     </div>
                   </button>
                 ))
               ) : (
                 <div className="text-center py-8 text-slate-500">
-                  Nenhum tópico em alta no momento
+                  {t('search.noTrending')}
                 </div>
               )}
             </div>

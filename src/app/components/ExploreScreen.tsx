@@ -2,15 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Search, TrendingUp, Hash, Users, BarChart3, Loader2, X } from 'lucide-react';
 import { supabase } from '../../utils/supabase/client';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTrendingTags } from '../../hooks/useTrendingTags';
 import { MediaCarousel } from './MediaCarousel';
 
 // ─── Types ──────────────────────────────────────────────────
-interface TrendingHashtag {
-  tag: string;
-  count: number;
-  change: 'up' | 'down' | 'new';
-}
-
 interface FeaturedPost {
   id: string;
   content: string;
@@ -59,64 +54,11 @@ export const ExploreScreen = ({
   const [tab, setTab] = useState<'trending' | 'posts' | 'people'>('trending');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [trendingTags, setTrendingTags] = useState<TrendingHashtag[]>([]);
+  const { trendingTags } = useTrendingTags(20);
   const [featuredPosts, setFeaturedPosts] = useState<FeaturedPost[]>([]);
   const [suggestedProfiles, setSuggestedProfiles] = useState<SuggestedProfile[]>([]);
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [followLoading, setFollowLoading] = useState<string | null>(null);
-
-  // ── Fetch trending hashtags, ranqueado por engajamento real ──
-  // (compartilhamentos + visualizações dos posts dos últimos 7 dias,
-  // comparado com a janela anterior de 7 dias para saber se está subindo/caindo)
-  const fetchTrending = useCallback(async () => {
-    setLoading(true);
-    try {
-      const now = Date.now();
-      const since14d = new Date(now - 14 * 86400000).toISOString();
-      const since7d = new Date(now - 7 * 86400000).toISOString();
-
-      const { data } = await supabase
-        .from('posts')
-        .select('tags, created_at, shares_count, views_count')
-        .gte('created_at', since14d)
-        .not('tags', 'is', null);
-
-      type Stats = { mentions: number; score: number; prevScore: number };
-      const tagStats: Record<string, Stats> = {};
-
-      data?.forEach(post => {
-        const isCurrentWindow = post.created_at >= since7d;
-        // Compartilhamentos pesam mais que visualizações como sinal de engajamento
-        const engagement = (post.shares_count || 0) * 5 + (post.views_count || 0);
-
-        post.tags?.forEach((tag: string) => {
-          const clean = tag.toLowerCase().replace(/[^a-z0-9]/g, '');
-          if (!clean) return;
-          if (!tagStats[clean]) tagStats[clean] = { mentions: 0, score: 0, prevScore: 0 };
-          if (isCurrentWindow) {
-            tagStats[clean].mentions += 1;
-            tagStats[clean].score += engagement;
-          } else {
-            tagStats[clean].prevScore += engagement;
-          }
-        });
-      });
-
-      const sorted = Object.entries(tagStats)
-        .filter(([, s]) => s.mentions > 0) // só tópicos com posts nos últimos 7 dias
-        .sort(([, a], [, b]) => b.score - a.score)
-        .slice(0, 20)
-        .map(([tag, s]) => ({
-          tag,
-          count: s.mentions,
-          change: s.prevScore === 0 ? 'new' : s.score > s.prevScore ? 'up' : 'down',
-        })) as TrendingHashtag[];
-
-      setTrendingTags(sorted);
-    } catch {
-      setTrendingTags([]);
-    }
-  }, []);
 
   // ── Fetch top posts (most liked) ──────────────────────────
   const fetchFeaturedPosts = useCallback(async () => {
@@ -183,10 +125,9 @@ export const ExploreScreen = ({
   }, [user]);
 
   useEffect(() => {
-    fetchTrending();
     fetchFeaturedPosts();
     fetchSuggestedProfiles();
-  }, [fetchTrending, fetchFeaturedPosts, fetchSuggestedProfiles]);
+  }, [fetchFeaturedPosts, fetchSuggestedProfiles]);
 
   // ── Follow / Unfollow ─────────────────────────────────────
   const handleFollow = async (profileId: string) => {

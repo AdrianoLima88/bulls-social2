@@ -173,6 +173,7 @@ const {
 4. ✅ ~~Implementar "Pessoas sugeridas para seguir"~~ — revisado; já estava implementado (`SuggestedProfiles.tsx` + `useSuggestedProfiles`, exibido no topo do feed)
 5. ✅ ~~Feed personalizado (posts de quem você segue)~~ — feito em 2026-06-28: nova aba "Seguindo" no feed, hook `useFollowingFeed` busca posts só de quem o usuário segue
 6. ✅ ~~Trending topics baseado em compartilhamentos/visualizações~~ — feito em 2026-06-28: aba "Trending" do Explore já existia, mas rankeava só por contagem de posts e tinha fallback com dados falsos; agora rankeia por engajamento real (shares×5 + views), compara janela atual (7d) vs anterior (7d) pra marcar Rising/Falling/New, e some o fallback fake — lista vazia mostra "No hashtags found"
+   - **Correção adicional (mesmo dia):** a tela de busca (`SearchScreen.tsx`, "Assuntos do momento") usava uma fonte de dados totalmente diferente e 100% fake — o `AppContext.tsx` antigo, com posts mock hardcoded (tags como VALE3, PETR4, ITUB4 etc. com contagens inventadas) e um ícone de tendência estático. Criado hook compartilhado `useTrendingTags` (mesma lógica de engajamento real) e usado tanto no Explore quanto na busca; a busca de posts também passou a consultar o Supabase de verdade em vez do mock. Telas e textos da busca também foram conectados ao sistema de idiomas (`t()`), que estava importado mas nunca usado.
 
 ---
 
