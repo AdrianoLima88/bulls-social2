@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, Search, TrendingUp, Hash, Users, BarChart3, Loader2, X, Fire } from 'lucide-react';
+import { ArrowLeft, Search, TrendingUp, Hash, Users, BarChart3, Loader2, X } from 'lucide-react';
 import { supabase } from '../../utils/supabase/client';
 import { useAuth } from '../../contexts/AuthContext';
 import { MediaCarousel } from './MediaCarousel';
@@ -65,57 +65,54 @@ export const ExploreScreen = ({
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [followLoading, setFollowLoading] = useState<string | null>(null);
 
-  // ── Fetch trending hashtags from posts tags ──────────────
+  // ── Fetch trending hashtags, ranqueado por engajamento real ──
+  // (compartilhamentos + visualizações dos posts dos últimos 7 dias,
+  // comparado com a janela anterior de 7 dias para saber se está subindo/caindo)
   const fetchTrending = useCallback(async () => {
     setLoading(true);
     try {
-      // Get all tags from recent posts (last 7 days)
+      const now = Date.now();
+      const since14d = new Date(now - 14 * 86400000).toISOString();
+      const since7d = new Date(now - 7 * 86400000).toISOString();
+
       const { data } = await supabase
         .from('posts')
-        .select('tags, created_at')
-        .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString())
+        .select('tags, created_at, shares_count, views_count')
+        .gte('created_at', since14d)
         .not('tags', 'is', null);
 
-      const tagCount: Record<string, number> = {};
+      type Stats = { mentions: number; score: number; prevScore: number };
+      const tagStats: Record<string, Stats> = {};
+
       data?.forEach(post => {
+        const isCurrentWindow = post.created_at >= since7d;
+        // Compartilhamentos pesam mais que visualizações como sinal de engajamento
+        const engagement = (post.shares_count || 0) * 5 + (post.views_count || 0);
+
         post.tags?.forEach((tag: string) => {
           const clean = tag.toLowerCase().replace(/[^a-z0-9]/g, '');
-          if (clean) tagCount[clean] = (tagCount[clean] || 0) + 1;
+          if (!clean) return;
+          if (!tagStats[clean]) tagStats[clean] = { mentions: 0, score: 0, prevScore: 0 };
+          if (isCurrentWindow) {
+            tagStats[clean].mentions += 1;
+            tagStats[clean].score += engagement;
+          } else {
+            tagStats[clean].prevScore += engagement;
+          }
         });
       });
 
-      // Sort by count
-      const sorted = Object.entries(tagCount)
-        .sort(([, a], [, b]) => b - a)
+      const sorted = Object.entries(tagStats)
+        .filter(([, s]) => s.mentions > 0) // só tópicos com posts nos últimos 7 dias
+        .sort(([, a], [, b]) => b.score - a.score)
         .slice(0, 20)
-        .map(([tag, count], i) => ({
+        .map(([tag, s]) => ({
           tag,
-          count,
-          change: i < 5 ? 'up' : i < 15 ? 'new' : 'down',
+          count: s.mentions,
+          change: s.prevScore === 0 ? 'new' : s.score > s.prevScore ? 'up' : 'down',
         })) as TrendingHashtag[];
 
-      // If no real tags yet, show defaults
-      if (sorted.length === 0) {
-        setTrendingTags([
-          { tag: 'investing',       count: 248, change: 'up' },
-          { tag: 'ftse100',         count: 187, change: 'up' },
-          { tag: 'stocks',          count: 163, change: 'new' },
-          { tag: 'crypto',          count: 142, change: 'up' },
-          { tag: 'etf',             count: 128, change: 'new' },
-          { tag: 'marketanalysis',  count: 115, change: 'up' },
-          { tag: 'bitcoin',         count: 98,  change: 'up' },
-          { tag: 'sp500',           count: 87,  change: 'down' },
-          { tag: 'dividends',       count: 76,  change: 'new' },
-          { tag: 'nasdaq',          count: 65,  change: 'down' },
-          { tag: 'euronext',        count: 54,  change: 'new' },
-          { tag: 'realestate',      count: 43,  change: 'down' },
-          { tag: 'financialeducation', count: 38, change: 'new' },
-          { tag: 'trading',         count: 34,  change: 'up' },
-          { tag: 'irishmarket',     count: 28,  change: 'new' },
-        ]);
-      } else {
-        setTrendingTags(sorted);
-      }
+      setTrendingTags(sorted);
     } catch {
       setTrendingTags([]);
     }

@@ -172,7 +172,7 @@ const {
 3. ✅ ~~Adicionar filtros na tela de notificações (curtidas, comentários, etc.)~~ — revisado; já estava implementado em `NotificationsScreen.tsx` (chips all/like/comment/follow/share)
 4. ✅ ~~Implementar "Pessoas sugeridas para seguir"~~ — revisado; já estava implementado (`SuggestedProfiles.tsx` + `useSuggestedProfiles`, exibido no topo do feed)
 5. ✅ ~~Feed personalizado (posts de quem você segue)~~ — feito em 2026-06-28: nova aba "Seguindo" no feed, hook `useFollowingFeed` busca posts só de quem o usuário segue
-6. 🔲 Trending topics baseado em compartilhamentos/visualizações
+6. ✅ ~~Trending topics baseado em compartilhamentos/visualizações~~ — feito em 2026-06-28: aba "Trending" do Explore já existia, mas rankeava só por contagem de posts e tinha fallback com dados falsos; agora rankeia por engajamento real (shares×5 + views), compara janela atual (7d) vs anterior (7d) pra marcar Rising/Falling/New, e some o fallback fake — lista vazia mostra "No hashtags found"
 
 ---
 
