@@ -10,18 +10,30 @@ import { useMarket, type MarketTab, type MarketAsset } from '../../hooks/useMark
 // ─── Logo com fallback encadeado ─────────────────────────────
 const CRYPTO_CODES = new Set(['BTC','ETH','BNB','SOL','XRP','ADA','DOT','AVAX','DOGE','USDT','USDC','MATIC','LTC','LINK']);
 
+const DOMAIN_MAP: Record<string, string> = {
+  // UK / LSE
+  SHEL: 'shell.com', AZN: 'astrazeneca.com', HSBA: 'hsbc.com',
+  BP: 'bp.com', ULVR: 'unilever.com', RIO: 'riotinto.com',
+  DGE: 'diageo.com', GSK: 'gsk.com',
+  // Europe
+  MC: 'lvmh.com', ASML: 'asml.com', OR: 'loreal.com',
+  SAP: 'sap.com', SIE: 'siemens.com', NESN: 'nestle.com',
+  NOVN: 'novartis.com', AIR: 'airbus.com',
+  // US
+  AAPL: 'apple.com', MSFT: 'microsoft.com', NVDA: 'nvidia.com',
+  GOOGL: 'google.com', AMZN: 'amazon.com', TSLA: 'tesla.com',
+  META: 'meta.com', JPM: 'jpmorganchase.com',
+};
+
 function logoSources(code: string): string[] {
   const c = code.toUpperCase();
   if (CRYPTO_CODES.has(c)) {
-    return [
-      `https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color/${c.toLowerCase()}.svg`,
-      `https://assets.parqet.com/logos/symbol/${c}`,
-    ];
+    return [`https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color/${c.toLowerCase()}.svg`];
   }
-  return [
-    `https://financialmodelingprep.com/image-stock/${c}.png`,
-    `https://assets.parqet.com/logos/symbol/${c}`,
-  ];
+  const sources: string[] = [];
+  if (DOMAIN_MAP[c]) sources.push(`https://logo.clearbit.com/${DOMAIN_MAP[c]}`);
+  sources.push(`https://financialmodelingprep.com/image-stock/${c}.png`);
+  return sources;
 }
 
 const StockLogo = ({ code, name, size = 10 }: { code: string; name: string; size?: number }) => {
