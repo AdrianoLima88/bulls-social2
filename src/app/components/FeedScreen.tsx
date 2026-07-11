@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Bell, Compass, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users, Lock, UserPlus, Crown } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Bell, Compass, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users, Lock, UserPlus, Crown, Coffee, ExternalLink } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { ShareModal } from './ShareModal';
 import { MediaViewModal } from './MediaViewModal';
@@ -10,12 +10,14 @@ import { PostTypeBadge } from './UserTypeBadge';
 import { PlanBadge } from './PlanBadge';
 import { PaywallModal } from './PaywallModal';
 import { ReportModal } from './ReportModal';
+import { TipModal } from './TipModal';
 import { usePosts } from '../../hooks/usePosts';
 import { useFollowingFeed } from '../../hooks/useFollowingFeed';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useSavedPosts } from '../../hooks/useSavedPosts';
 import { useSubscription } from '../../hooks/useSubscription';
+import { useSponsoredFeed } from '../../hooks/useSponsored';
 import { StockTicker } from './StockTicker';
 import { SuggestedProfiles } from './SuggestedProfiles';
 import { InviteModal } from './InviteModal';
@@ -37,6 +39,7 @@ export const FeedScreen = ({
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
   const { isSaved, toggleSave } = useSavedPosts();
+  const { sponsored, trackImpression, trackClick } = useSponsoredFeed();
 
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -173,23 +176,32 @@ export const FeedScreen = ({
             </button>
           </div>
         ) : (
-          filteredPosts.map(post => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onNavigateToProfile={onNavigateToProfile}
-              onNavigateToPost={onNavigateToPost}
-              onLike={() => toggleLike(post.id)}
-              onSave={() => toggleSave(post.id)}
-              onShare={handleShare}
-              onDelete={() => deleteSupabasePost(post.id)}
-              isLiked={hasLiked(post.id)}
-              isSaved={isSaved(post.id)}
-              isOwnPost={post.authorId === user?.id}
-              onMediaView={handleMediaView}
-              onNavigateToPremium={onNavigateToPremium}
-            />
-          ))
+          buildFeedWithSponsored(filteredPosts, sponsored).map((item, idx) =>
+            item._isSponsored ? (
+              <SponsoredCard
+                key={`sponsored-${item.id}`}
+                post={item}
+                onImpression={trackImpression}
+                onClick={trackClick}
+              />
+            ) : (
+              <PostCard
+                key={item.id}
+                post={item}
+                onNavigateToProfile={onNavigateToProfile}
+                onNavigateToPost={onNavigateToPost}
+                onLike={() => toggleLike(item.id)}
+                onSave={() => toggleSave(item.id)}
+                onShare={handleShare}
+                onDelete={() => deleteSupabasePost(item.id)}
+                isLiked={hasLiked(item.id)}
+                isSaved={isSaved(item.id)}
+                isOwnPost={item.authorId === user?.id}
+                onMediaView={handleMediaView}
+                onNavigateToPremium={onNavigateToPremium}
+              />
+            )
+          )
         )}
       </div>
 
@@ -219,11 +231,103 @@ export const FeedScreen = ({
   );
 };
 
+// ─── helpers ─────────────────────────────────────────────────────────────────
+
+// Injeta 1 sponsored a cada INTERVAL posts orgânicos
+const SPONSORED_INTERVAL = 5;
+function buildFeedWithSponsored(organic: any[], sponsored: any[]): any[] {
+  if (!sponsored.length) return organic;
+  const result: any[] = [];
+  let sIdx = 0;
+  organic.forEach((post, i) => {
+    result.push(post);
+    if ((i + 1) % SPONSORED_INTERVAL === 0 && sIdx < sponsored.length) {
+      result.push({ ...sponsored[sIdx % sponsored.length], _isSponsored: true });
+      sIdx++;
+    }
+  });
+  return result;
+}
+
+// ─── SponsoredCard ───────────────────────────────────────────────────────────
+const SponsoredCard = ({ post, onImpression, onClick }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const impressed = useRef(false);
+
+  // Intersection Observer para contar impressão quando o card entra no viewport
+  useEffect(() => {
+    if (!ref.current || impressed.current) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !impressed.current) {
+          impressed.current = true;
+          onImpression(post.id);
+        }
+      },
+      { threshold: 0.5 }
+    );
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [post.id, onImpression]);
+
+  const handleCTA = () => {
+    onClick(post.id);
+    if (post.cta_url) window.open(post.cta_url, '_blank', 'noopener');
+  };
+
+  return (
+    <div ref={ref} className="bg-white rounded-xl mb-3 shadow-sm border-2 border-yellow-200 overflow-hidden">
+      {/* Sponsored banner */}
+      <div className="flex items-center justify-between bg-yellow-50 px-4 py-2 border-b border-yellow-100">
+        <span className="text-xs font-bold text-yellow-700 flex items-center gap-1">
+          <Sparkles className="w-3 h-3" /> Sponsored
+        </span>
+        <span className="text-xs text-yellow-600">{post.advertiser_name}</span>
+      </div>
+
+      <div className="p-4">
+        {/* Advertiser header */}
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden">
+            {post.advertiser_avatar
+              ? <img src={post.advertiser_avatar} alt={post.advertiser_name} className="w-full h-full object-cover rounded-full" />
+              : (post.advertiser_name?.[0] || 'A')}
+          </div>
+          <div>
+            <p className="font-bold text-slate-900 text-sm">{post.advertiser_name}</p>
+            <p className="text-xs text-slate-500">@{post.advertiser_username} · Sponsored</p>
+          </div>
+        </div>
+
+        {/* Title */}
+        {post.title && <p className="font-bold text-slate-900 mb-1 text-sm">{post.title}</p>}
+
+        {/* Content */}
+        <p className="text-slate-700 text-sm mb-4">{post.content}</p>
+
+        {/* CTA */}
+        <button
+          onClick={handleCTA}
+          className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-xl font-bold text-sm hover:opacity-90 transition shadow-sm"
+        >
+          {post.cta_label || 'Learn More'}
+          {post.cta_url && <ExternalLink className="w-3.5 h-3.5" />}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── PostCard ─────────────────────────────────────────────────────────────────
 const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave, onShare, onDelete, isLiked, isSaved, isOwnPost, onMediaView, onNavigateToPremium }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showTip, setShowTip] = useState(false);
   const { isPremium } = useSubscription();
+
+  // Tip disponível para criadores Pro ou Business (não para o próprio dono do post)
+  const canTip = !isOwnPost && ['pro', 'business'].includes(post.authorPlan || '');
 
   const isLocked = post.isPremiumContent && !isPremium && !isOwnPost;
 
@@ -316,13 +420,11 @@ const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave,
           <button onClick={() => onNavigateToPost(post)} className="w-full text-left">
             <p className="text-slate-800 mb-3">{post.content}</p>
           </button>
-
           {post.media && post.media.length > 0 && (
             <div className="mb-3">
               <MediaCarousel media={post.media} onMediaView={(item) => onMediaView(item, post)} />
             </div>
           )}
-
           {post.charts && post.charts.length > 0 && (
             <div className="mb-3">
               {post.charts.map((chart, index) => (
@@ -330,28 +432,22 @@ const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave,
               ))}
             </div>
           )}
-
           {post.documents && post.documents.length > 0 && (
             <div className="mb-3">
               {post.documents.map((doc, index) => <DocumentPreview key={index} document={doc} />)}
             </div>
           )}
-
-          {extraTags.length > 0 && (
+          {(post.tags || []).filter((tag) => !post.content?.includes(`#${tag}`)).length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
-              {extraTags.map((tag, index) => (
+              {(post.tags || []).filter((tag) => !post.content?.includes(`#${tag}`)).map((tag, index) => (
                 <span key={index} className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full">#{tag}</span>
               ))}
             </div>
           )}
         </div>
-
         {isLocked && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <button
-              onClick={() => setShowPaywall(true)}
-              className="flex flex-col items-center gap-2 bg-white/95 rounded-2xl px-6 py-4 shadow-lg border border-slate-200 hover:bg-white transition"
-            >
+            <button onClick={() => setShowPaywall(true)} className="flex flex-col items-center gap-2 bg-white/95 rounded-2xl px-6 py-4 shadow-lg border border-slate-200 hover:bg-white transition">
               <Lock className="w-6 h-6 text-yellow-600" />
               <span className="text-sm font-bold text-slate-900">Premium content</span>
               <span className="text-xs text-green-700 font-semibold underline">Upgrade to unlock</span>
@@ -360,12 +456,12 @@ const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave,
         )}
       </div>
 
-      <div className="flex items-center gap-6 pt-3 border-t border-slate-100">
+      <div className="flex items-center gap-4 pt-3 border-t border-slate-100">
         <button onClick={onLike} className={`flex items-center gap-2 transition ${isLiked ? 'text-red-500' : 'text-slate-500 hover:text-red-500'}`}>
           <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500' : ''}`} />
           <span className="text-sm font-semibold">{post.likes || 0}</span>
         </button>
-        <button onClick={() => (isLocked ? setShowPaywall(true) : onNavigateToPost(post))} className="flex items-center gap-2 text-slate-500 hover:text-blue-600 transition">
+        <button onClick={() => isLocked ? setShowPaywall(true) : onNavigateToPost(post)} className="flex items-center gap-2 text-slate-500 hover:text-blue-600 transition">
           <MessageCircle className="w-5 h-5" />
           <span className="text-sm font-semibold">{post.comments || 0}</span>
         </button>
@@ -373,6 +469,11 @@ const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave,
           <Share2 className="w-5 h-5" />
           <span className="text-sm font-semibold">{post.shares || 0}</span>
         </button>
+        {canTip && (
+          <button onClick={() => setShowTip(true)} className="flex items-center gap-1.5 text-purple-500 hover:text-purple-700 transition" title="Send a tip">
+            <Coffee className="w-4 h-4" /><span className="text-xs font-bold">Tip</span>
+          </button>
+        )}
         <button onClick={onSave} className={`flex items-center gap-2 transition ml-auto ${isSaved ? 'text-green-600' : 'text-slate-500 hover:text-green-600'}`}>
           <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-green-600' : ''}`} />
         </button>
@@ -381,13 +482,11 @@ const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave,
       {showReport && (
         <ReportModal targetType="post" targetId={post.id} targetName={`@${post.authorUsername}'s post`} onClose={() => setShowReport(false)} />
       )}
-
       {showPaywall && (
-        <PaywallModal
-          featureName="Este post"
-          onUpgrade={() => { setShowPaywall(false); onNavigateToPremium && onNavigateToPremium(); }}
-          onClose={() => setShowPaywall(false)}
-        />
+        <PaywallModal featureName="This post" onUpgrade={() => { setShowPaywall(false); onNavigateToPremium && onNavigateToPremium(); }} onClose={() => setShowPaywall(false)} />
+      )}
+      {showTip && canTip && (
+        <TipModal creatorName={post.authorName} creatorUsername={post.authorUsername} receiverId={post.authorId} onClose={() => setShowTip(false)} />
       )}
     </div>
   );
