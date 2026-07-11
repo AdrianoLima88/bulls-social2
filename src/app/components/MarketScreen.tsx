@@ -7,22 +7,42 @@ import {
 import { AssetDetailsModal } from './AssetDetailsModal';
 import { useMarket, type MarketTab, type MarketAsset } from '../../hooks/useMarket';
 
-// ─── Logo com fallback de iniciais ────────────────────────────
+// ─── Logo com fallback encadeado ─────────────────────────────
+const CRYPTO_CODES = new Set(['BTC','ETH','BNB','SOL','XRP','ADA','DOT','AVAX','DOGE','USDT','USDC','MATIC','LTC','LINK']);
+
+function logoSources(code: string): string[] {
+  const c = code.toUpperCase();
+  if (CRYPTO_CODES.has(c)) {
+    return [
+      `https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color/${c.toLowerCase()}.svg`,
+      `https://assets.parqet.com/logos/symbol/${c}`,
+    ];
+  }
+  return [
+    `https://financialmodelingprep.com/image-stock/${c}.png`,
+    `https://assets.parqet.com/logos/symbol/${c}`,
+  ];
+}
+
 const StockLogo = ({ code, name, size = 10 }: { code: string; name: string; size?: number }) => {
-  const [err, setErr] = useState(false);
+  const sources = logoSources(code);
+  const [idx, setIdx] = useState(0);
   const initials = code.substring(0, 2).toUpperCase();
-  const cls = `w-${size} h-${size} rounded-full object-cover`;
-  if (err) return (
-    <div className={`w-${size} h-${size} rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-sm flex-shrink-0`}>
-      {initials}
-    </div>
-  );
+  const sizeClass = `w-${size} h-${size}`;
+
+  if (idx >= sources.length) {
+    return (
+      <div className={`${sizeClass} rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-sm flex-shrink-0`}>
+        {initials}
+      </div>
+    );
+  }
   return (
     <img
-      src={`https://assets.parqet.com/logos/symbol/${code}`}
+      src={sources[idx]}
       alt={name}
-      className={cls + ' flex-shrink-0'}
-      onError={() => setErr(true)}
+      className={`${sizeClass} rounded-full object-cover flex-shrink-0`}
+      onError={() => setIdx(i => i + 1)}
     />
   );
 };
