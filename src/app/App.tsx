@@ -16,33 +16,53 @@ import { MFAVerifyScreen } from './components/MFAVerifyScreen';
 import { ResetPasswordScreen } from './components/ResetPasswordScreen';
 import { PlanSelectionScreen } from './components/PlanSelectionScreen';
 
+// Auto-reload when a lazy chunk fails (stale cache after new deploy)
+function lazyLoad<T extends React.ComponentType<any>>(
+  fn: () => Promise<{ default: T }>
+): React.LazyExoticComponent<T> {
+  return lazy(async () => {
+    try {
+      return await fn();
+    } catch {
+      // Only reload once per session to avoid infinite loops
+      const key = 'chunk_reload_attempted';
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, '1');
+        window.location.reload();
+        return new Promise<{ default: T }>(() => {});
+      }
+      throw new Error('Failed to load screen. Please refresh the page.');
+    }
+  });
+}
+
 // Lazy loaded screens
-const ProfileScreen = lazy(() => import('./components/ProfileScreenNew').then(m => ({ default: m.ProfileScreen })));
-const AddAssetToPortfolio = lazy(() => import('./components/AddAssetToPortfolio').then(m => ({ default: m.AddAssetToPortfolio })));
-const AssetDetailScreen = lazy(() => import('./components/AssetDetailScreen').then(m => ({ default: m.AssetDetailScreen })));
-const EditProfileScreen = lazy(() => import('./components/EditProfileScreen').then(m => ({ default: m.EditProfileScreen })));
-const DirectMessageScreen = lazy(() => import('./components/DirectMessageScreen').then(m => ({ default: m.DirectMessageScreen })));
-const SettingsScreen = lazy(() => import('./components/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
-const MarketScreen = lazy(() => import('./components/MarketScreen').then(m => ({ default: m.MarketScreen })));
-const CreatePostScreen = lazy(() => import('./components/CreatePostScreen').then(m => ({ default: m.CreatePostScreen })));
-const CommentsScreen = lazy(() => import('./components/CommentsScreen').then(m => ({ default: m.CommentsScreen })));
-const NotificationsScreen = lazy(() => import('./components/NotificationsScreen').then(m => ({ default: m.NotificationsScreen })));
-const SearchScreen = lazy(() => import('./components/SearchScreen').then(m => ({ default: m.SearchScreen })));
-const PortfolioScreen = lazy(() => import('./components/PortfolioScreen').then(m => ({ default: m.PortfolioScreen })));
-const PremiumScreen = lazy(() => import('./components/PremiumScreen').then(m => ({ default: m.PremiumScreen })));
-const BusinessDashboard = lazy(() => import('./components/BusinessDashboard').then(m => ({ default: m.BusinessDashboard })));
-const CommunityGuidelinesScreen = lazy(() => import('./components/CommunityGuidelinesScreen').then(m => ({ default: m.CommunityGuidelinesScreen })));
-const CurrencyScreen = lazy(() => import('./components/CurrencyScreen').then(m => ({ default: m.CurrencyScreen })));
-const LanguageRegionScreen = lazy(() => import('./components/LanguageRegionScreen').then(m => ({ default: m.LanguageRegionScreen })));
-const CreatorDashboard = lazy(() => import('./components/CreatorDashboard').then(m => ({ default: m.CreatorDashboard })));
-const VideoStudio = lazy(() => import('./components/VideoStudio').then(m => ({ default: m.VideoStudio })));
-const LiveScreen = lazy(() => import('./components/LiveScreen').then(m => ({ default: m.LiveScreen })));
-const WatchLiveScreen = lazy(() => import('./components/WatchLiveScreen').then(m => ({ default: m.WatchLiveScreen })));
-const StartLiveScreen = lazy(() => import('./components/StartLiveScreen').then(m => ({ default: m.StartLiveScreen })));
-const FollowersListScreen = lazy(() => import('./components/FollowersListScreen').then(m => ({ default: m.FollowersListScreen })));
-const FollowingListScreen = lazy(() => import('./components/FollowingListScreen').then(m => ({ default: m.FollowingListScreen })));
-const ExploreScreen = lazy(() => import('./components/ExploreScreen').then(m => ({ default: m.ExploreScreen })));
-const SavedPostsScreen = lazy(() => import('./components/SavedPostsScreen').then(m => ({ default: m.SavedPostsScreen })));
+const ProfileScreen = lazyLoad(() => import('./components/ProfileScreenNew').then(m => ({ default: m.ProfileScreen })));
+const AddAssetToPortfolio = lazyLoad(() => import('./components/AddAssetToPortfolio').then(m => ({ default: m.AddAssetToPortfolio })));
+const AssetDetailScreen = lazyLoad(() => import('./components/AssetDetailScreen').then(m => ({ default: m.AssetDetailScreen })));
+const EditProfileScreen = lazyLoad(() => import('./components/EditProfileScreen').then(m => ({ default: m.EditProfileScreen })));
+const DirectMessageScreen = lazyLoad(() => import('./components/DirectMessageScreen').then(m => ({ default: m.DirectMessageScreen })));
+const SettingsScreen = lazyLoad(() => import('./components/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
+const MarketScreen = lazyLoad(() => import('./components/MarketScreen').then(m => ({ default: m.MarketScreen })));
+const CreatePostScreen = lazyLoad(() => import('./components/CreatePostScreen').then(m => ({ default: m.CreatePostScreen })));
+const CommentsScreen = lazyLoad(() => import('./components/CommentsScreen').then(m => ({ default: m.CommentsScreen })));
+const NotificationsScreen = lazyLoad(() => import('./components/NotificationsScreen').then(m => ({ default: m.NotificationsScreen })));
+const SearchScreen = lazyLoad(() => import('./components/SearchScreen').then(m => ({ default: m.SearchScreen })));
+const PortfolioScreen = lazyLoad(() => import('./components/PortfolioScreen').then(m => ({ default: m.PortfolioScreen })));
+const PremiumScreen = lazyLoad(() => import('./components/PremiumScreen').then(m => ({ default: m.PremiumScreen })));
+const BusinessDashboard = lazyLoad(() => import('./components/BusinessDashboard').then(m => ({ default: m.BusinessDashboard })));
+const CommunityGuidelinesScreen = lazyLoad(() => import('./components/CommunityGuidelinesScreen').then(m => ({ default: m.CommunityGuidelinesScreen })));
+const CurrencyScreen = lazyLoad(() => import('./components/CurrencyScreen').then(m => ({ default: m.CurrencyScreen })));
+const LanguageRegionScreen = lazyLoad(() => import('./components/LanguageRegionScreen').then(m => ({ default: m.LanguageRegionScreen })));
+const CreatorDashboard = lazyLoad(() => import('./components/CreatorDashboard').then(m => ({ default: m.CreatorDashboard })));
+const VideoStudio = lazyLoad(() => import('./components/VideoStudio').then(m => ({ default: m.VideoStudio })));
+const LiveScreen = lazyLoad(() => import('./components/LiveScreen').then(m => ({ default: m.LiveScreen })));
+const WatchLiveScreen = lazyLoad(() => import('./components/WatchLiveScreen').then(m => ({ default: m.WatchLiveScreen })));
+const StartLiveScreen = lazyLoad(() => import('./components/StartLiveScreen').then(m => ({ default: m.StartLiveScreen })));
+const FollowersListScreen = lazyLoad(() => import('./components/FollowersListScreen').then(m => ({ default: m.FollowersListScreen })));
+const FollowingListScreen = lazyLoad(() => import('./components/FollowingListScreen').then(m => ({ default: m.FollowingListScreen })));
+const ExploreScreen = lazyLoad(() => import('./components/ExploreScreen').then(m => ({ default: m.ExploreScreen })));
+const SavedPostsScreen = lazyLoad(() => import('./components/SavedPostsScreen').then(m => ({ default: m.SavedPostsScreen })));
 
 // Preload most used screens after login
 const preloadScreens = () => {
