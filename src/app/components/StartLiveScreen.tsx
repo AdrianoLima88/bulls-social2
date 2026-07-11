@@ -25,6 +25,8 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  // When true, the stream was handed off to WatchLiveScreen — don't stop tracks on unmount
+  const streamHandedOffRef = useRef(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [currentFilter, setCurrentFilter] = useState<string>('none');
   const [showFilters, setShowFilters] = useState(false);
@@ -65,10 +67,10 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facingMode]);
 
-  // Stop stream on unmount
+  // Stop stream on unmount — but only if it wasn't handed off to WatchLiveScreen
   useEffect(() => {
     return () => {
-      if (stream) {
+      if (stream && !streamHandedOffRef.current) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
@@ -206,7 +208,8 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
         return;
       }
 
-      // Save the local camera stream and current filter so WatchLiveScreen can display them
+      // Mark as handed off BEFORE calling onGoLive (which triggers unmount + cleanup)
+      streamHandedOffRef.current = true;
       liveStreamStore.setStream(stream);
       liveStreamStore.setFilter(currentFilter);
 

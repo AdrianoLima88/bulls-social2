@@ -26,26 +26,26 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
   const [localFilter, setLocalFilter] = useState('none');
 
   useEffect(() => {
-    if (isHost) {
-      const s = liveStreamStore.getStream();
-      const f = liveStreamStore.getFilter();
-      setLocalStream(s);
-      setLocalFilter(f);
-      if (s && localVideoRef.current) {
-        localVideoRef.current.srcObject = s;
-      }
-    }
-    return () => {
-      // Do NOT clear the store here — only clear when the host explicitly ends the live
-    };
-  }, [isHost]);
+    if (!isHost) return;
 
-  // Attach stream to video element once both are ready
-  useEffect(() => {
-    if (localStream && localVideoRef.current) {
-      localVideoRef.current.srcObject = localStream;
-    }
-  }, [localStream]);
+    const s = liveStreamStore.getStream();
+    const f = liveStreamStore.getFilter();
+    setLocalFilter(f);
+
+    if (!s) return;
+
+    // Attach stream: ref is in the DOM because <video> renders whenever isHost
+    // Use a small timeout as a safety net for the ref to be populated after render
+    const attach = () => {
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = s;
+        setLocalStream(s);
+      } else {
+        setTimeout(attach, 50);
+      }
+    };
+    attach();
+  }, [isHost]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [message, setMessage] = useState('');
   const [isMuted, setIsMuted] = useState(false);
@@ -335,8 +335,11 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
     <div className="fixed inset-0 bg-black z-50 overflow-hidden">
       {/* Video layer — full-bleed, fills the whole screen in portrait or landscape */}
       <div className="absolute inset-0">
-        {/* HOST: show real local camera feed */}
-        {isHost && localStream ? (
+        {/*
+          HOST: <video> is always in the DOM so the ref is available immediately.
+          It's hidden until srcObject is set (avoids black flash while stream attaches).
+        */}
+        {isHost && (
           <video
             ref={localVideoRef}
             autoPlay
@@ -344,6 +347,7 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
             muted
             className="w-full h-full object-cover"
             style={{
+              display: localStream ? 'block' : 'none',
               filter: (() => {
                 const filterMap: Record<string, string> = {
                   grayscale: 'grayscale(100%)',
@@ -358,8 +362,10 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
               })(),
             }}
           />
-        ) : (
-          /* VIEWER (or host without stream): show avatar/placeholder */
+        )}
+
+        {/* VIEWER (or host while stream isn't ready yet): avatar/placeholder */}
+        {(!isHost || !localStream) && (
           <img
             src={live.host?.avatar_url || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80'}
             alt={live.title}
