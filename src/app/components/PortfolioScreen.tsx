@@ -1,8 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, Plus, TrendingUp, TrendingDown } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { useLocale } from '../contexts/LocaleContext';
 import { usePortfolio } from '../../hooks/usePortfolio';
+
+// ─── Stock logo with chained fallbacks ───────────────────────
+const CRYPTO_CODES = new Set(['BTC','ETH','BNB','SOL','XRP','ADA','DOT','AVAX','DOGE','USDT','USDC','MATIC','LTC','LINK']);
+
+const FMP_ALIAS: Record<string, string> = {
+  HSBA: 'HSBC', ULVR: 'UL', DGE: 'DEO', RIO: 'RIO',
+  GSK: 'GSK', SIE: 'SIEGY', MC: 'LVMUY', ASML: 'ASML',
+  OR: 'LRLCY', SAP: 'SAP', NESN: 'NSRGY', NOVN: 'NVS', AIR: 'EADSY',
+};
+
+function logoSources(code: string): string[] {
+  const c = code.toUpperCase();
+  if (CRYPTO_CODES.has(c)) {
+    return [`https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color/${c.toLowerCase()}.svg`];
+  }
+  const alias = FMP_ALIAS[c];
+  const sources = [`https://financialmodelingprep.com/image-stock/${c}.png`];
+  if (alias && alias !== c) sources.push(`https://financialmodelingprep.com/image-stock/${alias}.png`);
+  return sources;
+}
+
+const StockLogo = ({ code, type }: { code: string; type: string }) => {
+  const sources = logoSources(code);
+  const [idx, setIdx] = useState(0);
+  const initials = code.substring(0, 2).toUpperCase();
+  const fallbackColor =
+    type === 'acao'   ? 'bg-blue-600' :
+    type === 'fii'    ? 'bg-green-600' :
+    type === 'crypto' ? 'bg-orange-600' : 'bg-purple-600';
+
+  if (idx >= sources.length) {
+    return (
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white ${fallbackColor}`}>
+        {initials}
+      </div>
+    );
+  }
+  return (
+    <img
+      src={sources[idx]}
+      alt={code}
+      className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+      onError={() => setIdx(i => i + 1)}
+    />
+  );
+};
 
 export const PortfolioScreen = ({ onBack, onAddAsset, onViewAsset }) => {
   const { assets, loading, getPortfolioSummary } = usePortfolio();
@@ -102,14 +148,7 @@ export const PortfolioScreen = ({ onBack, onAddAsset, onViewAsset }) => {
                     {/* Header */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white ${
-                          item.type === 'acao' ? 'bg-blue-600' :
-                          item.type === 'fii' ? 'bg-green-600' :
-                          item.type === 'crypto' ? 'bg-orange-600' :
-                          'bg-purple-600'
-                        }`}>
-                          {item.code.substring(0, 2)}
-                        </div>
+                        <StockLogo code={item.code.split('.')[0]} type={item.type} />
                         <div>
                           <h3 className="font-bold text-slate-900 text-lg">{item.code}</h3>
                           <p className="text-xs text-slate-500">
