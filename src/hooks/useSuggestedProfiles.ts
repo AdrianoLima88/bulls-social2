@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 
+// Returns only users that the current user invited AND who have already joined
 export const useSuggestedProfiles = (limit: number = 5) => {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,33 +17,30 @@ export const useSuggestedProfiles = (limit: number = 5) => {
     try {
       setLoading(true);
 
-      // Search IDs das pessoas que o usuário já segue
+      // Get IDs already followed
       const { data: followingData } = await supabase
         .from('follows')
         .select('following_id')
         .eq('follower_id', user.id);
 
-      const followingIds = followingData?.map(f => f.following_id) || [];
+      const followingIds = new Set((followingData || []).map((f: any) => f.following_id));
 
-      // Search perfis que o usuário não segue, ordenados por seguidores
-      let query = supabase
-        .from('profiles')
-        .select('id, name, username, avatar_url, bio, verified, followers_count')
-        .neq('id', user.id) // Não incluir o próprio usuário
-        .order('followers_count', { ascending: false })
+      // Get accepted invites (invited user joined)
+      const { data: inviteData } = await supabase
+        .from('invites')
+        .select(`
+          invited_user:profiles!invites_invited_user_id_fkey(id, name, username, avatar_url, bio, verified, followers_count)
+        `)
+        .eq('inviter_id', user.id)
+        .eq('status', 'accepted')
         .limit(limit);
 
-      if (followingIds.length > 0) {
-        query = query.not('id', 'in', `(${followingIds.join(',')})`); // Não incluir quem já segue
-      }
+      const joined = (inviteData || [])
+        .map((row: any) => row.invited_user)
+        .filter((p: any) => p && !followingIds.has(p.id));
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      setProfiles(data || []);
-    } catch (error) {
-      console.error('Error fetching suggested profiles:', error);
+      setProfiles(joined);
+    } catch {
       setProfiles([]);
     } finally {
       setLoading(false);

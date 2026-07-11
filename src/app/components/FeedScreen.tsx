@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Bell, Compass, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users, Lock } from 'lucide-react';
+import { Search, Bell, Compass, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users, Lock, UserPlus } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { ShareModal } from './ShareModal';
 import { MediaViewModal } from './MediaViewModal';
@@ -17,6 +17,8 @@ import { useNotifications } from '../../hooks/useNotifications';
 import { useSavedPosts } from '../../hooks/useSavedPosts';
 import { useSubscription } from '../../hooks/useSubscription';
 import { StockTicker } from './StockTicker';
+import { SuggestedProfiles } from './SuggestedProfiles';
+import { InviteModal } from './InviteModal';
 
 export const FeedScreen = ({
   onNavigateToSearch,
@@ -36,6 +38,7 @@ export const FeedScreen = ({
   const { unreadCount } = useNotifications();
   const { isSaved, toggleSave } = useSavedPosts();
 
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedPostForShare, setSelectedPostForShare] = useState(null);
   const [showMediaViewModal, setShowMediaViewModal] = useState(false);
@@ -105,6 +108,9 @@ export const FeedScreen = ({
           <button onClick={onNavigateToSearch} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
             <Search className="w-5 h-5 text-white" />
           </button>
+          <button onClick={() => setShowInviteModal(true)} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
+            <UserPlus className="w-5 h-5 text-white" />
+          </button>
           <button onClick={onNavigateToNotifications} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition relative">
             <Bell className="w-5 h-5 text-white" />
             {unreadCount > 0 && (
@@ -140,6 +146,9 @@ export const FeedScreen = ({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pt-3 pb-24">
+
+        {/* Who to follow — only shows invited users who have joined */}
+        {!isFollowingTab && <SuggestedProfiles onNavigateToProfile={onNavigateToProfile} />}
 
         {activeLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -182,6 +191,13 @@ export const FeedScreen = ({
           ))
         )}
       </div>
+
+      {showInviteModal && (
+        <InviteModal
+          onClose={() => setShowInviteModal(false)}
+          onNavigateToProfile={onNavigateToProfile}
+        />
+      )}
 
       {showShareModal && selectedPostForShare && (
         <ShareModal post={selectedPostForShare} onClose={() => { setShowShareModal(false); setSelectedPostForShare(null); }} />
