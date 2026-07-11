@@ -6,17 +6,19 @@ import { liveStreamStore } from '../../utils/liveStreamStore';
 interface StartLiveScreenProps {
   onBack: () => void;
   onGoLive: (live: Live) => void;
+  /** When provided, the user is starting a previously scheduled live (no new record needed). */
+  scheduledLive?: Live;
 }
 
-export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLive }) => {
-  const { createLive } = useLives();
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('');
+export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLive, scheduledLive }) => {
+  const { createLive, goLive } = useLives();
+  const [title, setTitle] = useState(scheduledLive?.title ?? '');
+  const [category, setCategory] = useState(scheduledLive?.category ?? '');
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
-  const [description, setDescription] = useState('');
-  const [privacy, setPrivacy] = useState<'public' | 'followers' | 'premium'>('public');
+  const [description, setDescription] = useState(scheduledLive?.description ?? '');
+  const [privacy, setPrivacy] = useState<'public' | 'followers' | 'premium'>(scheduledLive?.privacy ?? 'public');
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -193,21 +195,29 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
 
     setIsSubmitting(true);
     try {
-      const status = isScheduled ? 'scheduled' : 'live';
-      const scheduledAt = isScheduled ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString() : null;
+      let liveData: Live;
 
-      const { data, error } = await createLive({
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        privacy,
-        status,
-        scheduled_at: scheduledAt,
-      });
+      if (scheduledLive) {
+        // Starting a previously scheduled live — just update its status
+        const { error } = await goLive(scheduledLive.id, scheduledLive.title);
+        if (error) { alert('Could not start your live. Please try again.'); return; }
+        liveData = { ...scheduledLive, status: 'live', started_at: new Date().toISOString() };
+      } else {
+        const status = isScheduled ? 'scheduled' : 'live';
+        const scheduledAt = isScheduled ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString() : null;
 
-      if (error || !data) {
-        alert('Could not save your live. Please try again.');
-        return;
+        const { data, error } = await createLive({
+          title: title.trim(),
+          description: description.trim(),
+          category,
+          privacy,
+          status,
+          scheduled_at: scheduledAt,
+        });
+
+        if (error || !data) { alert('Could not save your live. Please try again.'); return; }
+        if (status === 'scheduled') { onGoLive(data); return; } // no camera needed for scheduled
+        liveData = data;
       }
 
       // Mark as handed off BEFORE calling onGoLive (which triggers unmount + cleanup)
@@ -215,7 +225,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
       liveStreamStore.setStream(stream);
       liveStreamStore.setFilter(currentFilter);
 
-      onGoLive(data);
+      onGoLive(liveData);
     } finally {
       setIsSubmitting(false);
     }
@@ -625,7 +635,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
           className="w-full py-4 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold rounded-xl hover:from-emerald-700 hover:to-emerald-600 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <Radio className="w-5 h-5" />
-          {isSubmitting ? 'Saving...' : isScheduled ? 'Schedule Live' : 'Start Stream'}
+          {isSubmitting ? 'Saving...' : scheduledLive ? 'Go Live Now' : isScheduled ? 'Schedule Live' : 'Start Stream'}
         </button>
       </div>
 

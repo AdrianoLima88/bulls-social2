@@ -134,6 +134,7 @@ const AppContent = () => {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
+  const [selectedScheduledLive, setSelectedScheduledLive] = useState(null);
   const [feedFilter, setFeedFilter] = useState('all');
   const [messageContact, setMessageContact] = useState(null);
   const [viewedUserId, setViewedUserId] = useState<string | null>(null);
@@ -341,9 +342,9 @@ const AppContent = () => {
         {currentScreen === 'languageRegion' && <LanguageRegionScreen onBack={navigateBack} />}
         {currentScreen === 'creatorDashboard' && <CreatorDashboard onBack={navigateBack} onNavigateToSchedule={() => alert('Post scheduling coming soon!')} onNavigateToMonetization={() => alert('Monetisation settings coming soon!')} onNavigateToVideoStudio={() => navigateTo('videoStudio')} />}
         {currentScreen === 'videoStudio' && <VideoStudio onBack={navigateBack} />}
-        {currentScreen === 'live' && <LiveScreen onBack={navigateBack} onStartLive={() => navigateTo('startLive')} onWatchLive={(live) => { setSelectedPost(live); navigateTo('watchLive'); }} />}
+        {currentScreen === 'live' && <LiveScreen onBack={navigateBack} onStartLive={() => { setSelectedScheduledLive(null); navigateTo('startLive'); }} onWatchLive={(live) => { setSelectedPost(live); navigateTo('watchLive'); }} onStartScheduled={(live) => { setSelectedScheduledLive(live); navigateTo('startLive'); }} />}
         {currentScreen === 'watchLive' && selectedPost && <WatchLiveScreen live={selectedPost} onClose={navigateBack} />}
-        {currentScreen === 'startLive' && <StartLiveScreen onBack={navigateBack} onGoLive={handleGoLive} />}
+        {currentScreen === 'startLive' && <StartLiveScreen onBack={navigateBack} onGoLive={handleGoLive} scheduledLive={selectedScheduledLive} />}
       </Suspense>
 
       {showBottomNav && <BottomNav currentScreen={currentScreen} onNavigate={setCurrentScreen} activeLivesCount={activeLives.length} />}

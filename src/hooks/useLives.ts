@@ -81,6 +81,33 @@ export const useLives = () => {
     return () => { supabase.removeChannel(channel); };
   }, [fetchLives, instanceId]);
 
+  // Notify all followers of a host about a live event
+  const notifyFollowers = async (
+    hostId: string,
+    liveId: string,
+    type: 'live_started' | 'live_scheduled',
+    content: string,
+  ) => {
+    try {
+      const { data: followers } = await supabase
+        .from('follows')
+        .select('follower_id')
+        .eq('following_id', hostId);
+      if (!followers || followers.length === 0) return;
+      await supabase.from('notifications').insert(
+        followers.map((f: any) => ({
+          user_id: f.follower_id,
+          actor_id: hostId,
+          type,
+          live_id: liveId,
+          content,
+        }))
+      );
+    } catch (err) {
+      console.error('Error notifying followers:', err);
+    }
+  };
+
   const createLive = async (payload: {
     title: string;
     description?: string;
@@ -104,20 +131,33 @@ export const useLives = () => {
 
       const { data, error } = await supabase.from('lives').insert(insertData).select(LIVE_SELECT).single();
       if (error) throw error;
-      return { data: data as Live, error: null };
+      const live = data as Live;
+
+      // Notify followers
+      if (payload.status === 'live') {
+        notifyFollowers(user.id, live.id, 'live_started', `started a live: ${live.title}`);
+      } else {
+        notifyFollowers(user.id, live.id, 'live_scheduled', `scheduled a live: ${live.title}`);
+      }
+
+      return { data: live, error: null };
     } catch (error) {
       console.error('Error creating live:', error);
       return { data: null, error };
     }
   };
 
-  const goLive = async (liveId: string) => {
+  const goLive = async (liveId: string, title?: string) => {
     try {
       const { error } = await supabase
         .from('lives')
         .update({ status: 'live', started_at: new Date().toISOString() })
         .eq('id', liveId);
       if (error) throw error;
+      // Notify followers that the scheduled live has started
+      if (user) {
+        notifyFollowers(user.id, liveId, 'live_started', `started a live${title ? `: ${title}` : ''}`);
+      }
       return { error: null };
     } catch (error) {
       console.error('Error starting live:', error);
