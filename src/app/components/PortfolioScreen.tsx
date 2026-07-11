@@ -11,6 +11,9 @@ const FMP_ALIAS: Record<string, string> = {
   HSBA: 'HSBC', ULVR: 'UL', DGE: 'DEO', RIO: 'RIO',
   GSK: 'GSK', SIE: 'SIEGY', MC: 'LVMUY', ASML: 'ASML',
   OR: 'LRLCY', SAP: 'SAP', NESN: 'NSRGY', NOVN: 'NVS', AIR: 'EADSY',
+  // LSE-listed ETFs → US equivalent for logo lookup
+  VUSA: 'VOO', CSPX: 'IVV', IWDA: 'URTH', VWRL: 'VT', SWDA: 'URTH',
+  VHYL: 'VYM', IUSA: 'IVV', EQQQ: 'QQQ', ISF: 'IVV',
 };
 
 function logoSources(code: string): string[] {
@@ -163,10 +166,10 @@ export const PortfolioScreen = ({ onBack, onAddAsset, onViewAsset }) => {
                         item.type === 'crypto' ? 'bg-orange-100 text-orange-700' :
                         'bg-purple-100 text-purple-700'
                       }`}>
-                        {item.type === 'acao' ? 'AÇÃO' :
-                         item.type === 'fii' ? 'FII' :
-                         item.type === 'crypto' ? 'CRIPTO' :
-                         'RENDA FIXA'}
+                        {item.type === 'acao' ? 'STOCK' :
+                         item.type === 'fii' ? 'REIT' :
+                         item.type === 'crypto' ? 'CRYPTO' :
+                         'FIXED INCOME'}
                       </span>
                     </div>
 

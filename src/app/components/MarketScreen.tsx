@@ -16,6 +16,9 @@ const FMP_ALIAS: Record<string, string> = {
   GSK:  'GSK',   SIE:  'SIEGY', MC:   'LVMUY', ASML: 'ASML',
   OR:   'LRLCY', SAP:  'SAP',   NESN: 'NSRGY', NOVN: 'NVS',
   AIR:  'EADSY',
+  // LSE-listed ETFs → US equivalent for logo lookup
+  VUSA: 'VOO',   CSPX: 'IVV',   IWDA: 'URTH',  VWRL: 'VT',
+  SWDA: 'URTH',  VHYL: 'VYM',   IUSA: 'IVV',   EQQQ: 'QQQ', ISF: 'IVV',
 };
 
 function logoSources(code: string): string[] {
