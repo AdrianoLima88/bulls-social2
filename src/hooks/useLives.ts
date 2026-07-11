@@ -165,6 +165,18 @@ export const useLives = () => {
     }
   };
 
+  const deleteLive = async (liveId: string) => {
+    try {
+      const { error } = await supabase.from('lives').delete().eq('id', liveId);
+      if (error) throw error;
+      setUpcomingLives(prev => prev.filter(l => l.id !== liveId));
+      return { error: null };
+    } catch (error) {
+      console.error('Error deleting live:', error);
+      return { error };
+    }
+  };
+
   const endLive = async (liveId: string) => {
     try {
       const { error } = await supabase
@@ -212,6 +224,7 @@ export const useLives = () => {
     createLive,
     goLive,
     endLive,
+    deleteLive,
     isSubscribed,
     toggleSubscribe,
     getLiveById,

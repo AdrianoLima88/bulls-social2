@@ -66,7 +66,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ onBack, onStartLive, onW
   const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState<'active' | 'upcoming'>('active');
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const { activeLives, upcomingLives, loading, isSubscribed, toggleSubscribe, refreshLives } = useLives();
+  const { activeLives, upcomingLives, loading, isSubscribed, toggleSubscribe, refreshLives, deleteLive } = useLives();
 
   const featured = activeLives[0];
   const restOfActive = activeLives.slice(1);
@@ -272,15 +272,26 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ onBack, onStartLive, onW
                   </div>
 
                   {/* Action row */}
-                  <div className="border-t border-slate-100 px-3 py-2">
+                  <div className="border-t border-slate-100 px-3 py-2 space-y-2">
                     {isOwn ? (
-                      /* Host: Start Now button */
-                      <button
-                        onClick={() => onStartScheduled(live)}
-                        className="w-full py-2.5 bg-green-600 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-green-700 transition"
-                      >
-                        <Play className="w-4 h-4" /> Start Now
-                      </button>
+                      /* Host: Start Now + Cancel */
+                      <>
+                        <button
+                          onClick={() => onStartScheduled(live)}
+                          className="w-full py-2.5 bg-green-600 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-green-700 transition"
+                        >
+                          <Play className="w-4 h-4" /> Start Now
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm('Cancel this scheduled live? This cannot be undone.')) return;
+                            await deleteLive(live.id);
+                          }}
+                          className="w-full py-2 text-red-500 font-semibold rounded-xl text-sm hover:bg-red-50 transition"
+                        >
+                          🗑 Cancel Live
+                        </button>
+                      </>
                     ) : (
                       /* Follower: Notify me toggle */
                       <button
