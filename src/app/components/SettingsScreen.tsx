@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, User, Bell, Shield, HelpCircle, LogOut, FileText, ChevronRight, BarChart3, Palette, Mail, Lock, CreditCard, Eye, Download, Trash2, Crown, Sparkles, Building2 } from 'lucide-react';
+import { ArrowLeft, User, Bell, Shield, HelpCircle, LogOut, FileText, ChevronRight, BarChart3, Palette, Mail, Lock, CreditCard, Eye, Download, Trash2, Crown, Sparkles, Building2, GraduationCap } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { supabase } from '../../utils/supabase/client';
 import { useAuth } from '../../contexts/AuthContext';
@@ -126,10 +126,10 @@ const PLAN_DISPLAY: Record<string, { label: string; color: string; Icon: React.F
   business: { label: 'Business',      color: 'text-blue-600',   Icon: Building2   },
 };
 
-export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNavigateToGuidelines, onNavigateToLanguageRegion, onNavigateToCreatorDashboard }) => {
+export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNavigateToGuidelines, onNavigateToLanguageRegion, onNavigateToCreatorDashboard, onNavigateToAcademy }) => {
   const { t, locale } = useLocale();
   const { user } = useAuth();
-  const { currentPlan, isPremium, subscription } = useSubscription();
+  const { currentPlan, isPremium, isPro, isBusiness, subscription } = useSubscription();
   const [showMFAManage, setShowMFAManage] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -187,6 +187,28 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
           >
             <BarChart3 className="w-5 h-5" />
             Open Dashboard
+          </button>
+        </div>
+
+        {/* Bulls Academy */}
+        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl shadow-lg p-5 text-white">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              <GraduationCap className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-lg">Bulls Academy</h3>
+              <p className="text-white/90 text-sm">
+                {(isPro || isBusiness) ? 'Crie e gerencie cursos e mentorias' : 'Cursos e mentorias de investimento'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => onNavigateToAcademy?.()}
+            className="w-full bg-white text-indigo-700 px-4 py-3 rounded-xl font-bold hover:bg-white/90 transition flex items-center justify-center gap-2"
+          >
+            <GraduationCap className="w-5 h-5" />
+            {(isPro || isBusiness) ? 'Abrir Academy' : 'Explorar Cursos'}
           </button>
         </div>
 
@@ -581,44 +603,30 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
                 type="text"
                 value={deleteConfirmText}
                 onChange={e => setDeleteConfirmText(e.target.value)}
-                placeholder="Type DELETE"
-                className="w-full px-3 py-2 border-2 border-red-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-red-500 mb-3 bg-white"
+                placeholder="Type DELETE here"
+                className="w-full px-3 py-2 border-2 border-red-300 rounded-xl text-sm mb-3 focus:outline-none focus:border-red-500"
               />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }}
-                  className="flex-1 py-2.5 border-2 border-slate-300 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-50 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={deleteConfirmText !== 'DELETE' || gdprLoading}
-                  onClick={async () => {
-                    if (deleteConfirmText !== 'DELETE' || !user) return;
-                    setGdprLoading(true);
-                    try {
-                      const { error } = await supabase.rpc('delete_user_account');
-                      if (error) throw error;
-                      await supabase.auth.signOut();
-                      onLogout();
-                    } catch (e: any) {
-                      alert(`❌ Failed to delete account: ${e.message}`);
-                      setGdprLoading(false);
-                    }
-                  }}
-                  className={`flex-1 py-2.5 font-semibold text-sm rounded-xl transition flex items-center justify-center gap-2 ${
-                    deleteConfirmText === 'DELETE' && !gdprLoading
-                      ? 'bg-red-600 text-white hover:bg-red-700'
-                      : 'bg-red-200 text-red-400 cursor-not-allowed'
-                  }`}
-                >
-                  {gdprLoading
-                    ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    : 'Delete Account'
+              <button
+                disabled={deleteConfirmText !== 'DELETE'}
+                onClick={async () => {
+                  if (deleteConfirmText !== 'DELETE') return;
+                  if (!window.confirm('Final confirmation: permanently delete your account?')) return;
+                  try {
+                    await supabase.from('profiles').delete().eq('id', user?.id);
+                    await supabase.auth.signOut();
+                    window.location.reload();
+                  } catch (e) {
+                    alert('Error deleting account. Contact support.');
                   }
-                </button>
-              </div>
-              <p className="text-xs text-slate-500 text-center mt-2">Right to erasure under GDPR Art. 17</p>
+                }}
+                className={`w-full py-3 rounded-xl font-bold text-sm transition ${
+                  deleteConfirmText === 'DELETE'
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                Permanently Delete Account
+              </button>
             </div>
           )}
         </div>

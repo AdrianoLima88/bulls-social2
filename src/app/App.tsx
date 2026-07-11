@@ -63,6 +63,7 @@ const FollowersListScreen = lazyLoad(() => import('./components/FollowersListScr
 const FollowingListScreen = lazyLoad(() => import('./components/FollowingListScreen').then(m => ({ default: m.FollowingListScreen })));
 const ExploreScreen = lazyLoad(() => import('./components/ExploreScreen').then(m => ({ default: m.ExploreScreen })));
 const SavedPostsScreen = lazyLoad(() => import('./components/SavedPostsScreen').then(m => ({ default: m.SavedPostsScreen })));
+const AcademyScreen = lazyLoad(() => import('./components/AcademyScreen').then(m => ({ default: m.AcademyScreen })));
 
 // Preload most used screens after login
 const preloadScreens = () => {
@@ -323,6 +324,7 @@ const AppContent = () => {
             onNavigateToGuidelines={() => navigateTo('communityGuidelines')}
             onNavigateToLanguageRegion={() => navigateTo('languageRegion')}
             onNavigateToCreatorDashboard={() => navigateTo('creatorDashboard')}
+            onNavigateToAcademy={() => navigateTo('academy')}
           />
         )}
         {currentScreen === 'editProfile' && <EditProfileScreen onBack={navigateBack} onSave={handleSaveProfile} initialData={userProfile} />}
@@ -338,6 +340,7 @@ const AppContent = () => {
         )}
         {currentScreen === 'premium' && <PremiumScreen onClose={navigateBack} onUpgrade={(plan, cycle) => { alert(`Subscription ${plan} (${cycle}) activated!`); navigateBack(); }} />}
         {currentScreen === 'businessDashboard' && <BusinessDashboard onBack={navigateBack} onNavigateToPremium={() => navigateTo('premium')} />}
+        {currentScreen === 'academy' && <AcademyScreen onBack={navigateBack} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'communityGuidelines' && <CommunityGuidelinesScreen onBack={navigateBack} />}
         {currentScreen === 'currency' && <CurrencyScreen onBack={navigateBack} />}
         {currentScreen === 'languageRegion' && <LanguageRegionScreen onBack={navigateBack} />}
