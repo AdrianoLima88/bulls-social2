@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Radio, Clock, Users, Lock, Globe, AlertCircle, Camera, Mic, MicOff, VideoOff, SwitchCamera, Sparkles, Download, X } from 'lucide-react';
+import { ArrowLeft, Radio, Users, Lock, Globe, AlertCircle, Camera, Mic, MicOff, VideoOff, SwitchCamera, Sparkles, Download, X } from 'lucide-react';
 import { useLives, type Live } from '../../hooks/useLives';
 import { liveStreamStore } from '../../utils/liveStreamStore';
 
@@ -14,9 +14,6 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
   const { createLive, goLive } = useLives();
   const [title, setTitle] = useState(scheduledLive?.title ?? '');
   const [category, setCategory] = useState(scheduledLive?.category ?? '');
-  const [isScheduled, setIsScheduled] = useState(false);
-  const [scheduledDate, setScheduledDate] = useState('');
-  const [scheduledTime, setScheduledTime] = useState('');
   const [description, setDescription] = useState(scheduledLive?.description ?? '');
   const [privacy, setPrivacy] = useState<'public' | 'followers' | 'premium'>(scheduledLive?.privacy ?? 'public');
   const [isCameraOn, setIsCameraOn] = useState(false);
@@ -188,11 +185,6 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
       alert('Please select a category!');
       return;
     }
-    if (isScheduled && (!scheduledDate || !scheduledTime)) {
-      alert('Please pick a date and time for your scheduled live!');
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       let liveData: Live;
@@ -203,20 +195,16 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
         if (error) { alert('Could not start your live. Please try again.'); return; }
         liveData = { ...scheduledLive, status: 'live', started_at: new Date().toISOString() };
       } else {
-        const status = isScheduled ? 'scheduled' : 'live';
-        const scheduledAt = isScheduled ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString() : null;
-
         const { data, error } = await createLive({
           title: title.trim(),
           description: description.trim(),
           category,
           privacy,
-          status,
-          scheduled_at: scheduledAt,
+          status: 'live',
+          scheduled_at: null,
         });
 
         if (error || !data) { alert('Could not save your live. Please try again.'); return; }
-        if (status === 'scheduled') { onGoLive(data); return; } // no camera needed for scheduled
         liveData = data;
       }
 
@@ -587,44 +575,6 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
           </div>
         </div>
 
-        {/* Schedule */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-blue-700" />
-              <span className="font-bold text-blue-900">Schedule Live</span>
-            </div>
-            <button
-              onClick={() => setIsScheduled(!isScheduled)}
-              className={`w-12 h-6 rounded-full transition relative ${
-                isScheduled ? 'bg-blue-600' : 'bg-slate-300'
-              }`}
-            >
-              <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all ${
-                isScheduled ? 'left-6' : 'left-0.5'
-              }`}></div>
-            </button>
-          </div>
-          {isScheduled && (
-            <div className="space-y-2">
-              <input
-                type="date"
-                value={scheduledDate}
-                onChange={(e) => setScheduledDate(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="time"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-xs text-blue-800">
-                📅 People can tap "Notify me" and will get an alert the moment this live starts.
-              </p>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Fixed bottom button */}
@@ -635,7 +585,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
           className="w-full py-4 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold rounded-xl hover:from-emerald-700 hover:to-emerald-600 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <Radio className="w-5 h-5" />
-          {isSubmitting ? 'Saving...' : scheduledLive ? 'Go Live Now' : isScheduled ? 'Schedule Live' : 'Start Stream'}
+          {isSubmitting ? 'Saving...' : scheduledLive ? 'Go Live Now' : 'Start Stream'}
         </button>
       </div>
 
