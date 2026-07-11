@@ -114,6 +114,56 @@ export function useSubscription() {
     }
   }, [user]);
 
+  // Open Stripe Billing Portal
+  const openBillingPortal = useCallback(async () => {
+    if (!user) return { error: 'Not authenticated' };
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${supabaseUrl}/functions/v1/stripe-checkout`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ action: 'create_portal_session' }),
+        }
+      );
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      window.location.href = data.url;
+      return { error: null };
+    } catch (e: any) {
+      return { error: e.message };
+    }
+  }, [user]);
+
+  // Reactivate subscription (undo cancel_at_period_end)
+  const reactivateSubscription = useCallback(async () => {
+    if (!user) return { error: 'Not authenticated' };
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${supabaseUrl}/functions/v1/stripe-checkout`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ action: 'reactivate_subscription' }),
+        }
+      );
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      await fetchSubscription();
+      return { error: null };
+    } catch (e: any) {
+      return { error: e.message };
+    }
+  }, [user, fetchSubscription]);
+
   // Cancel subscription
   const cancelSubscription = useCallback(async () => {
     if (!user) return { error: 'Not authenticated' };
@@ -180,6 +230,8 @@ export function useSubscription() {
     startCheckout,
     sendTip,
     cancelSubscription,
+    reactivateSubscription,
+    openBillingPortal,
     refresh: fetchSubscription,
   };
 }

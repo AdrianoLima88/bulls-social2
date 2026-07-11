@@ -178,6 +178,49 @@ serve(async (req) => {
       });
     }
 
+    // ── CREATE BILLING PORTAL SESSION ────────────────────────
+    if (action === 'create_portal_session') {
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('stripe_customer_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!sub?.stripe_customer_id) throw new Error('No Stripe customer found');
+
+      const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'http://localhost:5173';
+      const session = await stripe.billingPortal.sessions.create({
+        customer: sub.stripe_customer_id,
+        return_url: frontendUrl,
+      });
+
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ── REACTIVATE SUBSCRIPTION ──────────────────────────────
+    if (action === 'reactivate_subscription') {
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('stripe_subscription_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (sub?.stripe_subscription_id) {
+        await stripe.subscriptions.update(sub.stripe_subscription_id, {
+          cancel_at_period_end: false,
+        });
+        await supabase.from('subscriptions')
+          .update({ cancel_at_period_end: false })
+          .eq('user_id', user.id);
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     throw new Error(`Unknown action: ${action}`);
 
   } catch (err) {

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowLeft, User, Bell, Shield, HelpCircle, LogOut, FileText, ChevronRight, BarChart3, Palette, Mail, Lock, CreditCard, Eye, Download, Trash2 } from 'lucide-react';
+import { ArrowLeft, User, Bell, Shield, HelpCircle, LogOut, FileText, ChevronRight, BarChart3, Palette, Mail, Lock, CreditCard, Eye, Download, Trash2, Crown, Sparkles, Building2 } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { supabase } from '../../utils/supabase/client';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSubscription } from '../../hooks/useSubscription';
 import { AppearanceSection } from './AppearanceSection';
 import { MFAManageScreen } from './MFAManageScreen';
 
@@ -118,9 +119,17 @@ const ChangePasswordModal = ({ onClose }) => {
   );
 };
 
+const PLAN_DISPLAY: Record<string, { label: string; color: string; Icon: React.FC<any> }> = {
+  free:     { label: 'Free plan',     color: 'text-slate-500',  Icon: CreditCard  },
+  premium:  { label: 'Premium',       color: 'text-yellow-600', Icon: Crown       },
+  pro:      { label: 'Pro',           color: 'text-purple-600', Icon: Sparkles    },
+  business: { label: 'Business',      color: 'text-blue-600',   Icon: Building2   },
+};
+
 export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNavigateToGuidelines, onNavigateToLanguageRegion, onNavigateToCreatorDashboard }) => {
   const { t, locale } = useLocale();
   const { user } = useAuth();
+  const { currentPlan, isPremium, subscription } = useSubscription();
   const [showMFAManage, setShowMFAManage] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -234,10 +243,21 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition"
               >
                 <div className="flex items-center gap-3">
-                  <CreditCard className="w-5 h-5 text-slate-400" />
+                  {(() => {
+                    const planInfo = PLAN_DISPLAY[currentPlan] ?? PLAN_DISPLAY.free;
+                    const PlanIcon = planInfo.Icon;
+                    return <PlanIcon className={`w-5 h-5 ${isPremium ? planInfo.color : 'text-slate-400'}`} />;
+                  })()}
                   <div className="text-left">
                     <p className="text-sm font-semibold text-slate-900">Subscription</p>
-                    <p className="text-xs text-green-600 font-semibold">Upgrade to Premium</p>
+                    {isPremium ? (
+                      <p className={`text-xs font-semibold ${PLAN_DISPLAY[currentPlan]?.color ?? 'text-slate-500'}`}>
+                        {PLAN_DISPLAY[currentPlan]?.label ?? currentPlan}
+                        {subscription?.cancel_at_period_end ? ' · Cancels soon' : ' · Active'}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-green-600 font-semibold">Upgrade to Premium</p>
+                    )}
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-400" />
