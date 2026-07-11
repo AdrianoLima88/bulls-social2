@@ -103,7 +103,9 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
           width: { ideal: 1280 },
           height: { ideal: 720 }
         },
-        audio: isMicOn
+        // Always request audio so the track exists in the stream.
+        // Muting is handled via track.enabled, not by omitting the track.
+        audio: true
       };
 
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);

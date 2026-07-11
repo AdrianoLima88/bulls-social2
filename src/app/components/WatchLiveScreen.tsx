@@ -5,6 +5,7 @@ import { useFollows } from '../../hooks/useFollows';
 import { useLives, type Live } from '../../hooks/useLives';
 import { useLiveSession } from '../../hooks/useLiveSession';
 import { liveStreamStore } from '../../utils/liveStreamStore';
+import { useWebRTCHost, useWebRTCViewer } from '../../hooks/useWebRTCLive';
 
 interface WatchLiveScreenProps {
   live: Live;
@@ -46,6 +47,39 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
     };
     attach();
   }, [isHost]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Remote stream received from the host (viewer only)
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [rtcState, setRtcState] = useState<RTCPeerConnectionState>('new');
+
+  // WebRTC: host side — sends local stream to every viewer
+  useWebRTCHost(
+    isHost ? live.id : null,
+    isHost ? (user?.id ?? null) : null,
+    localStream,
+  );
+
+  // WebRTC: viewer side — receives stream from host
+  useWebRTCViewer(
+    !isHost ? live.id : null,
+    !isHost ? (live.host_id ?? null) : null,
+    !isHost ? (user?.id ?? null) : null,
+    (stream) => {
+      setRemoteStream(stream);
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = stream;
+      }
+    },
+    setRtcState,
+  );
+
+  // Attach remote stream to video element when both are ready
+  useEffect(() => {
+    if (remoteStream && remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
 
   const [message, setMessage] = useState('');
   const [isMuted, setIsMuted] = useState(false);
@@ -364,8 +398,20 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
           />
         )}
 
-        {/* VIEWER (or host while stream isn't ready yet): avatar/placeholder */}
-        {(!isHost || !localStream) && (
+        {/* VIEWER: remote WebRTC video (always in DOM so ref is available; hidden until stream arrives) */}
+        {!isHost && (
+          <video
+            ref={remoteVideoRef}
+            autoPlay
+            playsInline
+            // NOT muted — viewers need to hear the host's audio
+            className="w-full h-full object-cover"
+            style={{ display: remoteStream ? 'block' : 'none' }}
+          />
+        )}
+
+        {/* Fallback placeholder — host before stream attaches, or viewer while WebRTC connects */}
+        {((!isHost && !remoteStream) || (isHost && !localStream)) && (
           <img
             src={live.host?.avatar_url || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80'}
             alt={live.title}
@@ -373,17 +419,19 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
           />
         )}
 
-        {/* Viewer overlay — shown only to non-hosts */}
-        {!isHost && (
+        {/* Viewer connecting indicator — shown while WebRTC is negotiating */}
+        {!isHost && !remoteStream && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center px-4">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm mb-3 mx-auto">
-                <div className="w-12 h-12 bg-green-600/90 rounded-full flex items-center justify-center animate-pulse">
+                <div className={`w-12 h-12 bg-green-600/90 rounded-full flex items-center justify-center ${rtcState === 'connecting' || rtcState === 'new' ? 'animate-pulse' : ''}`}>
                   <div className="w-8 h-8 bg-green-600 rounded-full"></div>
                 </div>
               </div>
-              <p className="text-white text-xs font-semibold drop-shadow-lg">Live in progress</p>
-              <p className="text-white/70 text-[10px] mt-1 drop-shadow-md">Join the conversation below!</p>
+              <p className="text-white text-xs font-semibold drop-shadow-lg">
+                {rtcState === 'failed' ? 'Could not connect to stream' : 'Connecting to live...'}
+              </p>
+              <p className="text-white/70 text-[10px] mt-1 drop-shadow-md">Chat and reactions are live!</p>
             </div>
           </div>
         )}
