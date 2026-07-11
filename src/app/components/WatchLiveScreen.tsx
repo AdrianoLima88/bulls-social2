@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Users, Heart, Send, Share2, MoreVertical, Volume2, VolumeX, Maximize, Minimize, Settings, AlertTriangle, BarChart3, Smile, Radio } from 'lucide-react';
+import { X, Users, Heart, Send, Share2, MoreVertical, Volume2, VolumeX, Maximize, Minimize, Settings, AlertTriangle, BarChart3, Smile, Radio, Lock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFollows } from '../../hooks/useFollows';
 import { useLives, type Live } from '../../hooks/useLives';
@@ -16,9 +16,14 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
   const { user } = useAuth();
   const { isFollowing, toggleFollow } = useFollows();
   const { endLive } = useLives();
-  const { messages, viewerCount, likesCount, sendMessage, sendLike, deleteMessage } = useLiveSession(live.id);
 
   const isHost = !!user && user.id === live.host_id;
+
+  const {
+    messages, viewerCount, likesCount,
+    viewerLimit, viewerLimitReached, limitChecked,
+    sendMessage, sendLike, deleteMessage,
+  } = useLiveSession(live.id, live.host_id, isHost);
   const following = live.host_id ? isFollowing(live.host_id) : false;
 
   // Local camera stream (only available when this user is the host)
@@ -364,6 +369,33 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
       </div>
     </>
   );
+
+  // Ecrã de capacidade atingida
+  if (limitChecked && viewerLimitReached && !isHost) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-3xl max-w-sm w-full p-8 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Live is at capacity</h2>
+          <p className="text-slate-500 text-sm mb-2">
+            This live has reached its maximum of{' '}
+            <span className="font-semibold text-slate-800">{viewerLimit.toLocaleString()} viewers</span>.
+          </p>
+          <p className="text-slate-400 text-xs mb-6">
+            The host can unlock up to 500 concurrent viewers with a <strong>Bulls Pro</strong> subscription.
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition"
+          >
+            Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black z-50 overflow-hidden">

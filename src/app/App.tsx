@@ -312,7 +312,7 @@ const AppContent = () => {
         {currentScreen === 'followersList' && viewedUserId && <FollowersListScreen userId={viewedUserId} onBack={navigateBack} onNavigateToProfile={(p) => { setSelectedProfile(p); navigateTo('profile'); }} />}
         {currentScreen === 'followingList' && viewedUserId && <FollowingListScreen userId={viewedUserId} onBack={navigateBack} onNavigateToProfile={(p) => { setSelectedProfile(p); navigateTo('profile'); }} />}
         {currentScreen === 'comments' && selectedPost && <CommentsScreen postData={selectedPost} onBack={navigateBack} />}
-        {currentScreen === 'createPost' && <CreatePostScreen onBack={navigateBack} onViewGuidelines={() => navigateTo('communityGuidelines')} />}
+        {currentScreen === 'createPost' && <CreatePostScreen onBack={navigateBack} onViewGuidelines={() => navigateTo('communityGuidelines')} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'addAsset' && <AddAssetToPortfolio onBack={navigateBack} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'directMessage' && <DirectMessageScreen onBack={navigateBack} userName={messageContact?.name} userAvatar={messageContact?.name ? messageContact.name.split(' ').map(n => n[0]).join('').substring(0, 2) : null} />}
         {currentScreen === 'settings' && (
@@ -328,6 +328,7 @@ const AppContent = () => {
         {currentScreen === 'editProfile' && <EditProfileScreen onBack={navigateBack} onSave={handleSaveProfile} initialData={userProfile} />}
         {currentScreen === 'assetDetail' && selectedAsset && (
           <AssetDetailScreen asset={selectedAsset} onBack={navigateBack} onAddMore={() => navigateTo('addAsset')}
+            onNavigateToPremium={() => navigateTo('premium')}
             onSell={async (asset) => {
               try { if (asset.id) { const { error } = await removeAssetByCode(asset.code); if (!error) { navigateBack(); return; } } await removeAssetByCode(asset.code); }
               catch (e) { console.error('Remove asset error:', e); removeAssetLocal(asset.code); }
@@ -336,11 +337,11 @@ const AppContent = () => {
           />
         )}
         {currentScreen === 'premium' && <PremiumScreen onClose={navigateBack} onUpgrade={(plan, cycle) => { alert(`Subscription ${plan} (${cycle}) activated!`); navigateBack(); }} />}
-        {currentScreen === 'businessDashboard' && <BusinessDashboard onBack={navigateBack} />}
+        {currentScreen === 'businessDashboard' && <BusinessDashboard onBack={navigateBack} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'communityGuidelines' && <CommunityGuidelinesScreen onBack={navigateBack} />}
         {currentScreen === 'currency' && <CurrencyScreen onBack={navigateBack} />}
         {currentScreen === 'languageRegion' && <LanguageRegionScreen onBack={navigateBack} />}
-        {currentScreen === 'creatorDashboard' && <CreatorDashboard onBack={navigateBack} onNavigateToSchedule={() => alert('Post scheduling coming soon!')} onNavigateToMonetization={() => alert('Monetisation settings coming soon!')} onNavigateToVideoStudio={() => navigateTo('videoStudio')} />}
+        {currentScreen === 'creatorDashboard' && <CreatorDashboard onBack={navigateBack} onNavigateToSchedule={() => alert('Post scheduling coming soon!')} onNavigateToMonetization={() => alert('Monetisation settings coming soon!')} onNavigateToVideoStudio={() => navigateTo('videoStudio')} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'videoStudio' && <VideoStudio onBack={navigateBack} />}
         {currentScreen === 'live' && <LiveScreen onBack={navigateBack} onStartLive={() => { setSelectedScheduledLive(null); navigateTo('startLive'); }} onWatchLive={(live) => { setSelectedPost(live); navigateTo('watchLive'); }} onStartScheduled={(live) => { setSelectedScheduledLive(live); navigateTo('startLive'); }} />}
         {currentScreen === 'watchLive' && selectedPost && <WatchLiveScreen live={selectedPost} onClose={navigateBack} />}

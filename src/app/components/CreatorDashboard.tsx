@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { ArrowLeft, TrendingUp, Users, Eye, Heart, MessageCircle, Share2, DollarSign, Calendar, Clock, Target, Award, BarChart3, Download, Settings, Zap, Crown, ChevronRight, TrendingDown, Globe, MapPin, Filter, Video } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Users, Eye, Heart, MessageCircle, Share2, DollarSign, Calendar, Clock, Target, Award, BarChart3, Download, Settings, Zap, Crown, ChevronRight, TrendingDown, Globe, MapPin, Filter, Video, Sparkles, Loader2 } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useApp } from '../contexts/AppContext';
 import { useLocale } from '../contexts/LocaleContext';
+import { useSubscription } from '../../hooks/useSubscription';
+import { useCreatorStats } from '../../hooks/useCreatorStats';
 
-export const CreatorDashboard = ({ onBack, onNavigateToSchedule, onNavigateToMonetization, onNavigateToVideoStudio }) => {
+export const CreatorDashboard = ({ onBack, onNavigateToSchedule, onNavigateToMonetization, onNavigateToVideoStudio, onNavigateToPremium }) => {
   const { currentUser, getUserPosts } = useApp();
   const { t, formatCurrency } = useLocale();
+  const { isPro, loading: subLoading } = useSubscription();
+  const { stats: realStats, loading: statsLoading } = useCreatorStats();
   const [timeRange, setTimeRange] = useState('7days'); // 7days, 30days, 90days, year
   const [activeTab, setActiveTab] = useState('overview'); // overview, audience, content, earnings
 
@@ -75,6 +79,50 @@ export const CreatorDashboard = ({ onBack, onNavigateToSchedule, onNavigateToMon
   ];
 
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444'];
+
+  // Gate — só Pro/Business
+  if (subLoading) {
+    return (
+      <div className="h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <div className="h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-3xl max-w-sm w-full p-8 text-center shadow-lg">
+          <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-purple-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Creator Dashboard</h2>
+          <p className="text-slate-600 text-sm mb-6">
+            The Creator Dashboard with detailed analytics, monetisation and content tools is exclusive to <strong>Bulls Pro</strong>.
+          </p>
+          <button
+            onClick={onNavigateToPremium}
+            className="w-full py-3.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:opacity-90 transition flex items-center justify-center gap-2 mb-3"
+          >
+            <Crown className="w-5 h-5" /> Upgrade to Pro
+          </button>
+          <button onClick={onBack} className="w-full py-3 text-slate-500 text-sm font-semibold hover:text-slate-700 transition">
+            Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Sobrepor stats mockados com dados reais quando disponíveis
+  if (realStats) {
+    creatorStats.totalViews     = realStats.totalViews;
+    creatorStats.totalFollowers = realStats.followersCount;
+    creatorStats.totalLikes     = realStats.totalLikes;
+    creatorStats.totalComments  = realStats.totalComments;
+    creatorStats.totalShares    = realStats.totalShares;
+    creatorStats.totalEarnings  = realStats.totalRevenue;
+  }
 
   return (
     <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">

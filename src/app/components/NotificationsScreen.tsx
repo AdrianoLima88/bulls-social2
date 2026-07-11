@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Heart, MessageCircle, UserPlus, AtSign, Bell, Share2, CheckCheck, Trash2, Radio } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, UserPlus, AtSign, Bell, Share2, CheckCheck, Trash2, Radio, TrendingUp } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { useNotifications } from '../../hooks/useNotifications';
 
@@ -38,6 +38,7 @@ export const NotificationsScreen = ({ onBack, onNavigateToPost, onNavigateToProf
     { id: 'follow', label: 'Followers', icon: UserPlus },
     { id: 'share', label: 'Shares', icon: Share2 },
     { id: 'live_started', label: 'Lives', icon: Radio },
+    { id: 'price_alert', label: 'Alerts', icon: TrendingUp },
   ];
 
   const typeConfig = {
@@ -46,7 +47,8 @@ export const NotificationsScreen = ({ onBack, onNavigateToPost, onNavigateToProf
     follow:       { bg: 'bg-green-600',  icon: UserPlus,       label: 'followed you' },
     share:        { bg: 'bg-orange-500', icon: Share2,         label: 'shared' },
     mention:      { bg: 'bg-purple-500', icon: AtSign,         label: 'mentioned you' },
-    live_started: { bg: 'bg-emerald-600', icon: Radio,         label: 'started a live' },
+    live_started:  { bg: 'bg-emerald-600', icon: Radio,        label: 'started a live' },
+    price_alert:   { bg: 'bg-amber-500',   icon: TrendingUp,   label: 'Price alert' },
   };
 
   const handleNotificationClick = (notification) => {

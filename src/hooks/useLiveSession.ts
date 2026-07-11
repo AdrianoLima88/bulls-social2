@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../utils/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -21,14 +21,42 @@ const MESSAGE_SELECT = `
   author:user_id (id, username, name, avatar_url)
 `;
 
+// Viewer limits by plan
+const PLAN_VIEWER_LIMITS: Record<string, number> = {
+  free:     50,
+  premium:  100,
+  pro:      500,
+  business: 500,
+};
+
+/** Returns the viewer limit for a host, based on their Supabase subscription row. */
+const getHostViewerLimit = async (hostId: string): Promise<number> => {
+  const { data } = await supabase
+    .from('subscriptions')
+    .select('plan')
+    .eq('user_id', hostId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  const plan = data?.plan ?? 'free';
+  return PLAN_VIEWER_LIMITS[plan] ?? PLAN_VIEWER_LIMITS.free;
+};
+
 // Real-time chat + viewer presence + likes for a single live, used by WatchLiveScreen.
-export const useLiveSession = (liveId: string | null | undefined) => {
+export const useLiveSession = (
+  liveId: string | null | undefined,
+  hostId?: string | null,   // pass live.host_id so viewers can be limit-checked
+  isHost?: boolean,         // host is never blocked by their own limit
+) => {
   const { user, profile } = useAuth();
-  const [messages, setMessages] = useState<LiveMessage[]>([]);
-  const [viewerCount, setViewerCount] = useState(0);
-  const [likesCount, setLikesCount] = useState(0);
-  const profileRef = useRef(profile);
-  const joinedRef = useRef(false);
+  const [messages, setMessages]               = useState<LiveMessage[]>([]);
+  const [viewerCount, setViewerCount]         = useState(0);
+  const [likesCount, setLikesCount]           = useState(0);
+  const [viewerLimit, setViewerLimit]         = useState<number>(500);
+  const [viewerLimitReached, setViewerLimitReached] = useState(false);
+  const [limitChecked, setLimitChecked]       = useState(false);
+  const profileRef  = useRef(profile);
+  const joinedRef   = useRef(false);
 
   useEffect(() => { profileRef.current = profile; }, [profile]);
 
@@ -105,9 +133,37 @@ export const useLiveSession = (liveId: string | null | undefined) => {
     return () => { supabase.removeChannel(channel); };
   }, [liveId]);
 
-  // Join / leave presence (real concurrent viewer tracking)
+  // ── Viewer limit check ──────────────────────────────────────────────────────
   useEffect(() => {
-    if (!liveId || !user) return;
+    if (!liveId || !hostId || isHost) {
+      setLimitChecked(true);
+      return;
+    }
+
+    let active = true;
+    (async () => {
+      const limit = await getHostViewerLimit(hostId);
+      const { data: liveData } = await supabase
+        .from('lives')
+        .select('viewer_count')
+        .eq('id', liveId)
+        .maybeSingle();
+
+      if (!active) return;
+      setViewerLimit(limit);
+      const count = liveData?.viewer_count ?? 0;
+      setViewerLimitReached(count >= limit);
+      setLimitChecked(true);
+    })();
+
+    return () => { active = false; };
+  }, [liveId, hostId, isHost]);
+
+  // Join / leave presence (real concurrent viewer tracking) — blocked if limit reached
+  useEffect(() => {
+    if (!liveId || !user || !limitChecked) return;
+    if (viewerLimitReached && !isHost) return; // blocked
+
     joinedRef.current = true;
 
     supabase
@@ -128,7 +184,7 @@ export const useLiveSession = (liveId: string | null | undefined) => {
           .then(({ error }) => { if (error) console.error('Error leaving live:', error); });
       }
     };
-  }, [liveId, user?.id]);
+  }, [liveId, user?.id, limitChecked, viewerLimitReached, isHost]);
 
   const sendMessage = async (text: string) => {
     if (!liveId || !user || !text.trim()) return { error: null };
@@ -162,5 +218,15 @@ export const useLiveSession = (liveId: string | null | undefined) => {
     }
   };
 
-  return { messages, viewerCount, likesCount, sendMessage, sendLike, deleteMessage };
+  return {
+    messages,
+    viewerCount,
+    likesCount,
+    viewerLimit,
+    viewerLimitReached,
+    limitChecked,
+    sendMessage,
+    sendLike,
+    deleteMessage,
+  };
 };

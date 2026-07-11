@@ -17,6 +17,7 @@ export interface Post {
   views_count: number;
   is_pinned: boolean;
   is_premium: boolean;
+  is_featured: boolean;
   created_at: string;
   updated_at: string;
   profiles?: {
@@ -44,6 +45,7 @@ const POST_SELECT = `
   views_count,
   is_pinned,
   is_premium,
+  is_featured,
   created_at,
   updated_at,
   profiles:author_id (
@@ -119,6 +121,8 @@ export const usePosts = () => {
     charts?: any;
     documents?: any;
     tags?: string[];
+    is_premium?: boolean;
+    is_featured?: boolean;
   }) => {
     if (!user) return { error: 'Not authenticated' };
 
@@ -133,6 +137,8 @@ export const usePosts = () => {
           charts: postData.charts,
           documents: postData.documents,
           tags: postData.tags,
+          is_premium: postData.is_premium ?? false,
+          is_featured: postData.is_featured ?? false,
           likes_count: 0,
           comments_count: 0,
           shares_count: 0,

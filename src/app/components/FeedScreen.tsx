@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Bell, Compass, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users, Lock, UserPlus } from 'lucide-react';
+import { Search, Bell, Compass, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users, Lock, UserPlus, Crown } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { ShareModal } from './ShareModal';
 import { MediaViewModal } from './MediaViewModal';
@@ -71,6 +71,7 @@ export const FeedScreen = ({
     savedBy: [],
     isPinned: post.is_pinned,
     isPremiumContent: post.is_premium,
+    isFeatured: post.is_featured,
   });
 
   const posts = supabasePosts.map(mapPost);
@@ -243,7 +244,17 @@ const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave,
   const extraTags = post.tags?.filter(tag => !post.content?.includes(`#${tag}`)) || [];
 
   return (
-    <div className={`bg-white rounded-xl p-4 mb-3 shadow-sm hover:shadow-md transition ${post.isSponsored ? 'border-2 border-yellow-200' : ''}`}>
+    <div className={`bg-white rounded-xl p-4 mb-3 shadow-sm hover:shadow-md transition ${
+      post.isSponsored ? 'border-2 border-yellow-200' :
+      post.isFeatured ? 'border-2 border-amber-300 ring-1 ring-amber-100' : ''
+    }`}>
+      {post.isFeatured && !post.isSponsored && (
+        <div className="mb-3 flex items-center justify-between bg-amber-50 -mx-4 -mt-4 px-4 py-2 rounded-t-xl border-b border-amber-100">
+          <span className="text-xs font-bold text-amber-700 flex items-center gap-1">
+            <Crown className="w-3 h-3" /> Featured Publication
+          </span>
+        </div>
+      )}
       {post.isSponsored && (
         <div className="mb-3 flex items-center justify-between bg-yellow-50 -mx-4 -mt-4 px-4 py-2 rounded-t-xl border-b border-yellow-100">
           <span className="text-xs font-bold text-yellow-700 flex items-center gap-1"><Sparkles className="w-3 h-3" /> Sponsored</span>

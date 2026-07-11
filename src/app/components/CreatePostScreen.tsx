@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Image as ImageIcon, BarChart3, FileText, Video, Smile, XCircle, TrendingUp, File, Loader2 } from 'lucide-react';
+import { X, Image as ImageIcon, BarChart3, FileText, Video, Smile, XCircle, TrendingUp, File, Loader2, Lock, Crown, Sparkles } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { AddChartModal } from './AddChartModal';
 import { AddDocumentModal } from './AddDocumentModal';
@@ -7,14 +7,18 @@ import { ContentWarningModal } from './ContentWarningModal';
 import { EmojiPicker } from './EmojiPicker';
 import { usePosts } from '../../hooks/usePosts';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSubscription } from '../../hooks/useSubscription';
 import { supabase } from '../../utils/supabase/client';
 
-export const CreatePostScreen = ({ onBack, onViewGuidelines }) => {
+export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium }) => {
   const { user, profile } = useAuth();
   const { createPost } = usePosts();
   const { t } = useLocale();
+  const { isPremium, isPro, isBusiness } = useSubscription();
   const [postType, setPostType] = useState('analysis');
   const [postContent, setPostContent] = useState('');
+  const [isPremiumPost, setIsPremiumPost] = useState(false);
+  const [isFeaturedPost, setIsFeaturedPost] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ type: string; url: string; preview: string }[]>([]);
   const [selectedCharts, setSelectedCharts] = useState([]);
   const [selectedDocuments, setSelectedDocuments] = useState([]);
@@ -133,6 +137,8 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines }) => {
       charts: selectedCharts.length > 0 ? selectedCharts : undefined,
       documents: selectedDocuments.length > 0 ? selectedDocuments : undefined,
       tags: tags.length > 0 ? tags : undefined,
+      is_premium: isPremiumPost,
+      is_featured: isFeaturedPost,
     });
 
     setPublishing(false);
@@ -223,8 +229,14 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines }) => {
             <button onClick={() => videoInputRef.current?.click()} className="p-2 hover:bg-green-50 rounded-lg transition text-green-600" title="Add video">
               <Video className="w-5 h-5" />
             </button>
-            <button onClick={() => setShowChartModal(true)} className="p-2 hover:bg-slate-100 rounded-lg transition text-slate-600" title="Add chart">
+            {/* Gráficos — requer Premium */}
+            <button
+              onClick={() => isPremium ? setShowChartModal(true) : onNavigateToPremium?.()}
+              className={`p-2 rounded-lg transition relative ${isPremium ? 'hover:bg-slate-100 text-slate-600' : 'text-slate-300'}`}
+              title={isPremium ? 'Add chart' : 'Charts require Premium'}
+            >
               <BarChart3 className="w-5 h-5" />
+              {!isPremium && <Crown className="w-2.5 h-2.5 text-yellow-500 absolute top-1 right-1" />}
             </button>
             <button onClick={() => setShowDocumentModal(true)} className="p-2 hover:bg-slate-100 rounded-lg transition text-slate-600" title="Add document">
               <FileText className="w-5 h-5" />
@@ -240,6 +252,60 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines }) => {
               )}
             </div>
           </div>
+
+          {/* Toggle Post Exclusivo — apenas Pro/Business */}
+          {isPro && (
+            <div className="mt-3 pt-3 border-t border-slate-100">
+              <button
+                onClick={() => setIsPremiumPost(!isPremiumPost)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition ${
+                  isPremiumPost
+                    ? 'bg-purple-50 border-2 border-purple-400'
+                    : 'bg-slate-50 border-2 border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className={`w-4 h-4 ${isPremiumPost ? 'text-purple-600' : 'text-slate-400'}`} />
+                  <div className="text-left">
+                    <p className={`text-sm font-bold ${isPremiumPost ? 'text-purple-700' : 'text-slate-700'}`}>
+                      Exclusive post for subscribers
+                    </p>
+                    <p className="text-xs text-slate-500">Only Premium/Pro subscribers will see the full content</p>
+                  </div>
+                </div>
+                <div className={`w-10 h-5 rounded-full transition relative flex-shrink-0 ${isPremiumPost ? 'bg-purple-600' : 'bg-slate-300'}`}>
+                  <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${isPremiumPost ? 'right-0.5' : 'left-0.5'}`} />
+                </div>
+              </button>
+            </div>
+          )}
+
+          {/* Toggle Post em Destaque — apenas Business */}
+          {isBusiness && (
+            <div className={isPro ? 'mt-2' : 'mt-3 pt-3 border-t border-slate-100'}>
+              <button
+                onClick={() => setIsFeaturedPost(!isFeaturedPost)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition ${
+                  isFeaturedPost
+                    ? 'bg-amber-50 border-2 border-amber-400'
+                    : 'bg-slate-50 border-2 border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Crown className={`w-4 h-4 ${isFeaturedPost ? 'text-amber-600' : 'text-slate-400'}`} />
+                  <div className="text-left">
+                    <p className={`text-sm font-bold ${isFeaturedPost ? 'text-amber-700' : 'text-slate-700'}`}>
+                      Featured publication
+                    </p>
+                    <p className="text-xs text-slate-500">Highlighted in the feed with a featured badge</p>
+                  </div>
+                </div>
+                <div className={`w-10 h-5 rounded-full transition relative flex-shrink-0 ${isFeaturedPost ? 'bg-amber-500' : 'bg-slate-300'}`}>
+                  <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${isFeaturedPost ? 'right-0.5' : 'left-0.5'}`} />
+                </div>
+              </button>
+            </div>
+          )}
 
           <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => handleFileChange(e, 'image')} className="hidden" />
           <input ref={videoInputRef} type="file" accept="video/*" onChange={(e) => handleFileChange(e, 'video')} className="hidden" />

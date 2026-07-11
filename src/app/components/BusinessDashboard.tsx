@@ -1,390 +1,371 @@
-import React, { useState } from 'react';
-import { ArrowLeft, TrendingUp, TrendingDown, Eye, Heart, MessageCircle, Users, BarChart3, Target, Megaphone, DollarSign } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  ArrowLeft, TrendingUp, TrendingDown, Eye, Heart, MessageCircle,
+  Users, BarChart3, Target, Megaphone, DollarSign, Loader2,
+  Building2, AlertCircle, Share2, Crown,
+} from 'lucide-react';
+import { supabase } from '../../utils/supabase/client';
+import { useAuth } from '../../contexts/AuthContext';
+import { useSubscription } from '../../hooks/useSubscription';
 
-export const BusinessDashboard = ({ onBack }) => {
+// ─── Gate — só Business ──────────────────────────────────────────────────────
+const UpgradeGate: React.FC<{ onBack: () => void; onNavigateToPremium?: () => void }> = ({ onBack, onNavigateToPremium }) => (
+  <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+    <div className="bg-white rounded-3xl max-w-sm w-full p-8 text-center shadow-lg">
+      <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <Building2 className="w-8 h-8 text-blue-600" />
+      </div>
+      <h2 className="text-2xl font-bold text-slate-900 mb-2">Bulls Business</h2>
+      <p className="text-slate-600 text-sm mb-6">
+        Sentiment analytics, audience insights and sponsored posts are exclusive to the <strong>Bulls Business</strong> plan.
+      </p>
+      <button
+        onClick={onNavigateToPremium}
+        className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-xl hover:opacity-90 transition flex items-center justify-center gap-2 mb-3"
+      >
+        <Crown className="w-5 h-5" /> Upgrade to Business
+      </button>
+      <button onClick={onBack} className="w-full py-3 text-slate-500 text-sm font-semibold hover:text-slate-700 transition">
+        Back
+      </button>
+    </div>
+  </div>
+);
+
+// ─── Hook de dados reais ─────────────────────────────────────────────────────
+const useBusinessStats = () => {
+  const { user } = useAuth();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      // Posts do utilizador
+      const { data: posts } = await supabase
+        .from('posts')
+        .select('likes_count, comments_count, shares_count, views_count, created_at')
+        .eq('author_id', user.id);
+
+      // Comentários nos posts do utilizador (para sentimento simples)
+      const { data: postIds } = await supabase
+        .from('posts')
+        .select('id')
+        .eq('author_id', user.id);
+
+      let comments: any[] = [];
+      if (postIds && postIds.length > 0) {
+        const ids = postIds.map((p: any) => p.id);
+        const { data: cmts } = await supabase
+          .from('comments')
+          .select('content')
+          .in('post_id', ids);
+        comments = cmts || [];
+      }
+
+      // Perfil (seguidores)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('followers_count, following_count, name')
+        .eq('id', user.id)
+        .single();
+
+      const allPosts = posts || [];
+      const totalViews       = allPosts.reduce((s: number, p: any) => s + (p.views_count    || 0), 0);
+      const totalLikes       = allPosts.reduce((s: number, p: any) => s + (p.likes_count    || 0), 0);
+      const totalComments    = allPosts.reduce((s: number, p: any) => s + (p.comments_count || 0), 0);
+      const totalShares      = allPosts.reduce((s: number, p: any) => s + (p.shares_count   || 0), 0);
+      const totalEngagement  = totalLikes + totalComments + totalShares;
+
+      // Sentimento simples baseado em palavras-chave nos comentários
+      const positiveWords = ['great', 'excellent', 'amazing', 'good', 'love', 'buy', 'bullish', 'growth',
+                             'ótimo', 'excelente', 'bom', 'comprar', 'alta', 'crescimento', 'parabéns', 'top'];
+      const negativeWords = ['bad', 'terrible', 'sell', 'bearish', 'crash', 'drop', 'concern',
+                             'ruim', 'péssimo', 'vender', 'baixa', 'queda', 'preocupante', 'cuidado'];
+
+      let positiveCount = 0;
+      let negativeCount = 0;
+      let neutralCount  = 0;
+
+      comments.forEach((c: any) => {
+        const text = (c.content || '').toLowerCase();
+        const hasPositive = positiveWords.some(w => text.includes(w));
+        const hasNegative = negativeWords.some(w => text.includes(w));
+        if (hasPositive && !hasNegative) positiveCount++;
+        else if (hasNegative && !hasPositive) negativeCount++;
+        else neutralCount++;
+      });
+
+      const total = positiveCount + negativeCount + neutralCount || 1;
+      const sentimentScore = Math.round((positiveCount / total) * 100);
+
+      // Tópicos mais mencionados nos comentários
+      const topicKeywords: Record<string, string[]> = {
+        'Dividends':   ['dividend', 'dividendo', 'yield'],
+        'Earnings':    ['earnings', 'lucro', 'resultado', 'balanço'],
+        'Growth':      ['growth', 'crescimento', 'expansão'],
+        'Shares':      ['ações', 'share', 'stock'],
+        'Crypto':      ['bitcoin', 'crypto', 'cripto', 'ethereum'],
+      };
+
+      const topicCounts = Object.entries(topicKeywords).map(([topic, words]) => {
+        const count = comments.filter((c: any) =>
+          words.some(w => (c.content || '').toLowerCase().includes(w))
+        ).length;
+        return { topic, count };
+      }).sort((a, b) => b.count - a.count);
+
+      setData({
+        followers:     profile?.followers_count || 0,
+        following:     profile?.following_count || 0,
+        companyName:   profile?.name || '',
+        totalViews,
+        totalEngagement,
+        totalPosts:    allPosts.length,
+        sentimentScore,
+        sentimentData: [
+          { label: 'Very Positive', count: Math.round(positiveCount * 0.6), pct: Math.round((positiveCount * 0.6 / total) * 100), color: 'bg-green-500' },
+          { label: 'Positive',      count: Math.round(positiveCount * 0.4), pct: Math.round((positiveCount * 0.4 / total) * 100), color: 'bg-green-400' },
+          { label: 'Neutral',       count: neutralCount,  pct: Math.round((neutralCount  / total) * 100), color: 'bg-slate-400' },
+          { label: 'Negative',      count: Math.round(negativeCount * 0.7), pct: Math.round((negativeCount * 0.7 / total) * 100), color: 'bg-red-400' },
+          { label: 'Very Negative', count: Math.round(negativeCount * 0.3), pct: Math.round((negativeCount * 0.3 / total) * 100), color: 'bg-red-500' },
+        ],
+        topTopics: topicCounts,
+        totalComments: comments.length,
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => { fetch(); }, [fetch]);
+  return { data, loading, error };
+};
+
+// ─── Main ────────────────────────────────────────────────────────────────────
+export const BusinessDashboard: React.FC<{ onBack: () => void; onNavigateToPremium?: () => void }> = ({ onBack, onNavigateToPremium }) => {
+  const { isBusiness, loading: subLoading } = useSubscription();
+  const { data, loading, error } = useBusinessStats();
   const [activeTab, setActiveTab] = useState<'overview' | 'sentiment' | 'audience' | 'sponsored'>('overview');
 
-  // Mock data
-  const metrics = {
-    totalViews: 125340,
-    totalEngagement: 8934,
-    followers: 45623,
-    avgSentiment: 78, // 0-100
-    reachGrowth: 12.5,
-    sentimentTrend: 5.3,
-  };
+  if (subLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+      </div>
+    );
+  }
 
-  const sentimentData = [
-    { sentiment: 'Muito Positivo', count: 234, percentage: 45, color: 'bg-green-500' },
-    { sentiment: 'Positivo', count: 156, percentage: 30, color: 'bg-green-400' },
-    { sentiment: 'Neutro', count: 89, percentage: 17, color: 'bg-slate-400' },
-    { sentiment: 'Negativo', count: 34, percentage: 6, color: 'bg-red-400' },
-    { sentiment: 'Muito Negativo', count: 10, percentage: 2, color: 'bg-red-500' },
-  ];
-
-  const topicsOfInterest = [
-    { topic: 'Dividendos', mentions: 456, trend: 'up' },
-    { topic: 'Balanço Q1', mentions: 389, trend: 'up' },
-    { topic: 'Ações', mentions: 267, trend: 'neutral' },
-    { topic: 'Lucros', mentions: 234, trend: 'up' },
-    { topic: 'Return', mentions: 198, trend: 'down' },
-  ];
-
-  const audienceProfile = {
-    ageGroups: [
-      { range: '18-24', percentage: 15 },
-      { range: '25-34', percentage: 35 },
-      { range: '35-44', percentage: 28 },
-      { range: '45-54', percentage: 15 },
-      { range: '55+', percentage: 7 },
-    ],
-    investorTypes: [
-      { type: 'Iniciante', percentage: 25 },
-      { type: 'Intermediário', percentage: 45 },
-      { type: 'Avançado', percentage: 30 },
-    ],
-  };
+  if (!isBusiness) {
+    return <UpgradeGate onBack={onBack} onNavigateToPremium={onNavigateToPremium} />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-4 text-white">
-        <div className="flex items-center gap-3 mb-6">
-          <button 
-            onClick={onBack}
-            className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition"
-          >
+        <div className="flex items-center gap-3 mb-5">
+          <button onClick={onBack} className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <h1 className="text-xl font-bold">Bulls Business</h1>
-            <p className="text-sm text-white/80">Analytics e Insights</p>
+            <p className="text-sm text-white/80">Analytics & Insights</p>
           </div>
         </div>
-
-        {/* Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition ${
-              activeTab === 'overview' 
-                ? 'bg-white text-blue-600' 
-                : 'bg-white/20 text-white hover:bg-white/30'
-            }`}
-          >
-            Visão Geral
-          </button>
-          <button
-            onClick={() => setActiveTab('sentiment')}
-            className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition ${
-              activeTab === 'sentiment' 
-                ? 'bg-white text-blue-600' 
-                : 'bg-white/20 text-white hover:bg-white/30'
-            }`}
-          >
-            Sentimento
-          </button>
-          <button
-            onClick={() => setActiveTab('audience')}
-            className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition ${
-              activeTab === 'audience' 
-                ? 'bg-white text-blue-600' 
-                : 'bg-white/20 text-white hover:bg-white/30'
-            }`}
-          >
-            Audience
-          </button>
-          <button
-            onClick={() => setActiveTab('sponsored')}
-            className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition ${
-              activeTab === 'sponsored' 
-                ? 'bg-white text-blue-600' 
-                : 'bg-white/20 text-white hover:bg-white/30'
-            }`}
-          >
-            Patrocinados
-          </button>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {(['overview', 'sentiment', 'audience', 'sponsored'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap text-sm transition ${
+                activeTab === tab ? 'bg-white text-blue-600' : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              {tab === 'overview'   ? 'Overview'
+               : tab === 'sentiment' ? 'Sentiment'
+               : tab === 'audience'  ? 'Audience'
+               : 'Sponsored'}
+            </button>
+          ))}
         </div>
       </header>
 
       <div className="p-4">
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="space-y-4">
-            {/* Key Metrics */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <Eye className="w-5 h-5 text-blue-600" />
-                  <span className="text-xs text-green-600 font-semibold flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    +{metrics.reachGrowth}%
-                  </span>
-                </div>
-                <p className="text-2xl font-bold text-slate-900">{metrics.totalViews.toLocaleString()}</p>
-                <p className="text-xs text-slate-600">Views</p>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <Heart className="w-5 h-5 text-pink-600" />
-                  <span className="text-xs text-green-600 font-semibold flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    +8.2%
-                  </span>
-                </div>
-                <p className="text-2xl font-bold text-slate-900">{metrics.totalEngagement.toLocaleString()}</p>
-                <p className="text-xs text-slate-600">Engajamento</p>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <Users className="w-5 h-5 text-purple-600" />
-                  <span className="text-xs text-green-600 font-semibold flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    +15.7%
-                  </span>
-                </div>
-                <p className="text-2xl font-bold text-slate-900">{metrics.followers.toLocaleString()}</p>
-                <p className="text-xs text-slate-600">Followers</p>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <BarChart3 className="w-5 h-5 text-green-600" />
-                  <span className="text-xs text-green-600 font-semibold flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    +{metrics.sentimentTrend}%
-                  </span>
-                </div>
-                <p className="text-2xl font-bold text-slate-900">{metrics.avgSentiment}%</p>
-                <p className="text-xs text-slate-600">Sentimento Positivo</p>
-              </div>
-            </div>
-
-            {/* Topics of Interest */}
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Target className="w-5 h-5 text-green-600" />
-                Tópicos de Interesse
-              </h3>
-              <div className="space-y-3">
-                {topicsOfInterest.map((topic, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        topic.trend === 'up' ? 'bg-green-100' :
-                        topic.trend === 'down' ? 'bg-red-100' : 'bg-slate-100'
-                      }`}>
-                        {topic.trend === 'up' ? (
-                          <TrendingUp className="w-4 h-4 text-green-600" />
-                        ) : topic.trend === 'down' ? (
-                          <TrendingDown className="w-4 h-4 text-red-600" />
-                        ) : (
-                          <MessageCircle className="w-4 h-4 text-slate-600" />
-                        )}
-                      </div>
-                      <span className="font-medium text-slate-900">{topic.topic}</span>
-                    </div>
-                    <span className="text-sm font-semibold text-slate-600">{topic.mentions} menções</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+        {loading && (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-7 h-7 text-slate-400 animate-spin" />
           </div>
         )}
 
-        {/* Sentiment Tab */}
-        {activeTab === 'sentiment' && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-6 text-center">
-                Investor Sentiment Analysis
-              </h3>
-              
-              <div className="space-y-4">
-                {sentimentData.map((item, index) => (
-                  <div key={index}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-slate-700">{item.sentiment}</span>
-                      <span className="text-sm font-bold text-slate-900">{item.count} menções</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
-                      <div 
-                        className={`${item.color} h-full rounded-full transition-all duration-500`}
-                        style={{ width: `${item.percentage}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">{item.percentage}% do total</p>
-                  </div>
-                ))}
-              </div>
+        {error && (
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
 
-              <div className="mt-6 pt-6 border-t border-slate-200">
-                <div className="bg-green-50 rounded-xl p-4 text-center">
-                  <p className="text-3xl font-bold text-green-600 mb-1">{metrics.avgSentiment}%</p>
-                  <p className="text-sm text-green-700 font-semibold">Sentimento Geral Positivo</p>
-                  <p className="text-xs text-slate-600 mt-2">
-                    Based on {sentimentData.reduce((acc, item) => acc + item.count, 0)} analysed mentions
+        {!loading && data && (
+          <>
+            {/* OVERVIEW */}
+            {activeTab === 'overview' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { icon: Eye,           color: 'text-blue-600',   bg: 'bg-blue-50',   label: 'Total Views',       value: data.totalViews.toLocaleString() },
+                    { icon: Heart,         color: 'text-pink-600',   bg: 'bg-pink-50',   label: 'Engagement',        value: data.totalEngagement.toLocaleString() },
+                    { icon: Users,         color: 'text-purple-600', bg: 'bg-purple-50', label: 'Followers',         value: data.followers.toLocaleString() },
+                    { icon: BarChart3,     color: 'text-green-600',  bg: 'bg-green-50',  label: 'Sentiment Score',   value: `${data.sentimentScore}%` },
+                  ].map(({ icon: Icon, color, bg, label, value }) => (
+                    <div key={label} className="bg-white rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className={`w-9 h-9 ${bg} rounded-xl flex items-center justify-center`}>
+                          <Icon className={`w-5 h-5 ${color}`} />
+                        </div>
+                        <TrendingUp className="w-4 h-4 text-green-500" />
+                      </div>
+                      <p className="text-xl font-bold text-slate-900">{value}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Topics of interest */}
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <Target className="w-5 h-5 text-green-600" /> Topics of Interest
+                  </h3>
+                  {data.topTopics.length === 0 ? (
+                    <p className="text-slate-400 text-sm text-center py-4">No comment data yet</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {data.topTopics.map((item: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.count > 0 ? 'bg-green-100' : 'bg-slate-100'}`}>
+                              {item.count > 0
+                                ? <TrendingUp className="w-4 h-4 text-green-600" />
+                                : <MessageCircle className="w-4 h-4 text-slate-400" />}
+                            </div>
+                            <span className="font-medium text-slate-900 text-sm">{item.topic}</span>
+                          </div>
+                          <span className="text-sm font-semibold text-slate-500">{item.count} mentions</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-100">
+                    Based on {data.totalComments} comments on your posts
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* Audience Tab */}
-        {activeTab === 'audience' && (
-          <div className="space-y-4">
-            {/* Age Groups */}
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-4">Faixa Etária</h3>
-              <div className="space-y-3">
-                {audienceProfile.ageGroups.map((group, index) => (
-                  <div key={index}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-slate-700">{group.range} anos</span>
-                      <span className="text-sm font-bold text-slate-900">{group.percentage}%</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                      <div 
-                        className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full"
-                        style={{ width: `${group.percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+            {/* SENTIMENT */}
+            {activeTab === 'sentiment' && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <h3 className="font-bold text-slate-900 mb-6 text-center">Investor Sentiment Analysis</h3>
+                  {data.totalComments === 0 ? (
+                    <p className="text-slate-400 text-sm text-center py-8">
+                      Sentiment is calculated from comments on your posts.<br />You need at least some comments to see this data.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="space-y-4">
+                        {data.sentimentData.map((item: any, i: number) => (
+                          <div key={i}>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-sm font-medium text-slate-700">{item.label}</span>
+                              <span className="text-sm font-bold text-slate-900">{item.count} mentions</span>
+                            </div>
+                            <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                              <div className={`${item.color} h-full rounded-full transition-all duration-500`} style={{ width: `${item.pct}%` }} />
+                            </div>
+                            <p className="text-xs text-slate-400 mt-1">{item.pct}% of total</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-6 pt-5 border-t border-slate-200 text-center">
+                        <p className="text-3xl font-bold text-green-600 mb-1">{data.sentimentScore}%</p>
+                        <p className="text-sm text-green-700 font-semibold">Overall Positive Sentiment</p>
+                        <p className="text-xs text-slate-500 mt-1">Based on {data.totalComments} analysed comments</p>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Investor Types */}
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-4">Profile de Investor</h3>
-              <div className="space-y-3">
-                {audienceProfile.investorTypes.map((type, index) => (
-                  <div key={index}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-slate-700">{type.type}</span>
-                      <span className="text-sm font-bold text-slate-900">{type.percentage}%</span>
+            {/* AUDIENCE */}
+            {activeTab === 'audience' && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-purple-600" /> Follower Overview
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-purple-50 rounded-xl p-4 text-center">
+                      <p className="text-2xl font-bold text-purple-700">{data.followers.toLocaleString()}</p>
+                      <p className="text-xs text-purple-600 font-semibold mt-1">Followers</p>
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                      <div 
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full"
-                        style={{ width: `${type.percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Top Locations */}
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-4">Principais Localizações</h3>
-              <div className="space-y-2">
-                {[
-                  { city: 'São Paulo', percentage: 35 },
-                  { city: 'Rio de Janeiro', percentage: 18 },
-                  { city: 'Brasília', percentage: 12 },
-                  { city: 'Belo Horizonte', percentage: 8 },
-                  { city: 'Outros', percentage: 27 },
-                ].map((location, index) => (
-                  <div key={index} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                    <span className="text-sm text-slate-700">{location.city}</span>
-                    <span className="text-sm font-bold text-slate-900">{location.percentage}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Sponsored Tab */}
-        {activeTab === 'sponsored' && (
-          <div className="space-y-4">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white">
-              <Megaphone className="w-12 h-12 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Posts Patrocinados</h3>
-              <p className="text-white/90 text-sm mb-4">
-                Alcance investidores qualificados com posts destacados
-              </p>
-              <button className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:shadow-xl transition">
-                Criar Campanha
-              </button>
-            </div>
-
-            {/* Active Campaigns */}
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-4">Campanhas Ativas</h3>
-              
-              <div className="space-y-3">
-                <div className="border-2 border-slate-200 rounded-xl p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h4 className="font-bold text-slate-900">Balanço Q1 2024</h4>
-                      <p className="text-xs text-slate-600">Criado em 15 Mar 2024</p>
-                    </div>
-                    <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
-                      Ativa
-                    </span>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <p className="text-xs text-slate-600">Alcance</p>
-                      <p className="text-lg font-bold text-slate-900">45.2k</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-600">Cliques</p>
-                      <p className="text-lg font-bold text-slate-900">3.4k</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-600">CPC</p>
-                      <p className="text-lg font-bold text-slate-900">€ 0.85</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 pt-3 border-t border-slate-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600">Orçamento gasto</span>
-                      <span className="text-sm font-bold text-slate-900">€ 2.890 / € 5.000</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
-                      <div className="bg-blue-600 h-full rounded-full" style={{ width: '58%' }} />
+                    <div className="bg-blue-50 rounded-xl p-4 text-center">
+                      <p className="text-2xl font-bold text-blue-700">{data.totalPosts}</p>
+                      <p className="text-xs text-blue-600 font-semibold mt-1">Posts Published</p>
                     </div>
                   </div>
                 </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <p className="text-sm text-blue-800 font-semibold mb-1">📊 Detailed Demographics</p>
+                  <p className="text-xs text-blue-700">
+                    Audience demographics (age, location, investor profile) will be available as more users interact with your profile. This data is aggregated anonymously.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Pricing */}
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-4">Precificação</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                  <div>
-                    <p className="font-medium text-slate-900">CPM (Custo por Mil)</p>
-                    <p className="text-xs text-slate-600">Exibições no feed</p>
-                  </div>
-                  <span className="text-lg font-bold text-green-600">€ 15,00</span>
+            {/* SPONSORED */}
+            {activeTab === 'sponsored' && (
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white">
+                  <Megaphone className="w-12 h-12 mb-4" />
+                  <h3 className="text-xl font-bold mb-2">Sponsored Posts</h3>
+                  <p className="text-white/90 text-sm mb-4">
+                    Reach qualified investors with featured posts across the Bulls feed.
+                  </p>
+                  <button
+                    onClick={() => alert('Sponsored posts — coming soon! Contact: business@bulls.app')}
+                    className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:shadow-xl transition"
+                  >
+                    Create Campaign
+                  </button>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                  <div>
-                    <p className="font-medium text-slate-900">CPC (Custo por Clique)</p>
-                    <p className="text-xs text-slate-600">Clicks no post</p>
+
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <h3 className="font-bold text-slate-900 mb-4">Pricing</h3>
+                  <div className="space-y-3">
+                    {[
+                      { label: 'CPM (Cost per Thousand)', sub: 'Feed impressions',     price: '€ 15.00' },
+                      { label: 'CPC (Cost per Click)',    sub: 'Clicks on post',       price: '€ 0.80'  },
+                      { label: 'Feed Highlight',          sub: '24h top placement',    price: '€ 500.00' },
+                    ].map(item => (
+                      <div key={item.label} className="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0">
+                        <div>
+                          <p className="font-medium text-slate-900 text-sm">{item.label}</p>
+                          <p className="text-xs text-slate-500">{item.sub}</p>
+                        </div>
+                        <span className="text-base font-bold text-green-600">{item.price}</span>
+                      </div>
+                    ))}
                   </div>
-                  <span className="text-lg font-bold text-green-600">€ 0,80</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="font-medium text-slate-900">Destaque no Feed</p>
-                    <p className="text-xs text-slate-600">24 horas no topo</p>
-                  </div>
-                  <span className="text-lg font-bold text-green-600">€ 500,00</span>
                 </div>
               </div>
-            </div>
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>
