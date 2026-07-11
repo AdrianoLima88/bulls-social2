@@ -127,7 +127,8 @@ const AppContent = () => {
       identifyUser(user.id, user.email, profile.name);
 
       // Request notification permission if not yet decided
-      if (Notification.permission === 'default') {
+      // Guard: Notification API not available on all mobile browsers (e.g. Brave iOS)
+      if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
         setTimeout(async () => {
           const { subscribeUser } = await import('../utils/OneSignalInit');
           subscribeUser(user.id);
