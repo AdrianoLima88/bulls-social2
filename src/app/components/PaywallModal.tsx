@@ -16,14 +16,14 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ featureName, onUpgra
           <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Lock className="w-10 h-10" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">Recurso Premium</h2>
-          <p className="text-white/90">Desbloqueie o potencial completo da Bulls</p>
+          <h2 className="text-2xl font-bold mb-2">Premium Feature</h2>
+          <p className="text-white/90">Unlock Bulls' full potential</p>
         </div>
 
         <div className="p-8">
           <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
             <p className="text-slate-700 text-center">
-              <span className="font-bold text-yellow-700">"{featureName}"</span> é exclusivo para assinantes Premium
+              <span className="font-bold text-yellow-700">"{featureName}"</span> is exclusive for Premium subscribers
             </p>
           </div>
 
@@ -34,8 +34,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ featureName, onUpgra
                 <Crown className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Dados em tempo real</p>
-                <p className="text-sm text-slate-600">Cotações atualizadas a cada segundo</p>
+                <p className="font-semibold text-slate-900">Real-time data</p>
+                <p className="text-sm text-slate-600">Quotes updated every second</p>
               </div>
             </div>
 
@@ -45,7 +45,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ featureName, onUpgra
               </div>
               <div>
                 <p className="font-semibold text-slate-900">Ad-free</p>
-                <p className="text-sm text-slate-600">Foco total nos seus investimentos</p>
+                <p className="text-sm text-slate-600">Full focus on your investments</p>
               </div>
             </div>
 
@@ -54,20 +54,20 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ featureName, onUpgra
                 <ArrowRight className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Analyses avançadas</p>
-                <p className="text-sm text-slate-600">Charts e insights profissionais</p>
+                <p className="font-semibold text-slate-900">Advanced analysis</p>
+                <p className="text-sm text-slate-600">Professional charts & insights</p>
               </div>
             </div>
           </div>
 
           {/* Pricing */}
           <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-6 text-white text-center mb-6">
-            <p className="text-sm text-white/80 mb-2">A partir de</p>
+            <p className="text-sm text-white/80 mb-2">Starting at</p>
             <div className="flex items-baseline justify-center gap-2 mb-1">
-              <span className="text-4xl font-bold">€ 29,90</span>
-              <span className="text-white/80">/mês</span>
+              <span className="text-4xl font-bold">€ 29.90</span>
+              <span className="text-white/80">/mo</span>
             </div>
-            <p className="text-sm text-white/90">Teste grátis por 7 dias</p>
+            <p className="text-sm text-white/90">Free trial for 7 days</p>
           </div>
 
           {/* CTAs */}

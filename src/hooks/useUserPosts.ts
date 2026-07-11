@@ -16,6 +16,7 @@ const USER_POST_SELECT = `
   views_count,
   is_pinned,
   is_premium,
+  is_featured,
   created_at,
   profiles:author_id (
     username,
@@ -53,6 +54,7 @@ const formatPost = (post: any) => ({
   savedBy: [],
   isPinned: post.is_pinned,
   isPremiumContent: post.is_premium,
+  isFeatured: post.is_featured,
 });
 
 export const useUserPosts = (userId?: string) => {
