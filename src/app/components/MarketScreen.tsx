@@ -2,10 +2,30 @@ import React, { useState } from 'react';
 import {
   ArrowLeft, Filter, Search, X, ChevronRight,
   TrendingUp, TrendingDown, RefreshCw, AlertCircle,
-  DollarSign, Loader2
+  DollarSign
 } from 'lucide-react';
 import { AssetDetailsModal } from './AssetDetailsModal';
-import { useMarket, MARKET_INDICES, type MarketTab, type MarketAsset } from '../../hooks/useMarket';
+import { useMarket, type MarketTab, type MarketAsset } from '../../hooks/useMarket';
+
+// ─── Logo com fallback de iniciais ────────────────────────────
+const StockLogo = ({ code, name, size = 10 }: { code: string; name: string; size?: number }) => {
+  const [err, setErr] = useState(false);
+  const initials = code.substring(0, 2).toUpperCase();
+  const cls = `w-${size} h-${size} rounded-full object-cover`;
+  if (err) return (
+    <div className={`w-${size} h-${size} rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-sm flex-shrink-0`}>
+      {initials}
+    </div>
+  );
+  return (
+    <img
+      src={`https://assets.parqet.com/logos/symbol/${code}`}
+      alt={name}
+      className={cls + ' flex-shrink-0'}
+      onError={() => setErr(true)}
+    />
+  );
+};
 
 // ─── Helpers ──────────────────────────────────────────────────
 const currencySymbol = (c: string) =>
@@ -55,9 +75,8 @@ const AssetRow = ({ asset, onPress }: { asset: MarketAsset; onPress: () => void 
       onClick={onPress}
       className="bg-white rounded-xl p-4 shadow-sm flex items-center justify-between hover:shadow-md transition cursor-pointer active:scale-[0.99]"
     >
-      {/* Ícone de letra */}
-      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-sm flex-shrink-0 mr-3">
-        {asset.code.replace('.L', '').replace('.PA', '').replace('.AS', '').replace('.DE', '').replace('.SW', '').substring(0, 2)}
+      <div className="mr-3">
+        <StockLogo code={asset.code.split('.')[0]} name={asset.name} size={10} />
       </div>
 
       <div className="flex-1 min-w-0">
@@ -90,11 +109,12 @@ const AssetRow = ({ asset, onPress }: { asset: MarketAsset; onPress: () => void 
 
 // ─── Componente principal ──────────────────────────────────────
 export const MarketScreen = ({ onBack, onNavigateToCurrencies }) => {
-  const [tab, setTab] = useState<MarketTab>('uk');
+  const [tab, setTab] = useState<MarketTab>('us');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'change_high' | 'change_low' | 'price' | 'name'>('change_high');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<MarketAsset | null>(null);
+  const [moversTab, setMoversTab] = useState<'gainers' | 'losers'>('gainers');
 
   const { assets, forex, loading, lastUpdated, refetch } = useMarket(tab);
 
@@ -119,6 +139,12 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }) => {
       if (sortBy === 'name')        return a.name.localeCompare(b.name);
       return 0;
     });
+
+  // Top movers from current tab data
+  const readyAssets = assets.filter(a => !a.loading && !a.error && a.price > 0);
+  const topMovers = [...readyAssets]
+    .sort((a, b) => moversTab === 'gainers' ? b.change - a.change : a.change - b.change)
+    .slice(0, 6);
 
   // Mapeia para o modal existente (mantém compatibilidade)
   const assetForModal = selectedAsset ? {
@@ -194,18 +220,52 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }) => {
 
       <div className="flex-1 overflow-y-auto pb-24">
 
-        {/* Índices */}
+        {/* Today's Movers */}
         <div className="px-4 pt-4">
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {MARKET_INDICES.map(idx => (
-              <div key={idx.name} className="bg-white rounded-xl p-3 shadow-sm">
-                <p className="text-slate-500 text-xs mb-1">{idx.name}</p>
-                <p className="font-bold text-slate-900 text-base">{idx.value}</p>
-                <p className={`text-xs font-semibold ${idx.positive ? 'text-green-600' : 'text-red-500'}`}>
-                  {idx.change}
-                </p>
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-slate-900 text-sm">Today's Movers</h2>
+            <div className="flex gap-1 bg-slate-100 rounded-full p-0.5">
+              <button
+                onClick={() => setMoversTab('gainers')}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${moversTab === 'gainers' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500'}`}
+              >
+                Gainers
+              </button>
+              <button
+                onClick={() => setMoversTab('losers')}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${moversTab === 'losers' ? 'bg-white text-red-500 shadow-sm' : 'text-slate-500'}`}
+              >
+                Losers
+              </button>
+            </div>
+          </div>
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-3">
+            {topMovers.length === 0
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-20 bg-white rounded-2xl p-3 shadow-sm animate-pulse">
+                    <div className="w-12 h-12 rounded-full bg-slate-200 mx-auto mb-2" />
+                    <div className="h-3 bg-slate-200 rounded w-10 mx-auto mb-1" />
+                    <div className="h-3 bg-slate-100 rounded w-8 mx-auto" />
+                  </div>
+                ))
+              : topMovers.map(asset => {
+                  const isPos = asset.change >= 0;
+                  const code = asset.code.split('.')[0];
+                  return (
+                    <button
+                      key={asset.code}
+                      onClick={() => setSelectedAsset(asset)}
+                      className="flex-shrink-0 w-20 bg-white rounded-2xl p-3 shadow-sm flex flex-col items-center gap-1.5 active:scale-95 transition"
+                    >
+                      <StockLogo code={code} name={asset.name} size={12} />
+                      <span className="font-bold text-slate-900 text-xs">{code}</span>
+                      <span className={`text-[11px] font-bold ${isPos ? 'text-green-600' : 'text-red-500'}`}>
+                        {isPos ? '+' : ''}{asset.change.toFixed(2)}%
+                      </span>
+                    </button>
+                  );
+                })
+            }
           </div>
         </div>
 

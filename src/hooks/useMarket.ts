@@ -21,6 +21,7 @@ async function finnhub(path: string, params: Record<string, string> = {}) {
   if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data;
 
   const res = await fetch(`${BASE_URL}${path}?${qs}`);
+  if (res.status === 401) throw new Error('FINNHUB_UNAUTHORIZED');
   if (!res.ok) throw new Error(`Finnhub ${res.status}`);
   const data = await res.json();
   cache.set(key, { data, ts: Date.now() });
@@ -256,11 +257,13 @@ export function useMarket(tab: MarketTab) {
     }
 
     if (!abortRef.current) {
-      setAssets(results);
+      // If every result failed (e.g. invalid API key), fall back to mock data
+      const allFailed = results.length > 0 && results.every(r => r.error);
+      setAssets(allFailed ? getMockAssets(tab) : results);
       setLastUpdated(new Date());
       setLoading(false);
     }
-  }, [getTabConfig]);
+  }, [getTabConfig, tab]);
 
   // Busca forex apenas uma vez
   useEffect(() => {
