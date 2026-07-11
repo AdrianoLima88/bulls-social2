@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useId } from 'react';
 import { supabase } from '../utils/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -25,6 +25,7 @@ export interface Post {
     avatar_url: string;
     verified: boolean;
     user_type: string;
+    plan: string;
   };
 }
 
@@ -50,13 +51,15 @@ const POST_SELECT = `
     name,
     avatar_url,
     verified,
-    user_type
+    user_type,
+    plan
   )
 `;
 
 const PAGE_SIZE = 20;
 
 export const usePosts = () => {
+  const instanceId = useId();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [likesMap, setLikesMap] = useState<Record<string, boolean>>({});
@@ -221,7 +224,7 @@ export const usePosts = () => {
 
     // Realtime: update single post instead of refetching all
     const channel = supabase
-      .channel('posts_changes')
+      .channel(`posts_changes_${instanceId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'posts' },
@@ -255,7 +258,7 @@ export const usePosts = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, fetchPosts, fetchLikes]);
+  }, [user, fetchPosts, fetchLikes, instanceId]);
 
   return {
     posts,

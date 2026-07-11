@@ -67,10 +67,10 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' });
 
-        // Update user_type in profile
+        // Update user_type + public plan badge on profile
         const userType = plan === 'business' ? 'business' : 'investor';
         await supabase.from('profiles')
-          .update({ user_type: userType })
+          .update({ user_type: userType, plan })
           .eq('id', userId);
       }
       break;
@@ -109,7 +109,7 @@ serve(async (req) => {
         .eq('user_id', userId);
 
       await supabase.from('profiles')
-        .update({ user_type: 'investor' })
+        .update({ user_type: 'investor', plan: 'free' })
         .eq('id', userId);
       break;
     }

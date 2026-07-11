@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Bell, Compass, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users } from 'lucide-react';
+import { Search, Bell, Compass, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users, Lock } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { ShareModal } from './ShareModal';
 import { MediaViewModal } from './MediaViewModal';
@@ -7,13 +7,17 @@ import { ChartPreview } from './ChartPreview';
 import { DocumentPreview } from './DocumentPreview';
 import { MediaCarousel } from './MediaCarousel';
 import { PostTypeBadge } from './UserTypeBadge';
+import { PlanBadge } from './PlanBadge';
+import { PaywallModal } from './PaywallModal';
 import { ReportModal } from './ReportModal';
 import { usePosts } from '../../hooks/usePosts';
 import { useFollowingFeed } from '../../hooks/useFollowingFeed';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useSavedPosts } from '../../hooks/useSavedPosts';
+import { useSubscription } from '../../hooks/useSubscription';
 import { SuggestedProfiles } from './SuggestedProfiles';
+import { StockTicker } from './StockTicker';
 
 export const FeedScreen = ({
   onNavigateToSearch,
@@ -24,7 +28,8 @@ export const FeedScreen = ({
   onNavigateToExplore,
   feedFilter = 'all',
   setFeedFilter,
-  onNavigateToLive
+  onNavigateToLive,
+  onNavigateToPremium
 }) => {
   const { posts: supabasePosts, loading: postsLoading, toggleLike, deletePost: deleteSupabasePost, hasLiked } = usePosts();
   const { posts: followingSupabasePosts, loading: followingLoading } = useFollowingFeed();
@@ -46,6 +51,7 @@ export const FeedScreen = ({
     authorRole: post.profiles?.user_type || 'investor',
     authorAvatar: post.profiles?.avatar_url || null,
     verified: post.profiles?.verified || false,
+    authorPlan: post.profiles?.plan || 'free',
     type: post.type,
     content: post.content,
     media: post.media,
@@ -111,6 +117,8 @@ export const FeedScreen = ({
         </div>
       </header>
 
+      <StockTicker />
+
       <div className="bg-white shadow-sm flex-shrink-0 border-b border-slate-100">
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex gap-4 px-4 py-4">
@@ -171,6 +179,7 @@ export const FeedScreen = ({
               isSaved={isSaved(post.id)}
               isOwnPost={post.authorId === user?.id}
               onMediaView={handleMediaView}
+              onNavigateToPremium={onNavigateToPremium}
             />
           ))
         )}
@@ -195,9 +204,13 @@ export const FeedScreen = ({
   );
 };
 
-const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave, onShare, onDelete, isLiked, isSaved, isOwnPost, onMediaView }) => {
+const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave, onShare, onDelete, isLiked, isSaved, isOwnPost, onMediaView, onNavigateToPremium }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const { isPremium } = useSubscription();
+
+  const isLocked = post.isPremiumContent && !isPremium && !isOwnPost;
 
   const handleProfileClick = () => {
     onNavigateToProfile({ id: post.authorId, name: post.authorName, username: post.authorUsername, role: post.authorRole, type: 'other' });
@@ -235,6 +248,7 @@ const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave,
           <div className="flex items-center gap-1.5 flex-wrap">
             <h4 className="font-bold text-slate-900 truncate">{post.authorName}</h4>
             {post.verified && <span className="text-blue-500 text-sm flex-shrink-0">✓</span>}
+            <PlanBadge plan={post.authorPlan} size="sm" />
             {!post.isSponsored && <PostTypeBadge postType={post.type} size="sm" />}
           </div>
           <p className="text-xs text-slate-500 truncate">{post.authorUsername} • {post.time}</p>
@@ -272,44 +286,61 @@ const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave,
         </div>
       </div>
 
-      <button onClick={() => onNavigateToPost(post)} className="w-full text-left">
-        <p className="text-slate-800 mb-3">{post.content}</p>
-      </button>
+      <div className="relative">
+        <div className={isLocked ? 'blur-md select-none pointer-events-none' : ''}>
+          <button onClick={() => onNavigateToPost(post)} className="w-full text-left">
+            <p className="text-slate-800 mb-3">{post.content}</p>
+          </button>
 
-      {post.media && post.media.length > 0 && (
-        <div className="mb-3">
-          <MediaCarousel media={post.media} onMediaView={(item) => onMediaView(item, post)} />
-        </div>
-      )}
+          {post.media && post.media.length > 0 && (
+            <div className="mb-3">
+              <MediaCarousel media={post.media} onMediaView={(item) => onMediaView(item, post)} />
+            </div>
+          )}
 
-      {post.charts && post.charts.length > 0 && (
-        <div className="mb-3">
-          {post.charts.map((chart, index) => (
-            <ChartPreview key={`${post.id}-chart-${index}`} chart={chart} uniqueId={`${post.id}-chart-${index}`} />
-          ))}
-        </div>
-      )}
+          {post.charts && post.charts.length > 0 && (
+            <div className="mb-3">
+              {post.charts.map((chart, index) => (
+                <ChartPreview key={`${post.id}-chart-${index}`} chart={chart} uniqueId={`${post.id}-chart-${index}`} />
+              ))}
+            </div>
+          )}
 
-      {post.documents && post.documents.length > 0 && (
-        <div className="mb-3">
-          {post.documents.map((doc, index) => <DocumentPreview key={index} document={doc} />)}
-        </div>
-      )}
+          {post.documents && post.documents.length > 0 && (
+            <div className="mb-3">
+              {post.documents.map((doc, index) => <DocumentPreview key={index} document={doc} />)}
+            </div>
+          )}
 
-      {extraTags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3">
-          {extraTags.map((tag, index) => (
-            <span key={index} className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full">#{tag}</span>
-          ))}
+          {extraTags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {extraTags.map((tag, index) => (
+                <span key={index} className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full">#{tag}</span>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+
+        {isLocked && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <button
+              onClick={() => setShowPaywall(true)}
+              className="flex flex-col items-center gap-2 bg-white/95 rounded-2xl px-6 py-4 shadow-lg border border-slate-200 hover:bg-white transition"
+            >
+              <Lock className="w-6 h-6 text-yellow-600" />
+              <span className="text-sm font-bold text-slate-900">Premium content</span>
+              <span className="text-xs text-green-700 font-semibold underline">Upgrade to unlock</span>
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="flex items-center gap-6 pt-3 border-t border-slate-100">
         <button onClick={onLike} className={`flex items-center gap-2 transition ${isLiked ? 'text-red-500' : 'text-slate-500 hover:text-red-500'}`}>
           <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500' : ''}`} />
           <span className="text-sm font-semibold">{post.likes || 0}</span>
         </button>
-        <button onClick={() => onNavigateToPost(post)} className="flex items-center gap-2 text-slate-500 hover:text-blue-600 transition">
+        <button onClick={() => (isLocked ? setShowPaywall(true) : onNavigateToPost(post))} className="flex items-center gap-2 text-slate-500 hover:text-blue-600 transition">
           <MessageCircle className="w-5 h-5" />
           <span className="text-sm font-semibold">{post.comments || 0}</span>
         </button>
@@ -324,6 +355,14 @@ const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave,
 
       {showReport && (
         <ReportModal targetType="post" targetId={post.id} targetName={`@${post.authorUsername}'s post`} onClose={() => setShowReport(false)} />
+      )}
+
+      {showPaywall && (
+        <PaywallModal
+          featureName="Este post"
+          onUpgrade={() => { setShowPaywall(false); onNavigateToPremium && onNavigateToPremium(); }}
+          onClose={() => setShowPaywall(false)}
+        />
       )}
     </div>
   );

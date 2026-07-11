@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { supabase } from '../utils/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 
 export const useFollow = () => {
+  const instanceId = useId();
   const [following, setFollowing] = useState<string[]>([]);
   const [followers, setFollowers] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,7 +123,7 @@ export const useFollow = () => {
 
       // Subscribe to realtime changes
       const channel = supabase
-        .channel('follows_changes')
+        .channel(`follow_changes_${instanceId}`)
         .on(
           'postgres_changes',
           {
@@ -153,7 +154,7 @@ export const useFollow = () => {
         supabase.removeChannel(channel);
       };
     }
-  }, [user]);
+  }, [user, instanceId]);
 
   return {
     following,

@@ -12,6 +12,7 @@ import { useUserPosts } from '../../hooks/useUserPosts';
 import { usePosts } from '../../hooks/usePosts';
 import { useFollows } from '../../hooks/useFollows';
 import { useProfile } from '../../hooks/useProfile';
+import { PlanBadge } from './PlanBadge';
 
 export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings, onEditProfile, onNavigateToCreatePost, onNavigateToComments, onSendMessage, onNavigateToFollowers, onNavigateToFollowing }) => {
   const { currentUser, toggleLikePost, deletePost } = useApp();
@@ -66,6 +67,7 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
         following: authProfile?.following_count || 0,
         followers: authProfile?.followers_count || 0,
         verified: authProfile?.verified || currentUser.verified,
+        plan: authProfile?.plan || 'free',
       }
     : {
         name: fullProfileData?.name || profileData?.name || 'Usuário',
@@ -79,6 +81,7 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
         verified: fullProfileData?.verified || false,
         avatar_url: fullProfileData?.avatar_url,
         banner_url: fullProfileData?.banner_url,
+        plan: fullProfileData?.plan || 'free',
       };
 
   const handleLike = async (postId) => {
@@ -531,6 +534,7 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-xl font-bold text-slate-900">{profile.name}</h2>
               {profile.verified && <span className="text-blue-500 text-lg">✓</span>}
+              <PlanBadge plan={profile.plan} size="md" />
             </div>
             <p className="text-slate-500 mb-3">{profile.username}</p>
             <p className="text-slate-900 mb-3">

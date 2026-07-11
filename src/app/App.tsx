@@ -4,6 +4,7 @@ import { LocaleProvider, useLocale } from './contexts/LocaleContext';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { supabase } from '../utils/supabase/client';
 import { usePortfolio } from '../hooks/usePortfolio';
+import { useLives } from '../hooks/useLives';
 import { Home, TrendingUp, Building2, User, Radio } from 'lucide-react';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { identifyUser, logoutOneSignal } from '../utils/OneSignalInit';
@@ -12,6 +13,8 @@ import { identifyUser, logoutOneSignal } from '../utils/OneSignalInit';
 import { LoginScreen } from './components/LoginScreen';
 import { FeedScreen } from './components/FeedScreen';
 import { MFAVerifyScreen } from './components/MFAVerifyScreen';
+import { ResetPasswordScreen } from './components/ResetPasswordScreen';
+import { PlanSelectionScreen } from './components/PlanSelectionScreen';
 
 // Lazy loaded screens
 const ProfileScreen = lazy(() => import('./components/ProfileScreenNew').then(m => ({ default: m.ProfileScreen })));
@@ -63,7 +66,7 @@ const ScreenLoader = () => (
 );
 
 // Bottom Navigation Component
-const BottomNav = ({ currentScreen, onNavigate, activeLivesCount = 3 }) => {
+const BottomNav = ({ currentScreen, onNavigate, activeLivesCount = 0 }) => {
   const { t } = useLocale();
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40">
@@ -104,7 +107,8 @@ const BottomNav = ({ currentScreen, onNavigate, activeLivesCount = 3 }) => {
 const AppContent = () => {
   const { removeAsset: removeAssetLocal, updateCurrentUser } = useApp();
   const { removeAssetByCode } = usePortfolio();
-  const { user, profile, loading, updateProfile, signOut, mfaRequired, completeMFAVerification } = useAuth();
+  const { user, profile, loading, updateProfile, signOut, mfaRequired, completeMFAVerification, passwordRecovery } = useAuth();
+  const { activeLives, getLiveById } = useLives();
   const [currentScreen, setCurrentScreen] = useState('feed');
   const [navigationStack, setNavigationStack] = useState(['feed']);
   const [selectedProfile, setSelectedProfile] = useState(null);
@@ -177,6 +181,20 @@ const AppContent = () => {
 
   const handleSendMessage = (profileData) => { setMessageContact(profileData); navigateTo('directMessage'); };
 
+  const handleNavigateToLiveById = async (liveId) => {
+    const live = await getLiveById(liveId);
+    if (live) { setSelectedPost(live); navigateTo('watchLive'); }
+  };
+
+  const handleGoLive = (live) => {
+    setSelectedPost(live);
+    if (live.status === 'live') {
+      navigateTo('watchLive');
+    } else {
+      navigateBack();
+    }
+  };
+
   const handleSaveProfile = async (profileData: any) => {
     const updates: any = {};
     if (profileData.name) updates.name = profileData.name;
@@ -215,7 +233,15 @@ const AppContent = () => {
     );
   }
 
+  if (user && passwordRecovery) {
+    return <ResetPasswordScreen />;
+  }
+
   if (!user || !profile) return <LoginScreen />;
+
+  if (profile.onboarding_completed === false) {
+    return <PlanSelectionScreen />;
+  }
 
   const showBottomNav = ['feed', 'market', 'portfolio', 'myProfile', 'live'].includes(currentScreen);
 
@@ -233,12 +259,13 @@ const AppContent = () => {
             feedFilter={feedFilter}
             setFeedFilter={setFeedFilter}
             onNavigateToLive={() => navigateTo('live')}
+            onNavigateToPremium={() => navigateTo('premium')}
           />
         )}
         {currentScreen === 'explore' && <ExploreScreen onBack={navigateBack} onNavigateToPost={handleNavigateToPost} onNavigateToProfile={handleNavigateToProfile} />}
         {currentScreen === 'savedPosts' && <SavedPostsScreen onBack={navigateBack} onNavigateToPost={handleNavigateToPost} onNavigateToProfile={handleNavigateToProfile} />}
         {currentScreen === 'search' && <SearchScreen onBack={navigateBack} onNavigateToProfile={handleNavigateToProfile} />}
-        {currentScreen === 'notifications' && <NotificationsScreen onBack={navigateBack} onNavigateToPost={handleNavigateToPostById} onNavigateToProfile={handleNavigateToProfile} />}
+        {currentScreen === 'notifications' && <NotificationsScreen onBack={navigateBack} onNavigateToPost={handleNavigateToPostById} onNavigateToProfile={handleNavigateToProfile} onNavigateToLive={handleNavigateToLiveById} />}
         {currentScreen === 'market' && <MarketScreen onBack={navigateBack} onNavigateToCurrencies={() => navigateTo('currency')} />}
         {currentScreen === 'portfolio' && <PortfolioScreen onBack={navigateBack} onAddAsset={() => navigateTo('addAsset')} onViewAsset={(asset) => { setSelectedAsset(asset); navigateTo('assetDetail'); }} />}
         {currentScreen === 'myProfile' && (
@@ -264,7 +291,7 @@ const AppContent = () => {
         {currentScreen === 'followingList' && viewedUserId && <FollowingListScreen userId={viewedUserId} onBack={navigateBack} onNavigateToProfile={(p) => { setSelectedProfile(p); navigateTo('profile'); }} />}
         {currentScreen === 'comments' && selectedPost && <CommentsScreen postData={selectedPost} onBack={navigateBack} />}
         {currentScreen === 'createPost' && <CreatePostScreen onBack={navigateBack} onViewGuidelines={() => navigateTo('communityGuidelines')} />}
-        {currentScreen === 'addAsset' && <AddAssetToPortfolio onBack={navigateBack} />}
+        {currentScreen === 'addAsset' && <AddAssetToPortfolio onBack={navigateBack} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'directMessage' && <DirectMessageScreen onBack={navigateBack} userName={messageContact?.name} userAvatar={messageContact?.name ? messageContact.name.split(' ').map(n => n[0]).join('').substring(0, 2) : null} />}
         {currentScreen === 'settings' && (
           <SettingsScreen
@@ -295,10 +322,10 @@ const AppContent = () => {
         {currentScreen === 'videoStudio' && <VideoStudio onBack={navigateBack} />}
         {currentScreen === 'live' && <LiveScreen onBack={navigateBack} onStartLive={() => navigateTo('startLive')} onWatchLive={(live) => { setSelectedPost(live); navigateTo('watchLive'); }} />}
         {currentScreen === 'watchLive' && selectedPost && <WatchLiveScreen live={selectedPost} onClose={navigateBack} />}
-        {currentScreen === 'startLive' && <StartLiveScreen onBack={navigateBack} onGoLive={() => { alert('Live started! 🎥🔴'); navigateBack(); }} />}
+        {currentScreen === 'startLive' && <StartLiveScreen onBack={navigateBack} onGoLive={handleGoLive} />}
       </Suspense>
 
-      {showBottomNav && <BottomNav currentScreen={currentScreen} onNavigate={setCurrentScreen} />}
+      {showBottomNav && <BottomNav currentScreen={currentScreen} onNavigate={setCurrentScreen} activeLivesCount={activeLives.length} />}
     </div>
   );
 };

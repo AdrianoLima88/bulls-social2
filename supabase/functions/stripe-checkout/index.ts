@@ -181,6 +181,7 @@ serve(async (req) => {
     throw new Error(`Unknown action: ${action}`);
 
   } catch (err) {
+    console.error('stripe-checkout error:', err?.message || err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

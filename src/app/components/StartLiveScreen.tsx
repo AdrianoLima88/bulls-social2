@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Video, Radio, Clock, DollarSign, Users, Lock, Globe, AlertCircle, Camera, Mic, MicOff, VideoOff, SwitchCamera, Sparkles, Download, X } from 'lucide-react';
+import { ArrowLeft, Radio, Clock, Users, Lock, Globe, AlertCircle, Camera, Mic, MicOff, VideoOff, SwitchCamera, Sparkles, Download, X } from 'lucide-react';
+import { useLives, type Live } from '../../hooks/useLives';
 
 interface StartLiveScreenProps {
   onBack: () => void;
-  onGoLive: () => void;
+  onGoLive: (live: Live) => void;
 }
 
 export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLive }) => {
+  const { createLive } = useLives();
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
-  const [isPaid, setIsPaid] = useState(false);
-  const [price, setPrice] = useState('');
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
@@ -18,8 +18,9 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
   const [privacy, setPrivacy] = useState<'public' | 'followers' | 'premium'>('public');
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isMicOn, setIsMicOn] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Novos estados para câmera real
+  // Real camera state
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -32,30 +33,30 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
 
   const categories = [
-    '📊 Analysis Técnica',
+    '📊 Technical Analysis',
     '📈 Fundamental Analysis',
-    '📰 Newss do Market',
-    '🎓 Education Financeira',
+    '📰 Market News',
+    '🎓 Financial Education',
     '💼 Trading Strategies',
     '🏢 Corporate Results',
-    '💰 Criptomoedas',
-    '🌎 Market Internacional',
+    '💰 Cryptocurrencies',
+    '🌎 International Markets',
     '📚 Live Course',
     '💡 Quick Tips',
   ];
 
   const filters = [
-    { name: 'Nenhum', value: 'none', style: '' },
-    { name: 'Preto e Branco', value: 'grayscale', style: 'grayscale(100%)' },
-    { name: 'Sépia', value: 'sepia', style: 'sepia(100%)' },
-    { name: 'Contraste Alto', value: 'contrast', style: 'contrast(150%) saturate(150%)' },
+    { name: 'None', value: 'none', style: '' },
+    { name: 'Black & White', value: 'grayscale', style: 'grayscale(100%)' },
+    { name: 'Sepia', value: 'sepia', style: 'sepia(100%)' },
+    { name: 'High Contrast', value: 'contrast', style: 'contrast(150%) saturate(150%)' },
     { name: 'Vintage', value: 'vintage', style: 'sepia(50%) contrast(120%) brightness(90%)' },
-    { name: 'Frio', value: 'cool', style: 'hue-rotate(180deg) saturate(120%)' },
-    { name: 'Quente', value: 'warm', style: 'sepia(30%) saturate(150%) brightness(110%)' },
-    { name: 'Desfoque', value: 'blur', style: 'blur(2px)' },
+    { name: 'Cool', value: 'cool', style: 'hue-rotate(180deg) saturate(120%)' },
+    { name: 'Warm', value: 'warm', style: 'sepia(30%) saturate(150%) brightness(110%)' },
+    { name: 'Blur', value: 'blur', style: 'blur(2px)' },
   ];
 
-  // Reiniciar câmera ao trocar facingMode
+  // Restart camera when facingMode changes
   useEffect(() => {
     if (isCameraOn && stream) {
       startCamera();
@@ -63,7 +64,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facingMode]);
 
-  // Limpar stream ao desmontar
+  // Stop stream on unmount
   useEffect(() => {
     return () => {
       if (stream) {
@@ -72,7 +73,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
     };
   }, [stream]);
 
-  // Atualizar áudio quando mudar o estado do microfone
+  // Mute/unmute mic without restarting the stream
   useEffect(() => {
     if (stream) {
       const audioTracks = stream.getAudioTracks();
@@ -85,12 +86,10 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
   const startCamera = async () => {
     setIsRequestingPermission(true);
     try {
-      // Parar stream anterior se existir
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
 
-      // Verificar se o navegador suporta getUserMedia
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('UNSUPPORTED');
       }
@@ -115,23 +114,21 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
         videoRef.current.srcObject = mediaStream;
       }
     } catch (error: any) {
-      // Não exibir erro no console - já tratamos na UI
       setHasCamera(false);
       setStream(null);
       setIsCameraOn(false);
       setIsRequestingPermission(false);
 
-      // Detectar tipo de erro e dar mensagem apropriada
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        setCameraError('Permissão negada. Clique no ícone de câmera in the address bar do navegador e permita o acesso.');
+        setCameraError('Permission denied. Click the camera icon in the address bar and allow access.');
       } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-        setCameraError('Nenhuma câmera detectada. Conecte uma câmera ou use o modo preview com imagem estática.');
+        setCameraError('No camera detected. Connect a camera or continue with the static preview.');
       } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-        setCameraError('Câmera já está sendo usada por outro aplicativo. Feche outros programas que possam estar usando a câmera.');
+        setCameraError('The camera is already in use by another app. Close other apps that might be using it.');
       } else if (error.message === 'UNSUPPORTED') {
-        setCameraError('Seu navegador não suporta acesso à câmera. Use Chrome, Firefox, Safari ou Edge atualizado.');
+        setCameraError('Your browser does not support camera access. Use an up-to-date Chrome, Firefox, Safari or Edge.');
       } else {
-        setCameraError('Erro ao acessar câmera. Verifique as permissões e tente novamente.');
+        setCameraError('Error accessing the camera. Check permissions and try again.');
       }
     }
   };
@@ -160,7 +157,6 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
       if (ctx) {
         ctx.drawImage(video, 0, 0);
 
-        // Download da imagem
         canvas.toBlob((blob) => {
           if (blob) {
             const url = URL.createObjectURL(blob);
@@ -169,26 +165,50 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
             a.download = `bulls-live-preview-${Date.now()}.png`;
             a.click();
             URL.revokeObjectURL(url);
-            alert('📸 Screenshot salvo!');
+            alert('📸 Screenshot saved!');
           }
         });
       }
     }
   };
 
-  const handleStartLive = () => {
+  const handleStartLive = async () => {
     if (!title.trim()) {
       alert('Please add a title for your live!');
       return;
     }
     if (!category) {
-      alert('Por favor, selecione uma categoria!');
+      alert('Please select a category!');
+      return;
+    }
+    if (isScheduled && (!scheduledDate || !scheduledTime)) {
+      alert('Please pick a date and time for your scheduled live!');
       return;
     }
 
-    // Simulação
-    alert(`🎥 Live configured!\n\nTitle: ${title}\nCategory: ${category}\n\nIn production, this would start a real stream via WebRTC/RTMP.`);
-    onGoLive();
+    setIsSubmitting(true);
+    try {
+      const status = isScheduled ? 'scheduled' : 'live';
+      const scheduledAt = isScheduled ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString() : null;
+
+      const { data, error } = await createLive({
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        privacy,
+        status,
+        scheduled_at: scheduledAt,
+      });
+
+      if (error || !data) {
+        alert('Could not save your live. Please try again.');
+        return;
+      }
+
+      onGoLive(data);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -205,9 +225,8 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
-        {/* Preview da Câmera - COM VÍDEO REAL */}
+        {/* Camera preview — real video */}
         <div className="relative bg-black rounded-2xl overflow-hidden aspect-video shadow-lg">
-          {/* Vídeo real da câmera */}
           <video
             ref={videoRef}
             autoPlay
@@ -220,10 +239,8 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
             }}
           />
 
-          {/* Canvas oculto para screenshot */}
           <canvas ref={canvasRef} className="hidden" />
 
-          {/* Fallback: imagem se não tiver câmera */}
           {!stream && isCameraOn && (
             <img
               src="https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=800&q=80"
@@ -233,8 +250,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
             />
           )}
 
-
-          {/* Overlay escurecido se câmera desligada */}
+          {/* Darkened overlay when camera is off */}
           {!isCameraOn && !cameraError && (
             <div className="absolute inset-0 bg-black/90 flex items-center justify-center">
               <div className="text-center px-6">
@@ -247,7 +263,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
             </div>
           )}
 
-          {/* Overlay de carregamento/solicitação */}
+          {/* Requesting permission overlay */}
           {isRequestingPermission && (
             <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
               <div className="text-center px-6">
@@ -255,20 +271,20 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
                   <div className="w-16 h-16 border-4 border-green-600/30 border-t-emerald-500 rounded-full animate-spin"></div>
                   <Camera className="w-8 h-8 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
                 </div>
-                <h3 className="text-white font-bold text-lg mb-2">Solicitando Permissão...</h3>
+                <h3 className="text-white font-bold text-lg mb-2">Requesting Permission...</h3>
                 <p className="text-white/80 text-sm max-w-xs mx-auto">
-                  Permita o acesso à câmera na janela do navegador
+                  Allow camera access in your browser's prompt
                 </p>
               </div>
             </div>
           )}
 
-          {/* Overlay para solicitar permissão */}
+          {/* Permission needed overlay */}
           {!isRequestingPermission && isCameraOn && !stream && cameraError && (
             <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
               <div className="text-center px-6">
                 <Camera className="w-16 h-16 text-white/80 mx-auto mb-4" />
-                <h3 className="text-white font-bold text-lg mb-2">Permissão de Câmera Necessária</h3>
+                <h3 className="text-white font-bold text-lg mb-2">Camera Permission Needed</h3>
                 <p className="text-white/80 text-sm mb-4 max-w-xs mx-auto">
                   {cameraError}
                 </p>
@@ -280,7 +296,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
                     }}
                     className="px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition shadow-lg"
                   >
-                    🔄 Tentar Novamente
+                    🔄 Try Again
                   </button>
                   <button
                     onClick={() => setShowPermissionHelp(true)}
@@ -293,7 +309,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
             </div>
           )}
 
-          {/* Controles Superiores - Filtros e Trocar Câmera */}
+          {/* Top controls — filters and switch camera */}
           <div className="absolute top-4 right-4 flex items-center gap-2">
             <div className="relative">
               <button
@@ -303,7 +319,6 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
                 <Sparkles className="w-5 h-5 text-white" />
               </button>
 
-              {/* Menu de Filtros */}
               {showFilters && (
                 <div className="absolute top-12 right-0 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden min-w-40 max-h-64 overflow-y-auto z-50">
                   {filters.map(filter => (
@@ -336,13 +351,13 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
               onClick={takeScreenshot}
               disabled={!stream || !isCameraOn}
               className="w-10 h-10 bg-black/60 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-black/80 transition disabled:opacity-50"
-              title="Capturar screenshot"
+              title="Capture screenshot"
             >
               <Download className="w-5 h-5 text-white" />
             </button>
           </div>
 
-          {/* Controles de Câmera e Mic */}
+          {/* Camera and mic controls */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-3">
             <button
               onClick={() => {
@@ -378,15 +393,15 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
             </button>
           </div>
 
-          {/* Badge Preview */}
+          {/* Preview badge */}
           <div className="absolute top-4 left-4 flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-full backdrop-blur-sm">
             <div className={`w-2 h-2 ${stream ? 'bg-green-400' : 'bg-slate-400'} rounded-full ${stream ? 'animate-pulse' : ''}`}></div>
             <span className="text-white text-xs font-bold">
-              {stream ? 'AO VIVO' : 'PREVIEW'}
+              {stream ? 'LIVE' : 'PREVIEW'}
             </span>
           </div>
 
-          {/* Indicador de Filtro Ativo */}
+          {/* Active filter indicator */}
           {currentFilter !== 'none' && (
             <div className="absolute bottom-4 left-4 bg-green-600/90 px-3 py-1 rounded-full backdrop-blur-sm">
               <span className="text-white text-xs font-bold">
@@ -396,14 +411,14 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
           )}
         </div>
 
-        {/* Alerta */}
+        {/* Status banner */}
         <div className={`${hasCamera && stream ? 'bg-green-50 border-green-200' : cameraError ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'} border rounded-xl p-4`}>
           <div className="flex items-start gap-2">
             <AlertCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${hasCamera && stream ? 'text-green-600' : cameraError ? 'text-red-600' : 'text-blue-600'}`} />
             <div className="flex-1">
               <p className={`${hasCamera && stream ? 'text-green-900' : cameraError ? 'text-red-900' : 'text-blue-900'} text-sm`}>
                 <span className="font-semibold">
-                  {hasCamera && stream ? '✅ Câmera conectada!' : cameraError ? '❌ Erro ao acessar câmera' : '💡 Ready to start'}
+                  {hasCamera && stream ? '✅ Camera connected!' : cameraError ? '❌ Error accessing camera' : '💡 Ready to start'}
                 </span>
                 {' '}
                 {hasCamera && stream ? (
@@ -415,7 +430,6 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
                 )}
               </p>
 
-              {/* Botões de ação */}
               {!stream && cameraError && (
                 <div className="mt-3 flex gap-2">
                   <button
@@ -426,13 +440,13 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
                     }}
                     className="px-4 py-2 bg-green-600 text-white text-xs font-bold rounded-lg hover:bg-green-700 transition"
                   >
-                    🔄 Tentar novamente
+                    🔄 Try again
                   </button>
                   <button
                     onClick={() => setShowPermissionHelp(true)}
                     className="px-4 py-2 bg-blue-500 text-white text-xs font-bold rounded-lg hover:bg-blue-600 transition"
                   >
-                    ❓ Como permitir
+                    ❓ How to allow
                   </button>
                 </div>
               )}
@@ -440,7 +454,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
           </div>
         </div>
 
-        {/* Título */}
+        {/* Title */}
         <div>
           <label className="block text-sm font-bold text-slate-900 mb-2">
             Live Title *
@@ -478,7 +492,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
           </div>
         </div>
 
-        {/* Descrição */}
+        {/* Description */}
         <div>
           <label className="block text-sm font-bold text-slate-900 mb-2">
             Description (optional)
@@ -513,7 +527,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
                 <p className={`font-bold ${privacy === 'public' ? 'text-green-900' : 'text-slate-900'}`}>
                   Public
                 </p>
-                <p className="text-sm text-slate-600">Qualquer pessoa pode assistir</p>
+                <p className="text-sm text-slate-600">Anyone can watch</p>
               </div>
             </button>
 
@@ -530,7 +544,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
                 <p className={`font-bold ${privacy === 'followers' ? 'text-green-900' : 'text-slate-900'}`}>
                   Followers only
                 </p>
-                <p className="text-sm text-slate-600">Somente quem te segue pode assistir</p>
+                <p className="text-sm text-slate-600">Only people who follow you can watch</p>
               </div>
             </button>
 
@@ -547,47 +561,13 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
                 <p className={`font-bold ${privacy === 'premium' ? 'text-green-900' : 'text-slate-900'}`}>
                   Premium subscribers
                 </p>
-                <p className="text-sm text-slate-600">Apenas para quem assina seu conteúdo</p>
+                <p className="text-sm text-slate-600">Only people subscribed to your premium content</p>
               </div>
             </button>
           </div>
         </div>
 
-        {/* Monetização */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-yellow-700" />
-              <span className="font-bold text-yellow-900">Paid Live</span>
-            </div>
-            <button
-              onClick={() => setIsPaid(!isPaid)}
-              className={`w-12 h-6 rounded-full transition relative ${
-                isPaid ? 'bg-green-600' : 'bg-slate-300'
-              }`}
-            >
-              <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all ${
-                isPaid ? 'left-6' : 'left-0.5'
-              }`}></div>
-            </button>
-          </div>
-          {isPaid && (
-            <div className="space-y-2">
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="Price"
-                className="w-full px-4 py-3 bg-white border border-yellow-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              />
-              <p className="text-xs text-yellow-800">
-                💡 Sugestão: Lives pagas funcionam melhor para conteúdo exclusivo, cursos e análises premium.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Agendar */}
+        {/* Schedule */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -620,31 +600,31 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
                 className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-xs text-blue-800">
-                📅 Seus seguidores receberão uma notificação quando a live começar.
+                📅 People can tap "Notify me" and will get an alert the moment this live starts.
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Botão Fixo */}
+      {/* Fixed bottom button */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4">
         <button
           onClick={handleStartLive}
-          disabled={!title.trim() || !category}
+          disabled={!title.trim() || !category || isSubmitting}
           className="w-full py-4 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold rounded-xl hover:from-emerald-700 hover:to-emerald-600 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <Radio className="w-5 h-5" />
-          {isScheduled ? 'Schedule Live' : 'Start Stream'}
+          {isSubmitting ? 'Saving...' : isScheduled ? 'Schedule Live' : 'Start Stream'}
         </button>
       </div>
 
-      {/* Modal de Ajuda de Permissão */}
+      {/* Camera permission help modal */}
       {showPermissionHelp && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 animate-scale-up shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-900">Como permitir acesso à câmera</h3>
+              <h3 className="text-lg font-bold text-slate-900">How to allow camera access</h3>
               <button
                 onClick={() => setShowPermissionHelp(false)}
                 className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center hover:bg-slate-200 transition"
@@ -666,9 +646,9 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
               <div className="bg-slate-50 rounded-lg p-4">
                 <h4 className="font-bold text-sm text-slate-900 mb-2">🦊 Firefox</h4>
                 <ol className="text-xs text-slate-700 space-y-1 list-decimal list-inside">
-                  <li>Clique no ícone de <strong>crossed-out camera</strong> in the address bar</li>
-                  <li>Clique em <strong>"Desbloquear"</strong></li>
-                  <li>Permita o acesso quando solicitado</li>
+                  <li>Click the <strong>crossed-out camera</strong> icon in the address bar</li>
+                  <li>Click <strong>"Unblock"</strong></li>
+                  <li>Allow access when prompted</li>
                 </ol>
               </div>
 
@@ -677,7 +657,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
                 <ol className="text-xs text-slate-700 space-y-1 list-decimal list-inside">
                   <li>Open <strong>Safari Preferences</strong></li>
                   <li>Go to <strong>Websites</strong> → <strong>Camera</strong></li>
-                  <li>Permita acesso para este site</li>
+                  <li>Allow access for this site</li>
                 </ol>
               </div>
 
@@ -696,7 +676,7 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
               }}
               className="w-full mt-4 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition text-sm"
             >
-              Entendi, tentar novamente
+              Got it, try again
             </button>
           </div>
         </div>

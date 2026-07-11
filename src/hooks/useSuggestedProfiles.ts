@@ -25,13 +25,18 @@ export const useSuggestedProfiles = (limit: number = 5) => {
       const followingIds = followingData?.map(f => f.following_id) || [];
 
       // Search perfis que o usuário não segue, ordenados por seguidores
-      const { data, error } = await supabase
+      let query = supabase
         .from('profiles')
         .select('id, name, username, avatar_url, bio, verified, followers_count')
         .neq('id', user.id) // Não incluir o próprio usuário
-        .not('id', 'in', `(${followingIds.join(',') || 'null'})`) // Não incluir quem já segue
         .order('followers_count', { ascending: false })
         .limit(limit);
+
+      if (followingIds.length > 0) {
+        query = query.not('id', 'in', `(${followingIds.join(',')})`); // Não incluir quem já segue
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 

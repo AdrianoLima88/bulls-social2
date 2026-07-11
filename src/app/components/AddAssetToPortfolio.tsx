@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Search, TrendingUp, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import { usePortfolio } from '../../hooks/usePortfolio';
+import { useSubscription } from '../../hooks/useSubscription';
+
+// Free-tier portfolio size cap. Premium/Pro/Business have unlimited assets.
+const FREE_ASSET_LIMIT = 5;
 
 // ─── European & Global assets by type ─────────────────────────
 const POPULAR_ASSETS = {
@@ -55,8 +59,10 @@ const currencySymbol = (c = 'EUR') => c === 'GBP' ? '£' : c === 'USD' ? '$' : '
 
 type AssetType = keyof typeof POPULAR_ASSETS;
 
-export const AddAssetToPortfolio = ({ onBack }) => {
-  const { addAsset } = usePortfolio();
+export const AddAssetToPortfolio = ({ onBack, onNavigateToPremium }) => {
+  const { addAsset, assets } = usePortfolio();
+  const { isPremium } = useSubscription();
+  const atFreeLimit = !isPremium && assets.length >= FREE_ASSET_LIMIT;
   const [assetType, setAssetType] = useState<AssetType>('stock');
   const [ticker, setTicker] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -129,14 +135,31 @@ export const AddAssetToPortfolio = ({ onBack }) => {
           <h1 className="text-white font-bold text-lg">Add Asset</h1>
           <button
             onClick={handleSave}
-            disabled={!canSave || saving || saved}
-            className={`text-sm font-bold transition ${canSave && !saving && !saved ? 'text-white' : 'text-white/40'}`}
+            disabled={atFreeLimit || !canSave || saving || saved}
+            className={`text-sm font-bold transition ${!atFreeLimit && canSave && !saving && !saved ? 'text-white' : 'text-white/40'}`}
           >
             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : saved ? '✓' : 'Save'}
           </button>
         </div>
       </header>
 
+      {atFreeLimit ? (
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+            <TrendingUp className="w-8 h-8 text-yellow-600" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-900 mb-2">Free plan limit reached</h2>
+          <p className="text-sm text-slate-600 mb-6 max-w-xs">
+            The free plan allows up to {FREE_ASSET_LIMIT} portfolio assets. Upgrade to add unlimited assets.
+          </p>
+          <button
+            onClick={() => onNavigateToPremium && onNavigateToPremium()}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition"
+          >
+            Upgrade plan
+          </button>
+        </div>
+      ) : (
       <div className="flex-1 overflow-y-auto p-4 pb-10 space-y-4">
 
         {/* Asset Type */}
@@ -317,6 +340,7 @@ export const AddAssetToPortfolio = ({ onBack }) => {
         </div>
 
       </div>
+      )}
     </div>
   );
 };

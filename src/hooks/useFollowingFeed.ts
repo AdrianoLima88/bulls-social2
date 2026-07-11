@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useId } from 'react';
 import { supabase } from '../utils/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { Post } from './usePosts';
@@ -25,13 +25,15 @@ const POST_SELECT = `
     name,
     avatar_url,
     verified,
-    user_type
+    user_type,
+    plan
   )
 `;
 
 const PAGE_SIZE = 20;
 
 export const useFollowingFeed = () => {
+  const instanceId = useId();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [followingIds, setFollowingIds] = useState<string[]>([]);
@@ -91,7 +93,7 @@ export const useFollowingFeed = () => {
 
     // Realtime: only update single post, don't refetch all
     const channel = supabase
-      .channel('following_posts_changes')
+      .channel(`following_posts_changes_${instanceId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'posts' },
@@ -124,7 +126,7 @@ export const useFollowingFeed = () => {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user, instanceId]);
 
   return { posts, loading, refetch: fetchFollowingPosts };
 };

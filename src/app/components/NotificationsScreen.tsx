@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Heart, MessageCircle, UserPlus, AtSign, Bell, Share2, CheckCheck, Trash2 } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, UserPlus, AtSign, Bell, Share2, CheckCheck, Trash2, Radio } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { useNotifications } from '../../hooks/useNotifications';
 
-export const NotificationsScreen = ({ onBack, onNavigateToPost, onNavigateToProfile }) => {
+export const NotificationsScreen = ({ onBack, onNavigateToPost, onNavigateToProfile, onNavigateToLive }) => {
   const { t } = useLocale();
   const {
     notifications,
@@ -37,14 +37,16 @@ export const NotificationsScreen = ({ onBack, onNavigateToPost, onNavigateToProf
     { id: 'comment', label: 'Comments', icon: MessageCircle },
     { id: 'follow', label: 'Followers', icon: UserPlus },
     { id: 'share', label: 'Shares', icon: Share2 },
+    { id: 'live_started', label: 'Lives', icon: Radio },
   ];
 
   const typeConfig = {
-    like:    { bg: 'bg-red-500',    icon: Heart,          label: 'liked your post' },
-    comment: { bg: 'bg-blue-500',   icon: MessageCircle,  label: 'commented' },
-    follow:  { bg: 'bg-green-600',  icon: UserPlus,       label: 'followed you' },
-    share:   { bg: 'bg-orange-500', icon: Share2,         label: 'shared' },
-    mention: { bg: 'bg-purple-500', icon: AtSign,         label: 'mentioned you' },
+    like:         { bg: 'bg-red-500',    icon: Heart,          label: 'liked your post' },
+    comment:      { bg: 'bg-blue-500',   icon: MessageCircle,  label: 'commented' },
+    follow:       { bg: 'bg-green-600',  icon: UserPlus,       label: 'followed you' },
+    share:        { bg: 'bg-orange-500', icon: Share2,         label: 'shared' },
+    mention:      { bg: 'bg-purple-500', icon: AtSign,         label: 'mentioned you' },
+    live_started: { bg: 'bg-emerald-600', icon: Radio,         label: 'started a live' },
   };
 
   const handleNotificationClick = (notification) => {
@@ -61,6 +63,8 @@ export const NotificationsScreen = ({ onBack, onNavigateToPost, onNavigateToProf
           type: 'other',
         });
       }
+    } else if (notification.type === 'live_started') {
+      if (notification.live_id && onNavigateToLive) onNavigateToLive(notification.live_id);
     }
   };
 

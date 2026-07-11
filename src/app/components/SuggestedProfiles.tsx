@@ -1,11 +1,12 @@
-import React from 'react';
-import { UserPlus, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { UserPlus, Check, X } from 'lucide-react';
 import { useSuggestedProfiles } from '../../hooks/useSuggestedProfiles';
 import { useFollows } from '../../hooks/useFollows';
 
 export const SuggestedProfiles = ({ onNavigateToProfile }) => {
   const { profiles, loading } = useSuggestedProfiles(5);
   const { isFollowing, toggleFollow } = useFollows();
+  const [dismissed, setDismissed] = useState<string[]>([]);
 
   if (loading) {
     return (
@@ -26,7 +27,9 @@ export const SuggestedProfiles = ({ onNavigateToProfile }) => {
     );
   }
 
-  if (profiles.length === 0) {
+  const visible = profiles.filter(p => !dismissed.includes(p.id));
+
+  if (profiles.length === 0 || visible.length === 0) {
     return null;
   }
 
@@ -34,11 +37,11 @@ export const SuggestedProfiles = ({ onNavigateToProfile }) => {
     <div className="bg-white rounded-2xl p-4 mb-4 border border-slate-200 shadow-sm">
       <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
         <UserPlus className="w-5 h-5 text-green-600" />
-        Quem seguir
+        Who to follow
       </h3>
       <div className="space-y-3">
-        {profiles.map(profile => (
-          <div key={profile.id} className="flex items-center gap-3">
+        {visible.map(profile => (
+          <div key={profile.id} className="flex items-center gap-2">
             <button
               onClick={() => {
                 const profileData = {
@@ -72,7 +75,7 @@ export const SuggestedProfiles = ({ onNavigateToProfile }) => {
             </button>
             <button
               onClick={() => toggleFollow(profile.id)}
-              className={`px-4 py-1.5 rounded-full font-semibold text-sm transition flex items-center gap-1 flex-shrink-0 ${
+              className={`px-3 py-1.5 rounded-full font-semibold text-sm transition flex items-center gap-1 flex-shrink-0 ${
                 isFollowing(profile.id)
                   ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   : 'bg-green-600 text-white hover:bg-green-700'
@@ -89,6 +92,13 @@ export const SuggestedProfiles = ({ onNavigateToProfile }) => {
                   Follow
                 </>
               )}
+            </button>
+            <button
+              onClick={() => setDismissed(prev => [...prev, profile.id])}
+              className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition flex-shrink-0"
+              aria-label="Dismiss"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         ))}

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useId } from 'react';
 import { supabase } from '../utils/supabase/client';
+import { supabaseUrl } from '../utils/supabase/info';
 import { useAuth } from '../contexts/AuthContext';
 
 export interface Subscription {
@@ -15,6 +16,7 @@ export interface Subscription {
 }
 
 export function useSubscription() {
+  const instanceId = useId();
   const { user } = useAuth();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,7 @@ export function useSubscription() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`,
+        `${supabaseUrl}/functions/v1/stripe-checkout`,
         {
           method: 'POST',
           headers: {
@@ -85,7 +87,7 @@ export function useSubscription() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`,
+        `${supabaseUrl}/functions/v1/stripe-checkout`,
         {
           method: 'POST',
           headers: {
@@ -118,7 +120,7 @@ export function useSubscription() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`,
+        `${supabaseUrl}/functions/v1/stripe-checkout`,
         {
           method: 'POST',
           headers: {
@@ -157,14 +159,14 @@ export function useSubscription() {
     if (!user) return;
     // Realtime subscription updates
     const channel = supabase
-      .channel(`subscription_${user.id}`)
+      .channel(`subscription_changes_${instanceId}`)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'subscriptions',
         filter: `user_id=eq.${user.id}`,
       }, fetchSubscription)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user, fetchSubscription]);
+  }, [user, fetchSubscription, instanceId]);
 
   return {
     subscription,

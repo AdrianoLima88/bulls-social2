@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useId } from 'react';
 import { supabase } from '../utils/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 
 export interface Notification {
   id: string;
-  type: 'like' | 'comment' | 'follow' | 'mention' | 'share';
+  type: 'like' | 'comment' | 'follow' | 'mention' | 'share' | 'live_started';
   actor_id: string;
   post_id?: string;
   comment_id?: string;
+  live_id?: string;
   content?: string;
   read: boolean;
   created_at: string;
@@ -25,6 +26,7 @@ export interface Notification {
 }
 
 export const useNotifications = () => {
+  const instanceId = useId();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -41,6 +43,7 @@ export const useNotifications = () => {
           type,
           actor_id,
           post_id,
+          live_id,
           content,
           read,
           created_at,
@@ -112,6 +115,7 @@ export const useNotifications = () => {
       case 'follow': return `${actorName} started following you`;
       case 'share': return `${actorName} shared your post`;
       case 'mention': return `${actorName} mentioned you`;
+      case 'live_started': return `${actorName} started a live: ${notification.content || ''}`.trim();
       default: return `${actorName} interacted with you`;
     }
   };
@@ -150,7 +154,7 @@ export const useNotifications = () => {
     fetchUnreadCount();
 
     const channel = supabase
-      .channel('notifications_changes')
+      .channel(`notifications_changes_${instanceId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
@@ -178,7 +182,7 @@ export const useNotifications = () => {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [user, fetchUnreadCount]);
+  }, [user, fetchUnreadCount, instanceId]);
 
   return {
     notifications,

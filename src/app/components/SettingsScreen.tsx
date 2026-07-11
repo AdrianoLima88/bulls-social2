@@ -6,10 +6,124 @@ import { useAuth } from '../../contexts/AuthContext';
 import { AppearanceSection } from './AppearanceSection';
 import { MFAManageScreen } from './MFAManageScreen';
 
+const ChangeEmailModal = ({ currentEmail, onClose }) => {
+  const { updateEmail } = useAuth();
+  const [newEmail, setNewEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!newEmail || newEmail === currentEmail) {
+      setError('Enter a different email address.');
+      return;
+    }
+    setLoading(true);
+    const { error } = await updateEmail(newEmail);
+    setLoading(false);
+    if (error) setError(error.message || 'Could not update email.');
+    else setSent(true);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-sm p-5">
+        <h3 className="font-bold text-slate-900 mb-1">Change Email</h3>
+        {sent ? (
+          <>
+            <p className="text-sm text-slate-600 mb-4">
+              We've sent a confirmation link to <strong>{newEmail}</strong>. Click it to finish changing your email.
+            </p>
+            <button onClick={onClose} className="w-full py-2.5 bg-green-600 text-white font-semibold rounded-xl">Done</button>
+          </>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <p className="text-xs text-slate-500 mb-3">Current: {currentEmail || 'Not set'}</p>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={e => setNewEmail(e.target.value)}
+              placeholder="New email address"
+              className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm mb-2 focus:outline-none focus:border-green-500"
+              required
+            />
+            {error && <p className="text-xs text-red-600 mb-2">{error}</p>}
+            <div className="flex gap-2 mt-3">
+              <button type="button" onClick={onClose} className="flex-1 py-2.5 border-2 border-slate-300 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-50 transition">Cancel</button>
+              <button type="submit" disabled={loading} className="flex-1 py-2.5 bg-green-600 text-white font-semibold text-sm rounded-xl disabled:opacity-50 hover:bg-green-700 transition">
+                {loading ? 'Sending...' : 'Send confirmation'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const ChangePasswordModal = ({ onClose }) => {
+  const { signIn, updatePassword, user } = useAuth();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [done, setDone] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (newPassword.length < 6) { setError('New password must be at least 6 characters.'); return; }
+    if (newPassword !== confirmPassword) { setError('Passwords do not match.'); return; }
+    setLoading(true);
+    const { error: signInError } = await signIn(user?.email || '', currentPassword);
+    if (signInError) {
+      setLoading(false);
+      setError('Current password is incorrect.');
+      return;
+    }
+    const { error: updateError } = await updatePassword(newPassword);
+    setLoading(false);
+    if (updateError) setError(updateError.message || 'Could not update password.');
+    else setDone(true);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-sm p-5">
+        <h3 className="font-bold text-slate-900 mb-1">Change Password</h3>
+        {done ? (
+          <>
+            <p className="text-sm text-slate-600 mb-4">Your password has been updated.</p>
+            <button onClick={onClose} className="w-full py-2.5 bg-green-600 text-white font-semibold rounded-xl">Done</button>
+          </>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-2">
+            <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="Current password" className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-green-500" required />
+            <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="New password" className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-green-500" required />
+            <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm new password" className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-green-500" required />
+            {error && <p className="text-xs text-red-600">{error}</p>}
+            <div className="flex gap-2 mt-3">
+              <button type="button" onClick={onClose} className="flex-1 py-2.5 border-2 border-slate-300 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-50 transition">Cancel</button>
+              <button type="submit" disabled={loading} className="flex-1 py-2.5 bg-green-600 text-white font-semibold text-sm rounded-xl disabled:opacity-50 hover:bg-green-700 transition">
+                {loading ? 'Updating...' : 'Update password'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNavigateToGuidelines, onNavigateToLanguageRegion, onNavigateToCreatorDashboard }) => {
   const { t, locale } = useLocale();
   const { user } = useAuth();
   const [showMFAManage, setShowMFAManage] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [gdprLoading, setGdprLoading] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -28,6 +142,12 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
     <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
       {showMFAManage && (
         <MFAManageScreen onClose={() => setShowMFAManage(false)} />
+      )}
+      {showEmailModal && (
+        <ChangeEmailModal currentEmail={user?.email} onClose={() => setShowEmailModal(false)} />
+      )}
+      {showPasswordModal && (
+        <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />
       )}
 
       <header className="bg-green-600 z-50 flex-shrink-0">
@@ -82,7 +202,7 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
           {showSection === 'account' && (
             <div className="border-t border-slate-100">
               <button
-                onClick={() => alert('To change your email, please contact support.')}
+                onClick={() => setShowEmailModal(true)}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition"
               >
                 <div className="flex items-center gap-3">
@@ -96,7 +216,7 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
               </button>
 
               <button
-                onClick={() => alert('Password change coming soon!')}
+                onClick={() => setShowPasswordModal(true)}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition"
               >
                 <div className="flex items-center gap-3">

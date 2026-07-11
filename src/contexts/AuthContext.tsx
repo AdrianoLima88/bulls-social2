@@ -13,6 +13,7 @@ interface Profile {
   user_type: string;
   followers_count: number;
   following_count: number;
+  onboarding_completed: boolean;
 }
 
 interface AuthContextType {
@@ -22,11 +23,16 @@ interface AuthContextType {
   loading: boolean;
   mfaRequired: boolean;
   mfaVerified: boolean;
+  passwordRecovery: boolean;
   signUp: (email: string, password: string, username: string, name: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
   completeMFAVerification: () => void;
+  updateEmail: (newEmail: string) => Promise<{ error: any }>;
+  updatePassword: (newPassword: string) => Promise<{ error: any }>;
+  resetPasswordForEmail: (email: string) => Promise<{ error: any }>;
+  clearPasswordRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,6 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [mfaRequired, setMfaRequired] = useState(false);
   const [mfaVerified, setMfaVerified] = useState(false);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
   const mfaVerifiedRef = useRef(false);
 
   const checkMFA = async () => {
@@ -80,7 +87,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // User clicked the "reset password" link from their email.
+        // Show the reset-password screen instead of running the normal app gates.
+        setSession(session);
+        setUser(session?.user ?? null);
+        setPasswordRecovery(true);
+        setLoading(false);
+        return;
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -95,6 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setMfaRequired(false);
         setMfaVerified(false);
         mfaVerifiedRef.current = false;
+        setPasswordRecovery(false);
         setLoading(false);
       }
     });
@@ -184,12 +202,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Change the logged-in user's email. Supabase sends a confirmation link
+  // (to the new address, and to the old one if "secure email change" is on)
+  // — the email only actually changes once that link is clicked.
+  const updateEmail = async (newEmail: string) => {
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    return { error };
+  };
+
+  // Change the logged-in user's password. Works both for a normal
+  // "change password" flow and right after a PASSWORD_RECOVERY event.
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (!error) setPasswordRecovery(false);
+    return { error };
+  };
+
+  // "Forgot password" — sends a reset link to the given email.
+  const resetPasswordForEmail = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    return { error };
+  };
+
+  const clearPasswordRecovery = () => setPasswordRecovery(false);
+
   return (
     <AuthContext.Provider value={{
       user, profile, session, loading,
-      mfaRequired, mfaVerified,
+      mfaRequired, mfaVerified, passwordRecovery,
       signUp, signIn, signOut, updateProfile,
       completeMFAVerification,
+      updateEmail, updatePassword, resetPasswordForEmail, clearPasswordRecovery,
     }}>
       {children}
     </AuthContext.Provider>

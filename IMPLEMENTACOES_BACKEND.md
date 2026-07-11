@@ -182,6 +182,28 @@ const {
 - **Bug 2 (notificações "vazias" na tela, mas com badge "1 unread"):** o hook `useNotifications.ts` só buscava a contagem de não lidas no mount (`fetchUnreadCount`, rápido — usado no sino do feed) e nunca disparava a busca da lista completa (`fetchNotifications`, exposta como `refreshNotifications`). A lista só era preenchida se uma notificação nova chegasse via Realtime enquanto a tela estava aberta. `NotificationsScreen.tsx` nunca chamava `refreshNotifications()` ao abrir.
   - Corrigido adicionando um `useEffect` em `NotificationsScreen.tsx` que chama `refreshNotifications()` ao montar a tela.
 
+### 8. ✅ Redesign da tela "Assistir Live" (estilo Instagram Live) — 2026-06-28
+- `src/app/components/WatchLiveScreen.tsx` reescrito: vídeo agora ocupa a tela toda (full-bleed, sem caixa/letterbox), e o chat/comentários ficam sobrepostos de forma translúcida sobre o vídeo (sem painel branco sólido), igual ao Instagram Live.
+- Removido um mecanismo de tema local (`liveTheme`, lido de uma chave de `localStorage` diferente da do app) que não fazia nada — ficava morto no código e não era usado em nenhum estilo. Modais (Tip/Share) e menus já seguem o tema claro/escuro real do app automaticamente, pois usam as mesmas classes (`bg-white`, etc.) convertidas pelo `dark-mode.css` global quando o usuário escolhe "escuro" em Aparência. A camada do vídeo e o chat sobreposto permanecem sempre escuros/translúcidos (como em qualquer app de live — Instagram, TikTok, YouTube — para manter o texto legível sobre o vídeo, independente do tema do celular).
+- Adicionado suporte a modo retrato e paisagem: o app detecta a orientação da tela (`window.innerWidth > window.innerHeight`) e reposiciona o chat — embaixo, ocupando a largura toda, em retrato; numa coluna à direita, em paisagem.
+
+### 9. ✅ Lives reais (backend completo) + idioma em inglês — 2026-06-28
+- **Schema novo no Supabase:** tabelas `lives`, `live_messages`, `live_viewers`, `live_subscribers` (RLS habilitado em todas, policies testadas via `pg_policies`).
+  - `lives`: host_id, title, description, category, privacy (`public`/`followers`/`premium`), status (`scheduled`/`live`/`ended`), scheduled_at, started_at, ended_at, viewer_count, peak_viewer_count, likes_count.
+  - `live_messages`: chat real por live (autor + texto), com realtime.
+  - `live_viewers`: presença real (join/leave) — usada para calcular `viewer_count` ao vivo.
+  - `live_subscribers`: quem apertou "Notify me" numa live agendada.
+  - Sem colunas de pagamento (`is_paid`/`price`) — removidas do desenho do schema; o nível "pago" é representado só pela privacidade `premium` (gated por `subscriptions.status = 'active'`).
+- **Funções `SECURITY DEFINER`:** `update_live_viewer_count` (mantém `lives.viewer_count`/`peak_viewer_count` sincronizados com `live_viewers`), `increment_live_likes` (RPC chamado ao curtir), `notify_live_subscribers` (dispara ao mudar status de `scheduled` → `live`, insere em `notifications` para todos os inscritos — encadeia automaticamente no pipeline de push já existente do OneSignal).
+- **Realtime:** `lives`, `live_messages` e `live_viewers` adicionadas à publicação `supabase_realtime`.
+- **Hooks novos:** `useLives()` (lista de lives ativas/agendadas, criar/iniciar/encerrar live, inscrever-se), `useLiveSession(liveId)` (chat, contagem de espectadores e curtidas em tempo real para uma live específica).
+- **Telas reescritas com dados 100% reais (sem mock) e texto padronizado em inglês:**
+  - `LiveScreen.tsx`: lista de lives ativas/agendadas vem do Supabase; botão "Notify me" grava de verdade em `live_subscribers`.
+  - `StartLiveScreen.tsx`: criar uma live agora grava na tabela `lives` (imediata ou agendada); removida a seção "Paid Live" (sem suporte no schema); textos de erro de câmera, modal de permissão e dicas traduzidos para inglês.
+  - `WatchLiveScreen.tsx`: chat, contagem de espectadores e curtidas conectados ao Supabase Realtime; botão "Follow" usa o sistema de follows real; host vê um botão "End Live" que encerra a live para todo mundo; compartilhar no Facebook/Twitter abre o link de compartilhamento real (Instagram copia o link, já que não tem URL de share direta); removido o "Super Chat"/tip (sem gateway de pagamento real).
+  - `NotificationsScreen.tsx` / `useNotifications.ts`: novo tipo `live_started` — ao tocar, navega direto para a live (`onNavigateToLive`).
+- **Limitação aceita:** o player de vídeo continua simulado (sem WebRTC/RTMP real) — chat, espectadores, curtidas, inscrições e notificações são 100% reais.
+
 ---
 
 ## 🎉 **Status:**
