@@ -102,6 +102,7 @@ const US_STOCKS = [
   { code: 'AMZN',  name: 'Amazon',       exchange: 'NASDAQ', description: 'E-commerce and cloud computing leader.' },
   { code: 'TSLA',  name: 'Tesla',        exchange: 'NASDAQ', description: 'Electric vehicles and clean energy.' },
   { code: 'META',  name: 'Meta',         exchange: 'NASDAQ', description: 'Owner of Facebook, Instagram and WhatsApp.' },
+  { code: 'NFLX',  name: 'Netflix',      exchange: 'NASDAQ', description: 'Global streaming entertainment service.' },
   { code: 'JPM',   name: 'JPMorgan',     exchange: 'NYSE',   description: 'Largest US bank by assets.' },
 ];
 

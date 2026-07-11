@@ -132,6 +132,20 @@ const AssetRow = ({ asset, onPress }: { asset: MarketAsset; onPress: () => void 
   );
 };
 
+// Popular ETFs (mock data)
+const POPULAR_ETFS = [
+  { code: 'SPY',  name: 'S&P 500 ETF',    change:  0.82 },
+  { code: 'QQQ',  name: 'Nasdaq ETF',      change:  1.24 },
+  { code: 'VTI',  name: 'Total Market',    change:  0.67 },
+  { code: 'IVV',  name: 'iShares S&P 500', change:  0.79 },
+  { code: 'VOO',  name: 'Vanguard S&P',    change:  0.81 },
+  { code: 'ARKK', name: 'ARK Innovation',  change: -1.45 },
+  { code: 'GLD',  name: 'SPDR Gold',       change:  0.34 },
+  { code: 'DIA',  name: 'Dow Jones ETF',   change:  0.52 },
+];
+
+const POPULAR_STOCK_ORDER = ['NVDA','AAPL','TSLA','AMZN','NFLX','MSFT','META','GOOGL'];
+
 // ─── Componente principal ──────────────────────────────────────
 export const MarketScreen = ({ onBack, onNavigateToCurrencies }) => {
   const [tab, setTab] = useState<MarketTab>('us');
@@ -140,8 +154,11 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }) => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<MarketAsset | null>(null);
   const [moversTab, setMoversTab] = useState<'gainers' | 'losers'>('gainers');
+  const [popularTab, setPopularTab] = useState<'stocks' | 'etfs'>('stocks');
 
   const { assets, forex, loading, lastUpdated, refetch } = useMarket(tab);
+  // Always load US data for the popular section regardless of active tab
+  const { assets: usAssets } = useMarket('us');
 
   const tabs: { key: MarketTab; label: string; flag: string }[] = [
     { key: 'uk',     label: 'UK',      flag: '🇬🇧' },
@@ -170,6 +187,11 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }) => {
   const topMovers = [...readyAssets]
     .sort((a, b) => moversTab === 'gainers' ? b.change - a.change : a.change - b.change)
     .slice(0, 6);
+
+  // Most popular stocks — always from US data, in fixed display order
+  const popularStocks = POPULAR_STOCK_ORDER
+    .map(code => usAssets.find(a => a.code === code))
+    .filter((a): a is MarketAsset => Boolean(a));
 
   // Mapeia para o modal existente (mantém compatibilidade)
   const assetForModal = selectedAsset ? {
@@ -324,6 +346,74 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }) => {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Most Popular Assets */}
+        <div className="px-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-slate-900 text-sm">Most Popular Assets</h2>
+            <div className="flex gap-1 bg-slate-100 rounded-full p-0.5">
+              <button
+                onClick={() => setPopularTab('stocks')}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${popularTab === 'stocks' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}
+              >
+                Stocks
+              </button>
+              <button
+                onClick={() => setPopularTab('etfs')}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${popularTab === 'etfs' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}
+              >
+                ETFs
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {popularTab === 'stocks'
+              ? (popularStocks.length > 0
+                  ? popularStocks.map(asset => {
+                      const isPos = asset.change >= 0;
+                      const code = asset.code.split('.')[0];
+                      return (
+                        <button
+                          key={asset.code}
+                          onClick={() => setSelectedAsset(asset)}
+                          className="bg-slate-900 rounded-2xl p-4 flex flex-col items-center gap-2 active:scale-95 transition hover:bg-slate-800"
+                        >
+                          <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+                            <StockLogo code={code} name={asset.name} size={16} />
+                          </div>
+                          <span className="font-bold text-white text-sm">{code}</span>
+                          <span className={`text-xs font-bold ${isPos ? 'text-green-400' : 'text-red-400'}`}>
+                            {isPos ? '+' : ''}{asset.change.toFixed(2)}%
+                          </span>
+                        </button>
+                      );
+                    })
+                  : POPULAR_STOCK_ORDER.map(code => (
+                      <div key={code} className="bg-slate-900 rounded-2xl p-4 flex flex-col items-center gap-2 animate-pulse">
+                        <div className="w-16 h-16 rounded-full bg-slate-700" />
+                        <div className="h-3 w-12 bg-slate-700 rounded" />
+                        <div className="h-3 w-8 bg-slate-800 rounded" />
+                      </div>
+                    ))
+                )
+              : POPULAR_ETFS.map(etf => {
+                  const isPos = etf.change >= 0;
+                  return (
+                    <div key={etf.code} className="bg-slate-900 rounded-2xl p-4 flex flex-col items-center gap-2">
+                      <div className="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-bold text-sm">{etf.code.substring(0, 3)}</span>
+                      </div>
+                      <span className="font-bold text-white text-sm">{etf.code}</span>
+                      <span className={`text-xs font-bold ${isPos ? 'text-green-400' : 'text-red-400'}`}>
+                        {isPos ? '+' : ''}{etf.change.toFixed(2)}%
+                      </span>
+                    </div>
+                  );
+                })
+            }
           </div>
         </div>
 
