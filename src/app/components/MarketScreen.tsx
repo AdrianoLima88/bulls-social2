@@ -5,7 +5,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { AssetDetailsModal } from './AssetDetailsModal';
-import { useMarket, type MarketTab, type MarketAsset } from '../../hooks/useMarket';
+import { useMarket, getAllMockAssets, type MarketTab, type MarketAsset } from '../../hooks/useMarket';
 
 // ─── Logo com fallback encadeado ─────────────────────────────
 const CRYPTO_CODES = new Set(['BTC','ETH','BNB','SOL','XRP','ADA','DOT','AVAX','DOGE','USDT','USDC','MATIC','LTC','LINK']);
@@ -146,12 +146,6 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }) => {
 
   const { assets, forex, loading, lastUpdated, refetch } = useMarket(tab);
 
-  // Load all regions in parallel so Today's Movers shows cross-market top movers
-  const { assets: ukAssets }     = useMarket('uk');
-  const { assets: euAssets }     = useMarket('europe');
-  const { assets: usAssets }     = useMarket('us');
-  const { assets: cryptoAssets } = useMarket('crypto');
-
   const tabs: { key: MarketTab; label: string; flag: string }[] = [
     { key: 'uk',     label: 'UK',      flag: '🇬🇧' },
     { key: 'europe', label: 'Europe',  flag: '🇪🇺' },
@@ -174,10 +168,12 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }) => {
       return 0;
     });
 
-  // Today's Movers — combines ALL regions so it's always cross-market
-  const allRegionAssets = [...ukAssets, ...euAssets, ...usAssets, ...cryptoAssets];
-  const readyAssets = allRegionAssets.filter(a => !a.loading && !a.error && a.price > 0);
-  const topMovers = [...readyAssets]
+  // Today's Movers — live data from current tab + mock fill from all other regions
+  const liveAssets = assets.filter(a => !a.loading && !a.error && a.price > 0);
+  const liveCodes = new Set(liveAssets.map(a => a.code));
+  const mockFill = getAllMockAssets().filter(a => !liveCodes.has(a.code));
+  const moversPool = [...liveAssets, ...mockFill];
+  const topMovers = [...moversPool]
     .sort((a, b) => moversTab === 'gainers' ? b.change - a.change : a.change - b.change)
     .slice(0, 8);
 

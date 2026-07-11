@@ -340,6 +340,16 @@ function getMockAssets(tab: MarketTab): MarketAsset[] {
   return mock[tab];
 }
 
+// Export combined mock from all regions (used for cross-market movers fallback)
+export function getAllMockAssets(): MarketAsset[] {
+  return [
+    ...getMockAssets('uk'),
+    ...getMockAssets('europe'),
+    ...getMockAssets('us'),
+    ...getMockAssets('crypto'),
+  ];
+}
+
 // ─────────────────────────────────────────────────────────────
 // ÍNDICES EUROPEUS (estáticos com label, para o header)
 // Num próximo passo podem ser buscados via Finnhub também
