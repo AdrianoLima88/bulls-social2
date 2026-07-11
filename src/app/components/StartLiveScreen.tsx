@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Radio, Clock, Users, Lock, Globe, AlertCircle, Camera, Mic, MicOff, VideoOff, SwitchCamera, Sparkles, Download, X } from 'lucide-react';
 import { useLives, type Live } from '../../hooks/useLives';
+import { liveStreamStore } from '../../utils/liveStreamStore';
 
 interface StartLiveScreenProps {
   onBack: () => void;
@@ -204,6 +205,10 @@ export const StartLiveScreen: React.FC<StartLiveScreenProps> = ({ onBack, onGoLi
         alert('Could not save your live. Please try again.');
         return;
       }
+
+      // Save the local camera stream and current filter so WatchLiveScreen can display them
+      liveStreamStore.setStream(stream);
+      liveStreamStore.setFilter(currentFilter);
 
       onGoLive(data);
     } finally {

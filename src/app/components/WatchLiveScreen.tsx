@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useFollows } from '../../hooks/useFollows';
 import { useLives, type Live } from '../../hooks/useLives';
 import { useLiveSession } from '../../hooks/useLiveSession';
+import { liveStreamStore } from '../../utils/liveStreamStore';
 
 interface WatchLiveScreenProps {
   live: Live;
@@ -18,6 +19,33 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
 
   const isHost = !!user && user.id === live.host_id;
   const following = live.host_id ? isFollowing(live.host_id) : false;
+
+  // Local camera stream (only available when this user is the host)
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [localFilter, setLocalFilter] = useState('none');
+
+  useEffect(() => {
+    if (isHost) {
+      const s = liveStreamStore.getStream();
+      const f = liveStreamStore.getFilter();
+      setLocalStream(s);
+      setLocalFilter(f);
+      if (s && localVideoRef.current) {
+        localVideoRef.current.srcObject = s;
+      }
+    }
+    return () => {
+      // Do NOT clear the store here — only clear when the host explicitly ends the live
+    };
+  }, [isHost]);
+
+  // Attach stream to video element once both are ready
+  useEffect(() => {
+    if (localStream && localVideoRef.current) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
 
   const [message, setMessage] = useState('');
   const [isMuted, setIsMuted] = useState(false);
@@ -85,6 +113,8 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
 
   const handleEndLive = async () => {
     if (!confirm('End this live for everyone?')) return;
+    liveStreamStore.clear(); // stop camera tracks
+    setLocalStream(null);
     await endLive(live.id);
     onClose();
   };
@@ -305,24 +335,52 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
     <div className="fixed inset-0 bg-black z-50 overflow-hidden">
       {/* Video layer — full-bleed, fills the whole screen in portrait or landscape */}
       <div className="absolute inset-0">
-        <img
-          src={live.host?.avatar_url || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80'}
-          alt={live.title}
-          className="w-full h-full object-cover"
-        />
+        {/* HOST: show real local camera feed */}
+        {isHost && localStream ? (
+          <video
+            ref={localVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+            style={{
+              filter: (() => {
+                const filterMap: Record<string, string> = {
+                  grayscale: 'grayscale(100%)',
+                  sepia: 'sepia(100%)',
+                  contrast: 'contrast(150%) saturate(150%)',
+                  vintage: 'sepia(50%) contrast(120%) brightness(90%)',
+                  cool: 'hue-rotate(180deg) saturate(120%)',
+                  warm: 'sepia(30%) saturate(150%) brightness(110%)',
+                  blur: 'blur(2px)',
+                };
+                return filterMap[localFilter] || 'none';
+              })(),
+            }}
+          />
+        ) : (
+          /* VIEWER (or host without stream): show avatar/placeholder */
+          <img
+            src={live.host?.avatar_url || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80'}
+            alt={live.title}
+            className="w-full h-full object-cover"
+          />
+        )}
 
-        {/* Simulated stream overlay */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="text-center px-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm mb-3 mx-auto">
-              <div className="w-12 h-12 bg-green-600/90 rounded-full flex items-center justify-center animate-pulse">
-                <div className="w-8 h-8 bg-green-600 rounded-full"></div>
+        {/* Viewer overlay — shown only to non-hosts */}
+        {!isHost && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-center px-4">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm mb-3 mx-auto">
+                <div className="w-12 h-12 bg-green-600/90 rounded-full flex items-center justify-center animate-pulse">
+                  <div className="w-8 h-8 bg-green-600 rounded-full"></div>
+                </div>
               </div>
+              <p className="text-white text-xs font-semibold drop-shadow-lg">Live in progress</p>
+              <p className="text-white/70 text-[10px] mt-1 drop-shadow-md">Join the conversation below!</p>
             </div>
-            <p className="text-white text-xs font-semibold drop-shadow-lg">Live stream simulation</p>
-            <p className="text-white/70 text-[10px] mt-1 drop-shadow-md">Video playback is simulated — chat, viewers and likes are real</p>
           </div>
-        </div>
+        )}
 
         {/* Floating likes */}
         {floatingHearts.map((heart) => (
