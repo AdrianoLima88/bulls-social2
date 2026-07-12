@@ -5,6 +5,8 @@ import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { supabase } from '../utils/supabase/client';
 import { usePortfolio } from '../hooks/usePortfolio';
 import { useLives } from '../hooks/useLives';
+import { useWebRTCCall } from '../hooks/useWebRTCCall';
+import { IncomingCallScreen } from './components/IncomingCallScreen';
 import { Home, TrendingUp, Building2, User, Radio } from 'lucide-react';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { identifyUser, logoutOneSignal } from '../utils/OneSignalInit';
@@ -56,6 +58,8 @@ const CurrencyScreen = lazyLoad(() => import('./components/CurrencyScreen').then
 const LanguageRegionScreen = lazyLoad(() => import('./components/LanguageRegionScreen').then(m => ({ default: m.LanguageRegionScreen })));
 const CreatorDashboard = lazyLoad(() => import('./components/CreatorDashboard').then(m => ({ default: m.CreatorDashboard })));
 const VideoStudio = lazyLoad(() => import('./components/VideoStudio').then(m => ({ default: m.VideoStudio })));
+const VoiceCallScreen = lazyLoad(() => import('./components/VoiceCallScreen').then(m => ({ default: m.VoiceCallScreen })));
+const VideoCallScreen = lazyLoad(() => import('./components/VideoCallScreen').then(m => ({ default: m.VideoCallScreen })));
 const LiveScreen = lazyLoad(() => import('./components/LiveScreen').then(m => ({ default: m.LiveScreen })));
 const WatchLiveScreen = lazyLoad(() => import('./components/WatchLiveScreen').then(m => ({ default: m.WatchLiveScreen })));
 const StartLiveScreen = lazyLoad(() => import('./components/StartLiveScreen').then(m => ({ default: m.StartLiveScreen })));
@@ -130,6 +134,11 @@ const AppContent = () => {
   const { removeAssetByCode } = usePortfolio();
   const { user, profile, loading, updateProfile, signOut, mfaRequired, completeMFAVerification, passwordRecovery } = useAuth();
   const { activeLives, getLiveById } = useLives();
+  const {
+    callState, callType, incomingCall,
+    localStream, remoteStream, remoteUser,
+    startCall, answerCall, rejectCall, endCall,
+  } = useWebRTCCall();
   const [currentScreen, setCurrentScreen] = useState('feed');
   const [navigationStack, setNavigationStack] = useState(['feed']);
   const [selectedProfile, setSelectedProfile] = useState(null);
@@ -315,7 +324,14 @@ const AppContent = () => {
         {currentScreen === 'comments' && selectedPost && <CommentsScreen postData={selectedPost} onBack={navigateBack} />}
         {currentScreen === 'createPost' && <CreatePostScreen onBack={navigateBack} onViewGuidelines={() => navigateTo('communityGuidelines')} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'addAsset' && <AddAssetToPortfolio onBack={navigateBack} onNavigateToPremium={() => navigateTo('premium')} />}
-        {currentScreen === 'directMessage' && <DirectMessageScreen onBack={navigateBack} contact={messageContact} userName={messageContact?.name} userAvatar={messageContact?.name ? messageContact.name.split(' ').map(n => n[0]).join('').substring(0, 2) : null} />}
+        {currentScreen === 'directMessage' && <DirectMessageScreen
+          onBack={navigateBack}
+          contact={messageContact}
+          userName={messageContact?.name}
+          userAvatar={messageContact?.name ? messageContact.name.split(' ').map(n => n[0]).join('').substring(0, 2) : null}
+          onStartVoiceCall={() => messageContact?.id && startCall({ id: messageContact.id, name: messageContact.name, avatar_url: messageContact.avatar_url }, 'voice')}
+          onStartVideoCall={() => messageContact?.id && startCall({ id: messageContact.id, name: messageContact.name, avatar_url: messageContact.avatar_url }, 'video')}
+        />}
         {currentScreen === 'settings' && (
           <SettingsScreen
             onBack={navigateBack}
@@ -346,26 +362,4 @@ const AppContent = () => {
         {currentScreen === 'languageRegion' && <LanguageRegionScreen onBack={navigateBack} />}
         {currentScreen === 'creatorDashboard' && <CreatorDashboard onBack={navigateBack} onNavigateToSchedule={() => alert('Post scheduling coming soon!')} onNavigateToMonetization={() => alert('Monetisation settings coming soon!')} onNavigateToVideoStudio={() => navigateTo('videoStudio')} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'videoStudio' && <VideoStudio onBack={navigateBack} />}
-        {currentScreen === 'live' && <LiveScreen onBack={navigateBack} onStartLive={() => { setSelectedScheduledLive(null); navigateTo('startLive'); }} onWatchLive={(live) => { setSelectedPost(live); navigateTo('watchLive'); }} onStartScheduled={(live) => { setSelectedScheduledLive(live); navigateTo('startLive'); }} />}
-        {currentScreen === 'watchLive' && selectedPost && <WatchLiveScreen live={selectedPost} onClose={navigateBack} />}
-        {currentScreen === 'startLive' && <StartLiveScreen onBack={navigateBack} onGoLive={handleGoLive} scheduledLive={selectedScheduledLive} />}
-      </Suspense>
-
-      {showBottomNav && <BottomNav currentScreen={currentScreen} onNavigate={setCurrentScreen} activeLivesCount={activeLives.length} />}
-    </div>
-  );
-};
-
-export default function App() {
-  return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppProvider>
-          <LocaleProvider>
-            <AppContent />
-          </LocaleProvider>
-        </AppProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  );
-}
+        {currentScreen === 'live' && <LiveScreen onBack={navigateBack} onStartLive={() => { setSelectedSc

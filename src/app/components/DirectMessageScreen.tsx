@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Send, Image as ImageIcon, Smile, Paperclip, Phone, Video, Info, File } from 'lucide-react';
-import { VoiceCallScreen }   from './VoiceCallScreen';
-import { VideoCallScreen }   from './VideoCallScreen';
 import { ContactInfoModal }  from './ContactInfoModal';
 import { AttachmentModal }   from './AttachmentModal';
 import { EmojiPicker }       from './EmojiPicker';
@@ -27,7 +25,6 @@ type Message = {
   text: string;
   sender: 'me' | 'other';
   time: string;
-  date: string;
   attachment?: {
     type: 'image' | 'video' | 'file';
     name: string;
@@ -36,7 +33,7 @@ type Message = {
   };
 };
 
-const initials = (name: string) =>
+const mkInitials = (name: string) =>
   name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
 export const DirectMessageScreen = ({
@@ -44,31 +41,33 @@ export const DirectMessageScreen = ({
   contact,
   userName,
   userAvatar,
+  onStartVoiceCall,
+  onStartVideoCall,
 }: {
   onBack: () => void;
   contact?: Profile;
   userName?: string;
   userAvatar?: string;
+  onStartVoiceCall?: () => void;
+  onStartVideoCall?: () => void;
 }) => {
   const profile  = contact ?? {};
   const name     = profile.name || userName || 'User';
-  const abbrev   = profile.avatar_url ? null : initials(name);
+  const abbrev   = profile.avatar_url ? null : mkInitials(name);
 
-  const [message,            setMessage]            = useState('');
-  const [showVoiceCall,      setShowVoiceCall]       = useState(false);
-  const [showVideoCall,      setShowVideoCall]       = useState(false);
-  const [showContactInfo,    setShowContactInfo]     = useState(false);
-  const [showAttachmentModal, setShowAttachmentModal] = useState(false);
-  const [showEmojiPicker,    setShowEmojiPicker]     = useState(false);
-  const [attachmentType,     setAttachmentType]      = useState<'media' | 'file'>('media');
-  const [messages,           setMessages]            = useState<Message[]>([]);
+  const [message,             setMessage]             = useState('');
+  const [showContactInfo,     setShowContactInfo]      = useState(false);
+  const [showAttachmentModal, setShowAttachmentModal]  = useState(false);
+  const [showEmojiPicker,     setShowEmojiPicker]      = useState(false);
+  const [attachmentType,      setAttachmentType]       = useState<'media' | 'file'>('media');
+  const [messages,            setMessages]             = useState<Message[]>([]);
 
   const now = () =>
     new Date().toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' });
 
   const handleSend = () => {
     if (!message.trim()) return;
-    setMessages(prev => [...prev, { id: prev.length + 1, text: message, sender: 'me', time: now(), date: 'Today' }]);
+    setMessages(prev => [...prev, { id: prev.length + 1, text: message, sender: 'me', time: now() }]);
     setMessage('');
   };
 
@@ -78,7 +77,6 @@ export const DirectMessageScreen = ({
       text: '',
       sender: 'me',
       time: now(),
-      date: 'Today',
       attachment: {
         type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'file',
         name: file.name,
@@ -116,10 +114,16 @@ export const DirectMessageScreen = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowVoiceCall(true)} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
+            <button
+              onClick={() => onStartVoiceCall?.()}
+              className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition"
+            >
               <Phone className="w-5 h-5 text-white" />
             </button>
-            <button onClick={() => setShowVideoCall(true)} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
+            <button
+              onClick={() => onStartVideoCall?.()}
+              className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition"
+            >
               <Video className="w-5 h-5 text-white" />
             </button>
             <button onClick={() => setShowContactInfo(true)} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
@@ -129,12 +133,12 @@ export const DirectMessageScreen = ({
         </div>
       </header>
 
-      {/* Messages */}
+      {/* Mensagens */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full py-16 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
-              <span className="text-green-700 text-2xl font-bold">{abbrev}</span>
+              <span className="text-green-700 text-2xl font-bold">{abbrev || name[0]}</span>
             </div>
             <p className="text-slate-500 text-sm">Start a conversation with <strong>{name}</strong></p>
           </div>
@@ -154,7 +158,7 @@ export const DirectMessageScreen = ({
                 <div className="w-8 h-8 flex-shrink-0">
                   {showAvatar && (
                     <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {abbrev}
+                      {abbrev || name[0]}
                     </div>
                   )}
                 </div>
@@ -195,9 +199,9 @@ export const DirectMessageScreen = ({
         })}
       </div>
 
-      {/* Quick replies */}
+      {/* Sugestões rápidas */}
       <div className="px-4 py-2 bg-white border-t border-slate-200">
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {[
             { emoji: '💬', label: 'Ask for opinion', text: 'What do you think about ' },
             { emoji: '🙏', label: 'Thank you',       text: 'Thanks for the tip! 🙏'  },
@@ -257,32 +261,19 @@ export const DirectMessageScreen = ({
         </div>
       </div>
 
-      {/* Overlays */}
-      {showVoiceCall && (
-        <VoiceCallScreen
-          onEnd={() => setShowVoiceCall(false)}
-          userName={name}
-          userAvatar={abbrev ?? name[0]}
-        />
-      )}
-      {showVideoCall && (
-        <VideoCallScreen
-          onEnd={() => setShowVideoCall(false)}
-          userName={name}
-          userAvatar={abbrev ?? name[0]}
-        />
-      )}
+      {/* ContactInfoModal */}
       {showContactInfo && (
         <ContactInfoModal
           onClose={() => setShowContactInfo(false)}
           contact={profile}
           userName={name}
           userAvatar={abbrev ?? undefined}
-          onVoiceCall={() => setShowVoiceCall(true)}
-          onVideoCall={() => setShowVideoCall(true)}
+          onVoiceCall={() => { setShowContactInfo(false); onStartVoiceCall?.(); }}
+          onVideoCall={() => { setShowContactInfo(false); onStartVideoCall?.(); }}
           onConversationDeleted={() => setMessages([])}
         />
       )}
+
       {showAttachmentModal && (
         <AttachmentModal
           onClose={() => setShowAttachmentModal(false)}
