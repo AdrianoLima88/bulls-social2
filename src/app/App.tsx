@@ -366,4 +366,6 @@ export default function App() {
           </LocaleProvider>
         </AppProvider>
       </AuthProvider>
-   
+    </ThemeProvider>
+  );
+}
