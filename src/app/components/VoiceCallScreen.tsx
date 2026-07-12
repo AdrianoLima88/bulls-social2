@@ -1,143 +1,139 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Mic, MicOff, Volume2, VolumeX, Phone } from 'lucide-react';
 
 export const VoiceCallScreen = ({ onEnd, userName, userAvatar }) => {
-  const [isMuted, setIsMuted] = useState(false);
-  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
+  const [isMuted, setIsMuted]           = useState(false);
+  const [isSpeakerOn, setIsSpeakerOn]   = useState(true);
   const [callDuration, setCallDuration] = useState(0);
-  const [callStatus, setCallStatus] = useState('Chamando...');
+  const [callStatus, setCallStatus]     = useState('Calling...');
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [audioLevel, setAudioLevel]     = useState([15, 25, 35, 20, 30]);
+  const streamRef   = useRef<MediaStream | null>(null);
+  const rafRef      = useRef<number>(0);
 
+  // Request microphone
   useEffect(() => {
-    // Simula a conexão da chamada
-    const connectTimer = setTimeout(() => {
-      setCallStatus('Conectado');
-    }, 2000);
+    let analyser: AnalyserNode | null = null;
+    let audioCtx: AudioContext | null = null;
 
-    return () => clearTimeout(connectTimer);
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        streamRef.current = stream;
+        setHasPermission(true);
+
+        audioCtx  = new (window.AudioContext || (window as any).webkitAudioContext)();
+        analyser  = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        audioCtx.createMediaStreamSource(stream).connect(analyser);
+        const data = new Uint8Array(analyser.frequencyBinCount);
+
+        const tick = () => {
+          analyser!.getByteFrequencyData(data);
+          setAudioLevel([0,1,2,3,4].map(i => Math.max(12, data[i * 3] / 4.5)));
+          rafRef.current = requestAnimationFrame(tick);
+        };
+        rafRef.current = requestAnimationFrame(tick);
+
+        // Simulate call connecting
+        setTimeout(() => setCallStatus('Connected'), 2500);
+      })
+      .catch(() => setHasPermission(false));
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      streamRef.current?.getTracks().forEach(t => t.stop());
+      audioCtx?.close();
+    };
   }, []);
 
+  // Duration timer
   useEffect(() => {
-    // Accountdor de duração da chamada
-    if (callStatus === 'Conectado') {
-      const interval = setInterval(() => {
-        setCallDuration(prev => prev + 1);
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
+    if (callStatus !== 'Connected') return;
+    const id = setInterval(() => setCallDuration(p => p + 1), 1000);
+    return () => clearInterval(id);
   }, [callStatus]);
 
-  const formatDuration = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Mute/unmute real mic
+  useEffect(() => {
+    streamRef.current?.getAudioTracks().forEach(t => { t.enabled = !isMuted; });
+  }, [isMuted]);
+
+  const fmt = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-green-600 to-green-800 z-50 flex flex-col items-center justify-between p-8">
-      {/* Header */}
+      {/* Close */}
       <div className="w-full flex justify-end">
-        <button
-          onClick={onEnd}
-          className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition"
-        >
+        <button onClick={onEnd} className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
           <X className="w-6 h-6 text-white" />
         </button>
       </div>
 
-      {/* Avatar e Info do Usuário */}
+      {/* Avatar */}
       <div className="flex-1 flex flex-col items-center justify-center">
         <div className="relative mb-6">
-          {/* Círculos animados quando conectado */}
-          {callStatus === 'Conectado' && (
+          {callStatus === 'Connected' && (
             <>
-              <div className="absolute inset-0 -m-8 rounded-full bg-white/20 animate-ping"></div>
-              <div className="absolute inset-0 -m-4 rounded-full bg-white/30 animate-pulse"></div>
+              <div className="absolute inset-0 -m-8 rounded-full bg-white/20 animate-ping" />
+              <div className="absolute inset-0 -m-4 rounded-full bg-white/30 animate-pulse" />
             </>
           )}
-          
-          {/* Avatar */}
           <div className="w-32 h-32 bg-white/30 rounded-full flex items-center justify-center relative z-10">
-            <span className="text-white text-5xl font-bold">
-              {userAvatar || 'MS'}
-            </span>
+            <span className="text-white text-5xl font-bold">{userAvatar || '?'}</span>
           </div>
         </div>
 
-        <h2 className="text-white text-3xl font-bold mb-2">
-          {userName || 'Maria Silva'}
-        </h2>
-        
+        <h2 className="text-white text-3xl font-bold mb-2">{userName || 'User'}</h2>
         <p className="text-white/80 text-lg">
-          {callStatus === 'Conectado' ? formatDuration(callDuration) : callStatus}
+          {callStatus === 'Connected' ? fmt(callDuration) : callStatus}
         </p>
 
-        {/* Ondas de som visual */}
-        {callStatus === 'Conectado' && !isMuted && (
-          <div className="flex gap-1 mt-6">
-            {[1, 2, 3, 4, 5].map((i) => (
+        {/* Audio bars */}
+        {callStatus === 'Connected' && !isMuted && (
+          <div className="flex gap-1 mt-6 items-end h-12">
+            {audioLevel.map((h, i) => (
               <div
                 key={i}
-                className="w-1 bg-white rounded-full animate-pulse"
-                style={{
-                  height: `${Math.random() * 30 + 20}px`,
-                  animationDelay: `${i * 0.1}s`,
-                  animationDuration: '0.8s'
-                }}
-              ></div>
+                className="w-1.5 bg-white rounded-full transition-all duration-75"
+                style={{ height: `${h}px` }}
+              />
             ))}
           </div>
         )}
+
+        {hasPermission === false && (
+          <p className="text-white/60 text-xs mt-4">Microphone access not granted</p>
+        )}
       </div>
 
-      {/* Controles */}
+      {/* Controls */}
       <div className="w-full max-w-sm">
         <div className="flex items-center justify-center gap-6 mb-8">
-          {/* Mute/Unmute */}
           <button
             onClick={() => setIsMuted(!isMuted)}
-            className={`w-16 h-16 rounded-full flex items-center justify-center transition ${
-              isMuted ? 'bg-red-500' : 'bg-white/20 hover:bg-white/30'
-            }`}
+            className={`w-16 h-16 rounded-full flex items-center justify-center transition ${isMuted ? 'bg-red-500' : 'bg-white/20 hover:bg-white/30'}`}
           >
-            {isMuted ? (
-              <MicOff className="w-7 h-7 text-white" />
-            ) : (
-              <Mic className="w-7 h-7 text-white" />
-            )}
+            {isMuted ? <MicOff className="w-7 h-7 text-white" /> : <Mic className="w-7 h-7 text-white" />}
           </button>
 
-          {/* Encerrar Chamada */}
           <button
             onClick={onEnd}
-            className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition shadow-lg transform hover:scale-105"
+            className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition shadow-lg"
           >
-            <Phone className="w-8 h-8 text-white transform rotate-135" />
+            <Phone className="w-8 h-8 text-white rotate-[135deg]" />
           </button>
 
-          {/* Speaker On/Off */}
           <button
             onClick={() => setIsSpeakerOn(!isSpeakerOn)}
-            className={`w-16 h-16 rounded-full flex items-center justify-center transition ${
-              isSpeakerOn ? 'bg-white/20 hover:bg-white/30' : 'bg-white/10'
-            }`}
+            className="w-16 h-16 rounded-full flex items-center justify-center transition bg-white/20 hover:bg-white/30"
           >
-            {isSpeakerOn ? (
-              <Volume2 className="w-7 h-7 text-white" />
-            ) : (
-              <VolumeX className="w-7 h-7 text-white/50" />
-            )}
+            {isSpeakerOn ? <Volume2 className="w-7 h-7 text-white" /> : <VolumeX className="w-7 h-7 text-white/50" />}
           </button>
         </div>
-
-        {/* Indicadores de Status */}
-        <div className="text-center space-y-2">
-          {isMuted && (
-            <p className="text-white/80 text-sm">🔇 Microfone desligado</p>
-          )}
-          {!isSpeakerOn && (
-            <p className="text-white/80 text-sm">🔈 Alto-falante desligado</p>
-          )}
+        <div className="text-center space-y-1">
+          {isMuted     && <p className="text-white/80 text-sm">🔇 Microphone off</p>}
+          {!isSpeakerOn && <p className="text-white/80 text-sm">🔈 Speaker off</p>}
         </div>
       </div>
     </div>

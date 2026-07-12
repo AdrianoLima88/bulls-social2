@@ -315,7 +315,7 @@ const AppContent = () => {
         {currentScreen === 'comments' && selectedPost && <CommentsScreen postData={selectedPost} onBack={navigateBack} />}
         {currentScreen === 'createPost' && <CreatePostScreen onBack={navigateBack} onViewGuidelines={() => navigateTo('communityGuidelines')} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'addAsset' && <AddAssetToPortfolio onBack={navigateBack} onNavigateToPremium={() => navigateTo('premium')} />}
-        {currentScreen === 'directMessage' && <DirectMessageScreen onBack={navigateBack} userName={messageContact?.name} userAvatar={messageContact?.name ? messageContact.name.split(' ').map(n => n[0]).join('').substring(0, 2) : null} />}
+        {currentScreen === 'directMessage' && <DirectMessageScreen onBack={navigateBack} contact={messageContact} userName={messageContact?.name} userAvatar={messageContact?.name ? messageContact.name.split(' ').map(n => n[0]).join('').substring(0, 2) : null} />}
         {currentScreen === 'settings' && (
           <SettingsScreen
             onBack={navigateBack}
@@ -366,6 +366,4 @@ export default function App() {
           </LocaleProvider>
         </AppProvider>
       </AuthProvider>
-    </ThemeProvider>
-  );
-}
+   

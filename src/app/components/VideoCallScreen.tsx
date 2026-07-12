@@ -1,80 +1,91 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Mic, MicOff, Video as VideoIcon, VideoOff, Phone, Maximize2, SwitchCamera } from 'lucide-react';
 
 export const VideoCallScreen = ({ onEnd, userName, userAvatar }) => {
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOn, setIsVideoOn] = useState(true);
+  const [isMuted,    setIsMuted]    = useState(false);
+  const [isVideoOn,  setIsVideoOn]  = useState(true);
   const [callDuration, setCallDuration] = useState(0);
-  const [callStatus, setCallStatus] = useState('Chamando...');
-  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [callStatus,   setCallStatus]   = useState('Calling...');
+  const [facingMode,   setFacingMode]   = useState<'user' | 'environment'>('user');
+  const streamRef      = useRef<MediaStream | null>(null);
+  const localVideoRef  = useRef<HTMLVideoElement>(null);
+
+  const startMedia = async (facing: 'user' | 'environment') => {
+    try {
+      streamRef.current?.getTracks().forEach(t => t.stop());
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facing },
+        audio: true,
+      });
+      streamRef.current = stream;
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+      // Apply current mute/video state
+      stream.getAudioTracks().forEach(t => { t.enabled = !isMuted; });
+      stream.getVideoTracks().forEach(t => { t.enabled = isVideoOn; });
+    } catch {
+      setIsVideoOn(false);
+    }
+  };
 
   useEffect(() => {
-    // Simula a conexão da chamada
-    const connectTimer = setTimeout(() => {
-      setCallStatus('Conectado');
-    }, 2000);
-
-    return () => clearTimeout(connectTimer);
+    startMedia(facingMode);
+    setTimeout(() => setCallStatus('Connected'), 2500);
+    return () => { streamRef.current?.getTracks().forEach(t => t.stop()); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    // Accountdor de duração da chamada
-    if (callStatus === 'Conectado') {
-      const interval = setInterval(() => {
-        setCallDuration(prev => prev + 1);
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
+    if (callStatus !== 'Connected') return;
+    const id = setInterval(() => setCallDuration(p => p + 1), 1000);
+    return () => clearInterval(id);
   }, [callStatus]);
 
-  const formatDuration = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  useEffect(() => {
+    streamRef.current?.getAudioTracks().forEach(t => { t.enabled = !isMuted; });
+  }, [isMuted]);
+
+  useEffect(() => {
+    streamRef.current?.getVideoTracks().forEach(t => { t.enabled = isVideoOn; });
+  }, [isVideoOn]);
+
+  const switchCamera = () => {
+    const next = facingMode === 'user' ? 'environment' : 'user';
+    setFacingMode(next);
+    startMedia(next);
   };
+
+  const fmt = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   return (
     <div className="fixed inset-0 bg-slate-900 z-50 flex flex-col">
-      {/* Vídeo Principal (do outro usuário) */}
+      {/* Remote user background */}
       <div className="flex-1 relative bg-gradient-to-b from-slate-800 to-slate-900">
-        {callStatus === 'Conectado' ? (
-          // Simulação de vídeo do outro usuário
-          <div className="absolute inset-0 bg-gradient-to-br from-green-900/50 to-blue-900/50 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-40 h-40 bg-white/20 rounded-full flex items-center justify-center mb-4 mx-auto backdrop-blur-sm">
-                <span className="text-white text-6xl font-bold">
-                  {userAvatar || 'MS'}
-                </span>
-              </div>
-              <p className="text-white text-xl font-semibold">{userName || 'Maria Silva'}</p>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-40 h-40 bg-white/20 rounded-full flex items-center justify-center mb-4 mx-auto">
+              <span className="text-white text-6xl font-bold">{userAvatar || '?'}</span>
             </div>
+            <p className="text-white text-xl font-semibold">{userName || 'User'}</p>
+            {callStatus !== 'Connected' && (
+              <p className="text-white/70 text-sm mt-1 animate-pulse">{callStatus}</p>
+            )}
           </div>
-        ) : (
-          // Tela de carregamento
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center mb-4 mx-auto animate-pulse">
-                <span className="text-white text-5xl font-bold">
-                  {userAvatar || 'MS'}
-                </span>
-              </div>
-              <p className="text-white text-lg">{callStatus}</p>
-            </div>
-          </div>
-        )}
+        </div>
 
-        {/* Informações no topo */}
+        {/* Top info */}
         <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/60 to-transparent p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-white font-bold text-lg">{userName || 'Maria Silva'}</h2>
+              <h2 className="text-white font-bold text-lg">{userName || 'User'}</h2>
               <p className="text-white/80 text-sm">
-                {callStatus === 'Conectado' ? formatDuration(callDuration) : callStatus}
+                {callStatus === 'Connected' ? fmt(callDuration) : callStatus}
               </p>
             </div>
             <button
-              onClick={() => setIsFullScreen(!isFullScreen)}
+              onClick={onEnd}
               className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition"
             >
               <Maximize2 className="w-5 h-5 text-white" />
@@ -82,87 +93,66 @@ export const VideoCallScreen = ({ onEnd, userName, userAvatar }) => {
           </div>
         </div>
 
-        {/* Vídeo Próprio (Picture-in-Picture) */}
+        {/* PiP — local camera */}
         <div className="absolute top-20 right-4 w-28 h-36 bg-slate-800 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20">
           {isVideoOn ? (
-            <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
-              <span className="text-white text-2xl font-bold">Você</span>
-            </div>
+            <>
+              <video
+                ref={localVideoRef}
+                autoPlay
+                muted
+                playsInline
+                className="w-full h-full object-cover scale-x-[-1]"
+              />
+              <div className="absolute bottom-1 left-0 right-0 text-center">
+                <span className="text-white text-xs font-semibold bg-black/40 px-1.5 py-0.5 rounded">You</span>
+              </div>
+            </>
           ) : (
-            <div className="w-full h-full bg-slate-800 flex items-center justify-center">
+            <div className="w-full h-full bg-slate-800 flex flex-col items-center justify-center gap-1">
               <VideoOff className="w-8 h-8 text-white/50" />
+              <span className="text-white/50 text-xs">You</span>
             </div>
           )}
         </div>
 
-        {/* Indicadores de Status */}
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+        {/* Status pills */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2">
           {isMuted && (
             <div className="bg-red-500 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
-              <MicOff className="w-3 h-3" />
-              <span>Mudo</span>
+              <MicOff className="w-3 h-3" /> Muted
             </div>
           )}
           {!isVideoOn && (
             <div className="bg-slate-700 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
-              <VideoOff className="w-3 h-3" />
-              <span>Camera off</span>
+              <VideoOff className="w-3 h-3" /> Camera off
             </div>
           )}
         </div>
       </div>
 
-      {/* Controles Inferiores */}
-      <div className="bg-gradient-to-t from-black/80 to-transparent p-6">
+      {/* Controls */}
+      <div className="bg-black/80 p-6">
         <div className="flex items-center justify-center gap-4">
-          {/* Câmera Frontal/Traseira */}
-          <button
-            className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition"
-          >
+          <button onClick={switchCamera} className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
             <SwitchCamera className="w-6 h-6 text-white" />
           </button>
-
-          {/* Mute/Unmute */}
           <button
             onClick={() => setIsMuted(!isMuted)}
-            className={`w-14 h-14 rounded-full flex items-center justify-center transition ${
-              isMuted ? 'bg-red-500' : 'bg-white/20 hover:bg-white/30'
-            }`}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition ${isMuted ? 'bg-red-500' : 'bg-white/20 hover:bg-white/30'}`}
           >
-            {isMuted ? (
-              <MicOff className="w-6 h-6 text-white" />
-            ) : (
-              <Mic className="w-6 h-6 text-white" />
-            )}
+            {isMuted ? <MicOff className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-white" />}
           </button>
-
-          {/* Encerrar Chamada */}
-          <button
-            onClick={onEnd}
-            className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition shadow-lg transform hover:scale-105"
-          >
-            <Phone className="w-7 h-7 text-white transform rotate-135" />
+          <button onClick={onEnd} className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition shadow-lg">
+            <Phone className="w-7 h-7 text-white rotate-[135deg]" />
           </button>
-
-          {/* Vídeo On/Off */}
           <button
             onClick={() => setIsVideoOn(!isVideoOn)}
-            className={`w-14 h-14 rounded-full flex items-center justify-center transition ${
-              isVideoOn ? 'bg-white/20 hover:bg-white/30' : 'bg-red-500'
-            }`}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition ${!isVideoOn ? 'bg-red-500' : 'bg-white/20 hover:bg-white/30'}`}
           >
-            {isVideoOn ? (
-              <VideoIcon className="w-6 h-6 text-white" />
-            ) : (
-              <VideoOff className="w-6 h-6 text-white" />
-            )}
+            {isVideoOn ? <VideoIcon className="w-6 h-6 text-white" /> : <VideoOff className="w-6 h-6 text-white" />}
           </button>
-
-          {/* Close */}
-          <button
-            onClick={onEnd}
-            className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition"
-          >
+          <button onClick={onEnd} className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
             <X className="w-6 h-6 text-white" />
           </button>
         </div>
