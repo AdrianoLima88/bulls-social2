@@ -199,7 +199,7 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
             <div className="flex-1">
               <h3 className="font-bold text-lg">Bulls Academy</h3>
               <p className="text-white/90 text-sm">
-                {(isPro || isBusiness) ? 'Crie e gerencie cursos e mentorias' : 'Cursos e mentorias de investimento'}
+                {(isPro || isBusiness) ? 'Create and manage courses and mentoring' : 'Investment courses and mentoring'}
               </p>
             </div>
           </div>
@@ -208,7 +208,7 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
             className="w-full bg-white text-indigo-700 px-4 py-3 rounded-xl font-bold hover:bg-white/90 transition flex items-center justify-center gap-2"
           >
             <GraduationCap className="w-5 h-5" />
-            {(isPro || isBusiness) ? 'Abrir Academy' : 'Explorar Cursos'}
+            {(isPro || isBusiness) ? 'Open Academy' : 'Explore Courses'}
           </button>
         </div>
 
@@ -634,4 +634,4 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
       </div>
     </div>
   );
-};
+}

@@ -10,9 +10,9 @@ import { useAuth } from '../../contexts/AuthContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const LEVEL_LABELS: Record<string, string> = {
-  beginner:     'Iniciante',
-  intermediate: 'Intermediário',
-  advanced:     'Avançado',
+  beginner:     'Beginner',
+  intermediate: 'Intermediate',
+  advanced:     'Advanced',
 };
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -28,8 +28,8 @@ const initials = (name: string) =>
   name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
 const formatPrice = (price: number, currency: string) => {
-  if (price === 0) return 'Gratuito';
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(price);
+  if (price === 0) return 'Free';
+  return new Intl.NumberFormat('en-IE', { style: 'currency', currency }).format(price);
 };
 
 // ─── CreateCourseModal ────────────────────────────────────────────────────────
@@ -82,8 +82,8 @@ const CreateCourseModal: React.FC<{
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Criar Curso / Mentoria</h2>
-              <p className="text-white/80 text-sm">Bulls cobra 15% de comissão</p>
+              <h2 className="text-lg font-bold">Create Course / Mentoring</h2>
+              <p className="text-white/80 text-sm">Bulls charges 15% commission</p>
             </div>
           </div>
         </div>
@@ -94,13 +94,13 @@ const CreateCourseModal: React.FC<{
           {success && (
             <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
               <CheckCircle2 className="w-5 h-5 text-green-600" />
-              <p className="text-sm text-green-700 font-semibold">Publicado com sucesso!</p>
+              <p className="text-sm text-green-700 font-semibold">Published successfully!</p>
             </div>
           )}
 
           {/* Type */}
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Tipo</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Type</p>
             <div className="flex gap-2">
               {(['course', 'mentoring'] as const).map(t => (
                 <button
@@ -113,7 +113,7 @@ const CreateCourseModal: React.FC<{
                   }`}
                 >
                   {t === 'course' ? <BookOpen className="w-4 h-4" /> : <Video className="w-4 h-4" />}
-                  {t === 'course' ? 'Curso' : 'Mentoria'}
+                  {t === 'course' ? 'Course' : 'Mentoring'}
                 </button>
               ))}
             </div>
@@ -121,11 +121,11 @@ const CreateCourseModal: React.FC<{
 
           {/* Title */}
           <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Título *</label>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Title *</label>
             <input
               value={form.title}
               onChange={e => set('title', e.target.value)}
-              placeholder="Ex: Análise Técnica para Iniciantes"
+              placeholder="e.g. Technical Analysis for Beginners"
               maxLength={80}
               className="mt-1 w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-indigo-400"
             />
@@ -133,11 +133,11 @@ const CreateCourseModal: React.FC<{
 
           {/* Description */}
           <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Descrição *</label>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Description *</label>
             <textarea
               value={form.description}
               onChange={e => set('description', e.target.value)}
-              placeholder="O que o aluno vai aprender? Pré-requisitos, conteúdo, formato..."
+              placeholder="What will students learn? Prerequisites, content, format..."
               rows={4}
               maxLength={800}
               className="mt-1 w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-slate-700 text-sm resize-none focus:outline-none focus:border-indigo-400"
@@ -148,23 +148,23 @@ const CreateCourseModal: React.FC<{
           {/* Level + Duration row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nível</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Level</label>
               <select
                 value={form.level}
                 onChange={e => set('level', e.target.value as any)}
                 className="mt-1 w-full px-3 py-3 border-2 border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-indigo-400 bg-white"
               >
-                <option value="beginner">Iniciante</option>
-                <option value="intermediate">Intermediário</option>
-                <option value="advanced">Avançado</option>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Duração</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Duration</label>
               <input
                 value={form.duration_label}
                 onChange={e => set('duration_label', e.target.value)}
-                placeholder="Ex: 4 semanas, 60 min"
+                placeholder="e.g. 4 weeks, 60 min"
                 maxLength={30}
                 className="mt-1 w-full px-3 py-3 border-2 border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-indigo-400"
               />
@@ -174,14 +174,14 @@ const CreateCourseModal: React.FC<{
           {/* Price + Slots row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Preço (€)</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Price (€)</label>
               <div className="relative mt-1">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">€</span>
                 <input
                   type="number"
                   value={form.price === 0 ? '' : form.price}
                   onChange={e => set('price', parseFloat(e.target.value) || 0)}
-                  placeholder="0 = grátis"
+                  placeholder="0 = free"
                   min="0"
                   step="5"
                   className="w-full pl-7 pr-3 py-3 border-2 border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-indigo-400"
@@ -189,12 +189,12 @@ const CreateCourseModal: React.FC<{
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Vagas</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Slots</label>
               <input
                 type="number"
                 value={form.slots_total ?? ''}
                 onChange={e => set('slots_total', e.target.value ? parseInt(e.target.value) : null)}
-                placeholder="Ilimitado"
+                placeholder="Unlimited"
                 min="1"
                 className="mt-1 w-full px-3 py-3 border-2 border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-indigo-400"
               />
@@ -209,7 +209,7 @@ const CreateCourseModal: React.FC<{
                 value={tagInput}
                 onChange={e => setTagInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(); } }}
-                placeholder="ações, cripto, opções..."
+                placeholder="stocks, crypto, options..."
                 maxLength={20}
                 className="flex-1 px-3 py-2.5 border-2 border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-indigo-400"
               />
@@ -234,7 +234,7 @@ const CreateCourseModal: React.FC<{
           {/* Commission info */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
             <p className="text-xs text-amber-700">
-              <span className="font-bold">Comissão Bulls: 15%</span> — você recebe 85% do valor pago pelos alunos. Pagamentos via Stripe com liquidação em 2–5 dias úteis.
+              <span className="font-bold">Bulls commission: 15%</span> — you receive 85% of what students pay. Payments via Stripe, settled in 2–5 business days.
             </p>
           </div>
 
@@ -257,7 +257,7 @@ const CreateCourseModal: React.FC<{
                 : 'bg-slate-200 text-slate-400'
             }`}
           >
-            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Publicando...</> : 'Publicar'}
+            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Publishing...</> : 'Publish'}
           </button>
         </div>
       </div>
@@ -281,7 +281,7 @@ const CourseCard: React.FC<{
       {isFeatured && (
         <div className="bg-gradient-to-r from-indigo-500 to-purple-500 px-3 py-1 flex items-center gap-1.5">
           <Star className="w-3.5 h-3.5 text-white fill-white" />
-          <span className="text-white text-xs font-bold uppercase tracking-wide">Educator em Destaque</span>
+          <span className="text-white text-xs font-bold uppercase tracking-wide">Featured Educator</span>
         </div>
       )}
 
@@ -290,7 +290,7 @@ const CourseCard: React.FC<{
         <div className="flex items-center gap-2 mb-3">
           <span className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${course.type === 'course' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
             {course.type === 'course' ? <BookOpen className="w-3 h-3" /> : <Video className="w-3 h-3" />}
-            {course.type === 'course' ? 'Curso' : 'Mentoria'}
+            {course.type === 'course' ? 'Course' : 'Mentoring'}
           </span>
           <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${LEVEL_COLORS[course.level]}`}>
             {LEVEL_LABELS[course.level]}
@@ -328,11 +328,11 @@ const CourseCard: React.FC<{
           )}
           <span className="flex items-center gap-1">
             <Users className="w-3.5 h-3.5" />
-            {course.enrollments_count} aluno{course.enrollments_count !== 1 ? 's' : ''}
+            {course.enrollments_count} student{course.enrollments_count !== 1 ? 's' : ''}
           </span>
           {course.slots_total && (
             <span className="text-slate-400">
-              {Math.max(0, course.slots_total - course.slots_used)} vagas restantes
+              {Math.max(0, course.slots_total - course.slots_used)} slots left
             </span>
           )}
         </div>
@@ -355,18 +355,18 @@ const CourseCard: React.FC<{
               {formatPrice(course.price, course.currency)}
             </p>
             {course.price > 0 && (
-              <p className="text-xs text-slate-400">Criador recebe {((course.price * 0.85)).toFixed(2)}€</p>
+              <p className="text-xs text-slate-400">Creator receives €{((course.price * 0.85)).toFixed(2)}</p>
             )}
           </div>
 
           {isOwnCourse ? (
             <span className="px-4 py-2.5 bg-slate-100 text-slate-500 rounded-xl text-xs font-semibold">
-              Seu curso
+              Your course
             </span>
           ) : course.is_enrolled ? (
             <span className="flex items-center gap-1.5 px-4 py-2.5 bg-green-100 text-green-700 rounded-xl text-xs font-bold">
               <CheckCircle2 className="w-4 h-4" />
-              Inscrito
+              Enrolled
             </span>
           ) : (
             <button
@@ -383,10 +383,10 @@ const CourseCard: React.FC<{
               {loading
                 ? <Loader2 className="w-4 h-4 animate-spin" />
                 : course.slots_total !== null && course.slots_used >= course.slots_total
-                ? 'Esgotado'
+                ? 'Sold out'
                 : course.price === 0
-                ? 'Inscrever-se'
-                : 'Comprar'
+                ? 'Enroll'
+                : 'Buy'
               }
             </button>
           )}
@@ -416,14 +416,14 @@ const MyCoursesTab: React.FC<{ onCreateCourse: () => void }> = ({ onCreateCourse
         className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-indigo-300 rounded-2xl text-indigo-600 font-semibold text-sm hover:bg-indigo-50 transition"
       >
         <Plus className="w-5 h-5" />
-        Criar novo curso / mentoria
+        Create new course / mentoring
       </button>
 
       {courses.length === 0 ? (
         <div className="text-center py-12">
           <GraduationCap className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-500 font-semibold">Nenhum curso publicado ainda</p>
-          <p className="text-slate-400 text-sm mt-1">Crie seu primeiro curso e comece a monetizar.</p>
+          <p className="text-slate-500 font-semibold">No courses published yet</p>
+          <p className="text-slate-400 text-sm mt-1">Create your first course and start earning.</p>
         </div>
       ) : (
         courses.map(course => (
@@ -432,12 +432,12 @@ const MyCoursesTab: React.FC<{ onCreateCourse: () => void }> = ({ onCreateCourse
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${course.type === 'course' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-                    {course.type === 'course' ? 'Curso' : 'Mentoria'}
+                    {course.type === 'course' ? 'Course' : 'Mentoring'}
                   </span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                     course.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
                   }`}>
-                    {course.status === 'active' ? 'Ativo' : 'Pausado'}
+                    {course.status === 'active' ? 'Active' : 'Paused'}
                   </span>
                 </div>
                 <h3 className="font-bold text-slate-900 text-sm leading-snug">{course.title}</h3>
@@ -449,7 +449,7 @@ const MyCoursesTab: React.FC<{ onCreateCourse: () => void }> = ({ onCreateCourse
             <div className="grid grid-cols-3 gap-2 mb-3 mt-3">
               <div className="bg-slate-50 rounded-xl p-2.5 text-center">
                 <p className="text-base font-bold text-slate-800">{course.enrollments_count}</p>
-                <p className="text-xs text-slate-400">Alunos</p>
+                <p className="text-xs text-slate-400">Students</p>
               </div>
               <div className="bg-slate-50 rounded-xl p-2.5 text-center">
                 <p className="text-base font-bold text-slate-800">
@@ -458,13 +458,13 @@ const MyCoursesTab: React.FC<{ onCreateCourse: () => void }> = ({ onCreateCourse
                     : '—'
                   }
                 </p>
-                <p className="text-xs text-slate-400">Ganhos (est.)</p>
+                <p className="text-xs text-slate-400">Est. Revenue</p>
               </div>
               <div className="bg-slate-50 rounded-xl p-2.5 text-center">
                 <p className="text-base font-bold text-slate-800">
                   {course.slots_total ? `${course.slots_total - course.slots_used}` : '∞'}
                 </p>
-                <p className="text-xs text-slate-400">Vagas</p>
+                <p className="text-xs text-slate-400">Slots</p>
               </div>
             </div>
 
@@ -475,12 +475,12 @@ const MyCoursesTab: React.FC<{ onCreateCourse: () => void }> = ({ onCreateCourse
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-slate-200 rounded-xl text-slate-600 text-xs font-semibold hover:bg-slate-50 transition"
               >
                 {course.status === 'active'
-                  ? <><Pause className="w-3.5 h-3.5" /> Pausar</>
-                  : <><Play className="w-3.5 h-3.5" /> Ativar</>
+                  ? <><Pause className="w-3.5 h-3.5" /> Pause</>
+                  : <><Play className="w-3.5 h-3.5" /> Activate</>
                 }
               </button>
               <button
-                onClick={() => { if (window.confirm('Excluir este curso?')) deleteCourse(course.id); }}
+                onClick={() => { if (window.confirm('Delete this course?')) deleteCourse(course.id); }}
                 className="p-2 border border-red-200 rounded-xl text-red-500 hover:bg-red-50 transition"
               >
                 <Trash2 className="w-4 h-4" />
@@ -508,7 +508,7 @@ const EducatorsSpotlight: React.FC<{ courses: Course[] }> = ({ courses }) => {
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-3">
         <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-        <h2 className="font-bold text-slate-800 text-sm">Educators em Destaque</h2>
+        <h2 className="font-bold text-slate-800 text-sm">Featured Educators</h2>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {educators.map(e => (
@@ -571,11 +571,11 @@ export const AcademyScreen: React.FC<{
   };
 
   const tabs: { id: TabId; label: string }[] = [
-    { id: 'all',       label: 'Todos' },
-    { id: 'course',    label: 'Cursos' },
-    { id: 'mentoring', label: 'Mentoria' },
-    { id: 'enrolled',  label: 'Inscritos' },
-    ...(canCreate ? [{ id: 'manage' as TabId, label: 'Gerenciar' }] : []),
+    { id: 'all',       label: 'All' },
+    { id: 'course',    label: 'Courses' },
+    { id: 'mentoring', label: 'Mentoring' },
+    { id: 'enrolled',  label: 'Enrolled' },
+    ...(canCreate ? [{ id: 'manage' as TabId, label: 'Manage' }] : []),
   ];
 
   return (
@@ -589,7 +589,7 @@ export const AcademyScreen: React.FC<{
           </button>
           <div className="flex-1">
             <h1 className="text-xl font-bold">Bulls Academy</h1>
-            <p className="text-white/80 text-sm">Cursos e mentorias de investimento</p>
+            <p className="text-white/80 text-sm">Investment courses and mentoring</p>
           </div>
           {canCreate && (
             <button
@@ -605,15 +605,15 @@ export const AcademyScreen: React.FC<{
         <div className="flex gap-4">
           <div className="text-center">
             <p className="text-lg font-bold">{courses.length}</p>
-            <p className="text-white/70 text-xs">Cursos</p>
+            <p className="text-white/70 text-xs">Courses</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-bold">{courses.filter(c => c.type === 'mentoring').length}</p>
-            <p className="text-white/70 text-xs">Mentorias</p>
+            <p className="text-white/70 text-xs">Mentoring</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-bold">{courses.filter(c => c.is_enrolled).length}</p>
-            <p className="text-white/70 text-xs">Inscritos</p>
+            <p className="text-white/70 text-xs">Enrolled</p>
           </div>
         </div>
       </div>
@@ -625,8 +625,8 @@ export const AcademyScreen: React.FC<{
             <Lock className="w-5 h-5 text-indigo-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-slate-800">Quero ensinar na Academy</p>
-            <p className="text-xs text-slate-500">Plano Pro ou Business necessário para criar cursos e mentorias.</p>
+            <p className="text-sm font-bold text-slate-800">I want to teach at the Academy</p>
+            <p className="text-xs text-slate-500">Pro or Business plan required to create courses and mentoring.</p>
           </div>
           <button
             onClick={onNavigateToPremium}
@@ -679,12 +679,12 @@ export const AcademyScreen: React.FC<{
               <div className="text-center py-16">
                 <GraduationCap className="w-14 h-14 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-500 font-semibold">
-                  {activeTab === 'enrolled' ? 'Sem inscrições ainda' : 'Nenhum curso disponível'}
+                  {activeTab === 'enrolled' ? 'No enrollments yet' : 'No courses available'}
                 </p>
                 <p className="text-slate-400 text-sm mt-1">
                   {activeTab === 'enrolled'
-                    ? 'Explore os cursos e inscreva-se no primeiro!'
-                    : 'Em breve, os melhores educadores do mercado.'
+                    ? 'Explore the courses and enroll in your first one!'
+                    : 'Coming soon — the best investment educators.'
                   }
                 </p>
               </div>
@@ -715,3 +715,4 @@ export const AcademyScreen: React.FC<{
     </div>
   );
 };
+                                                       
