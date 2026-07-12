@@ -68,6 +68,8 @@ const FollowingListScreen = lazyLoad(() => import('./components/FollowingListScr
 const ExploreScreen = lazyLoad(() => import('./components/ExploreScreen').then(m => ({ default: m.ExploreScreen })));
 const SavedPostsScreen = lazyLoad(() => import('./components/SavedPostsScreen').then(m => ({ default: m.SavedPostsScreen })));
 const AcademyScreen = lazyLoad(() => import('./components/AcademyScreen').then(m => ({ default: m.AcademyScreen })));
+const HelpCentreScreen = lazyLoad(() => import('./components/HelpCentreScreen').then(m => ({ default: m.HelpCentreScreen })));
+const TermsScreen = lazyLoad(() => import('./components/TermsScreen').then(m => ({ default: m.TermsScreen })));
 
 // Preload most used screens after login
 const preloadScreens = () => {
@@ -341,6 +343,8 @@ const AppContent = () => {
             onNavigateToLanguageRegion={() => navigateTo('languageRegion')}
             onNavigateToCreatorDashboard={() => navigateTo('creatorDashboard')}
             onNavigateToAcademy={() => navigateTo('academy')}
+            onNavigateToHelpCentre={() => navigateTo('helpCentre')}
+            onNavigateToTerms={() => navigateTo('terms')}
           />
         )}
         {currentScreen === 'editProfile' && <EditProfileScreen onBack={navigateBack} onSave={handleSaveProfile} initialData={userProfile} />}
@@ -362,6 +366,8 @@ const AppContent = () => {
         {currentScreen === 'languageRegion' && <LanguageRegionScreen onBack={navigateBack} />}
         {currentScreen === 'creatorDashboard' && <CreatorDashboard onBack={navigateBack} onNavigateToSchedule={() => alert('Post scheduling coming soon!')} onNavigateToMonetization={() => alert('Monetisation settings coming soon!')} onNavigateToVideoStudio={() => navigateTo('videoStudio')} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'videoStudio' && <VideoStudio onBack={navigateBack} />}
+        {currentScreen === 'helpCentre' && <HelpCentreScreen onBack={navigateBack} />}
+        {currentScreen === 'terms' && <TermsScreen onBack={navigateBack} />}
         {currentScreen === 'live' && <LiveScreen onBack={navigateBack} onStartLive={() => { setSelectedScheduledLive(null); navigateTo('startLive'); }} onWatchLive={(live) => { setSelectedPost(live); navigateTo('watchLive'); }} onStartScheduled={(live) => { setSelectedScheduledLive(live); navigateTo('startLive'); }} />}
         {currentScreen === 'watchLive' && selectedPost && <WatchLiveScreen live={selectedPost} onClose={navigateBack} />}
         {currentScreen === 'startLive' && <StartLiveScreen onBack={navigateBack} onGoLive={handleGoLive} scheduledLive={selectedScheduledLive} />}

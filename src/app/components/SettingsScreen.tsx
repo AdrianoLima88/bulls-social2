@@ -126,7 +126,7 @@ const PLAN_DISPLAY: Record<string, { label: string; color: string; Icon: React.F
   business: { label: 'Business',      color: 'text-blue-600',   Icon: Building2   },
 };
 
-export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNavigateToGuidelines, onNavigateToLanguageRegion, onNavigateToCreatorDashboard, onNavigateToAcademy }) => {
+export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNavigateToGuidelines, onNavigateToLanguageRegion, onNavigateToCreatorDashboard, onNavigateToAcademy, onNavigateToHelpCentre, onNavigateToTerms }) => {
   const { t, locale } = useLocale();
   const { user } = useAuth();
   const { currentPlan, isPremium, isPro, isBusiness, subscription } = useSubscription();
@@ -510,7 +510,7 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
         {/* Help Centre */}
         <div className="bg-white rounded-2xl shadow-sm">
           <button
-            onClick={() => alert('Help Centre coming soon! Email: support@bulls.app')}
+            onClick={() => onNavigateToHelpCentre?.()}
             className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition rounded-2xl"
           >
             <div className="flex items-center gap-3">
@@ -526,7 +526,7 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
         {/* Terms */}
         <div className="bg-white rounded-2xl shadow-sm">
           <button
-            onClick={() => alert('Terms of Use & Privacy Policy coming soon!')}
+            onClick={() => onNavigateToTerms?.()}
             className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition rounded-2xl"
           >
             <div className="flex items-center gap-3">
@@ -634,4 +634,4 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
       </div>
     </div>
   );
-}
+};
