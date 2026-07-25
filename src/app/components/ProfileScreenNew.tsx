@@ -105,7 +105,7 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
 
   // Renderizar post individual
   const renderPost = (post) => {
-    const isLocked = post.is_premium && !viewerHasPaidPlan && !isOwnProfile;
+    const isLocked = post.isPremiumContent && !viewerHasPaidPlan && !isOwnProfile;
     return (
       <div key={post.id} className="border-b border-slate-200 bg-white hover:bg-slate-50 transition">
         <div className="p-4">
@@ -705,5 +705,4 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
         />
       )}
     </div>
-  );
-};
+  
