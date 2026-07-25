@@ -2,24 +2,51 @@ import React, { useState, useMemo } from 'react';
 import {
   ArrowLeft, Filter, Search, X, ChevronRight,
   TrendingUp, TrendingDown, RefreshCw, AlertCircle,
-  DollarSign, Plus, Trash2, RotateCcw, Settings2,
+  DollarSign, Plus, Trash2, RotateCcw, Settings2, Lock,
 } from 'lucide-react';
 import { AssetDetailsModal } from './AssetDetailsModal';
 import {
   useMarket, useWatchlist, getAllMockAssets,
-  STOCKS_CATALOG, DEFAULT_WATCHLISTS,
-  type MarketTab, type MarketAsset,
+  STOCKS_CATALOG, DEFAULT_WATCHLISTS, getCatalogForPlan, getRequiredPlan,
+  PLAN_CATALOG_SIZES,
+  type MarketTab, type MarketAsset, type UserPlan,
 } from '../../hooks/useMarket';
+import { useSubscription } from '../../hooks/useSubscription';
+
+// ─── Plan labels & colours ────────────────────────────────────
+const PLAN_LABEL: Record<string, string> = {
+  pro: 'Pro', premium: 'Premium', business: 'Business',
+};
+const PLAN_PILL: Record<string, string> = {
+  pro:      'bg-blue-100 text-blue-700',
+  premium:  'bg-purple-100 text-purple-700',
+  business: 'bg-amber-100 text-amber-700',
+};
 
 // ─── Logo helpers ─────────────────────────────────────────────
-const CRYPTO_CODES = new Set(['BTC','ETH','BNB','SOL','XRP','ADA','DOT','AVAX','DOGE','USDT','USDC','MATIC','LTC','LINK']);
+const CRYPTO_CODES = new Set([
+  'BTC','ETH','BNB','SOL','XRP','ADA','DOT','AVAX','DOGE','USDT','USDC',
+  'MATIC','LTC','LINK','UNI','ATOM','NEAR','ARB','OP','MKR','AAVE','TRX',
+  'FIL','APT','INJ','RUNE','LDO','SNX','IMX','BLUR','PENDLE','JTO','PYTH',
+  'W','FLOKI','PEPE','WIF','BONK','NOT','IO','ZK','ENA',
+]);
 
-const FMP_ALIAS: Record<string,string> = {
+const FMP_ALIAS: Record<string, string> = {
+  // UK (LSE) → US symbol for logo
   HSBA:'HSBC', ULVR:'UL',    DGE:'DEO',   RIO:'RIO',   GSK:'GSK',
   SIE:'SIEGY', MC:'LVMUY',   ASML:'ASML', OR:'LRLCY',  SAP:'SAP',
   NESN:'NSRGY',NOVN:'NVS',   AIR:'EADSY', VOD:'VOD',   BAE:'BAESY',
   PRU:'PUK',   BNP:'BNPQY',  TTE:'TTE',   BMW:'BMWYY',
   VUSA:'VOO',  CSPX:'IVV',   IWDA:'URTH', VWRL:'VT',
+  // UK extra
+  BATS:'BTI', STAN:'SCBFF', NWG:'NWG',   LLOY:'LYG',  MNG:'MGPGY',
+  IMB:'IMBBY',SGRO:'SGRPY', CRH:'CRH',   HL:'HRGLY',  RKT:'RBGLY',
+  TSCO:'TSCDY',LAND:'LDSCY',EXPN:'EXPGY',RR:'RYCEY',  LSEG:'LSEG',
+  // EU extra
+  ALV:'ALIZY', BAS:'BASFY',  VOW3:'VWAGY',ABI:'BUD',   ENI:'E',
+  IBE:'IBDRY', STM:'STM',    INGA:'ING',  AIL:'AIQUY', EDF:'ECIFY',
+  BAYN:'BAYRY',DHER:'DLVRY', MUV2:'MURGY',ADYEN:'ADYEY',
+  UMG:'UMGNF', HLAG:'HLAGF', DHL:'DHLGY', WDP:'WDPPY',
 };
 
 function logoSources(code: string): string[] {
@@ -96,16 +123,53 @@ const AssetRow = ({ asset, onPress }: { asset: MarketAsset; onPress: () => void 
 
 const TAB_LABELS: Record<MarketTab, string> = { us:'🇺🇸 US', uk:'🇬🇧 UK', europe:'🇪🇺 EU', crypto:'₿ Crypto' };
 
+// ─── Upgrade banner ───────────────────────────────────────────
+const NEXT_PLAN: Record<string, UserPlan | null> = {
+  free: 'pro', pro: 'premium', premium: 'business', business: null,
+};
+const NEXT_PLAN_SIZE: Record<string, number> = {
+  free: PLAN_CATALOG_SIZES.pro   - PLAN_CATALOG_SIZES.free,
+  pro:  PLAN_CATALOG_SIZES.premium - PLAN_CATALOG_SIZES.pro,
+  premium: PLAN_CATALOG_SIZES.business - PLAN_CATALOG_SIZES.premium,
+};
+
+const UpgradeBanner = ({ currentPlan }: { currentPlan: string }) => {
+  const next = NEXT_PLAN[currentPlan];
+  if (!next) return null;
+  const extra = NEXT_PLAN_SIZE[currentPlan];
+  const pillStyle = PLAN_PILL[next] || 'bg-slate-100 text-slate-700';
+  return (
+    <div className="mx-0 mb-4 p-3 bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl flex items-center justify-between gap-3">
+      <div>
+        <p className="text-white text-xs font-bold">Unlock {extra}+ more assets</p>
+        <p className="text-slate-400 text-[11px] mt-0.5">Upgrade your plan to access more markets</p>
+      </div>
+      <span className={`text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${pillStyle}`}>
+        {PLAN_LABEL[next]}
+      </span>
+    </div>
+  );
+};
+
 // ─── Main component ───────────────────────────────────────────
 export const MarketScreen = ({ onBack, onNavigateToCurrencies }: any) => {
   const [tab, setTab]             = useState<MarketTab>('us');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy]       = useState<'change_high'|'change_low'|'price'|'name'>('change_high');
-  const [showFilterModal, setShowFilterModal]     = useState(false);
+  const [showFilterModal, setShowFilterModal]       = useState(false);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [customizeSearch, setCustomizeSearch]       = useState('');
   const [selectedAsset, setSelectedAsset]           = useState<MarketAsset | null>(null);
   const [moversTab, setMoversTab] = useState<'gainers'|'losers'>('gainers');
+
+  const { currentPlan = 'free' } = useSubscription() as any;
+  const plan = (currentPlan || 'free') as UserPlan;
+
+  // Set of codes accessible to this plan
+  const accessibleCodes = useMemo(
+    () => new Set(getCatalogForPlan(plan).map(c => c.code)),
+    [plan]
+  );
 
   const { watchlists, addSymbol, removeSymbol, resetTab } = useWatchlist();
   const { assets, forex, loading, lastUpdated, refetch }  = useMarket(tab, watchlists[tab]);
@@ -126,21 +190,18 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }: any) => {
     );
   }, [searchQuery]);
 
-  // Current-tab assets matching the search
   const watchlistMatches = useMemo(() => {
     if (!searchQuery.trim()) return assets;
     const q = searchQuery.toLowerCase();
     return assets.filter(a => a.code.toLowerCase().includes(q) || a.name.toLowerCase().includes(q));
   }, [assets, searchQuery]);
 
-  // Catalog items NOT in the current tab's watchlist (for "add" suggestions)
   const catalogSuggestions = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const inWatchlist = new Set(watchlists[tab]);
     return catalogResults.filter(c => !inWatchlist.has(c.code));
   }, [catalogResults, watchlists, tab, searchQuery]);
 
-  // Sort watchlist matches
   const displayed = useMemo(() => [...watchlistMatches].sort((a,b) => {
     if (sortBy==='change_high') return b.change - a.change;
     if (sortBy==='change_low')  return a.change - b.change;
@@ -149,7 +210,6 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }: any) => {
     return 0;
   }), [watchlistMatches, sortBy]);
 
-  // Movers pool
   const liveAssets = assets.filter(a => !a.loading && !a.error && a.price > 0);
   const liveCodes  = new Set(liveAssets.map(a => a.code));
   const moversPool = [...liveAssets, ...getAllMockAssets().filter(a => !liveCodes.has(a.code))];
@@ -169,8 +229,16 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }: any) => {
     return STOCKS_CATALOG.filter(c =>
       !inWatchlist.has(c.code) &&
       (c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q))
-    ).slice(0, 20);
+    ).slice(0, 30);
   }, [customizeSearch, watchlists, tab]);
+
+  // Helper: get required plan label for a code
+  const getLockedPlan = (code: string): string | null => {
+    if (accessibleCodes.has(code)) return null;
+    const idx = STOCKS_CATALOG.findIndex(c => c.code === code);
+    if (idx === -1) return null;
+    return getRequiredPlan(idx);
+  };
 
   return (
     <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
@@ -305,33 +373,52 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }: any) => {
               ))
           }
 
-          {/* Catalog suggestions when search finds extra items not in watchlist */}
+          {/* Catalog suggestions when searching */}
           {searchQuery && catalogSuggestions.length > 0 && (
             <div className="pt-2">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 px-1">
                 Not in your {TAB_LABELS[tab]} watchlist
               </p>
-              {catalogSuggestions.map(item => (
-                <div key={item.code} className="bg-white rounded-xl p-4 shadow-sm flex items-center gap-3 mb-2">
-                  <StockLogo code={item.code} name={item.name} size={10}/>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 text-sm">{item.code}</span>
-                      <span className="text-xs text-slate-500 truncate">{item.name}</span>
+              {catalogSuggestions.map(item => {
+                const locked = !accessibleCodes.has(item.code);
+                const reqPlan = locked ? getLockedPlan(item.code) : null;
+                return (
+                  <div key={item.code} className={`bg-white rounded-xl p-4 shadow-sm flex items-center gap-3 mb-2 ${locked ? 'opacity-70' : ''}`}>
+                    <div className="relative">
+                      <StockLogo code={item.code} name={item.name} size={10}/>
+                      {locked && (
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-700 rounded-full flex items-center justify-center">
+                          <Lock className="w-2.5 h-2.5 text-white"/>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">{item.exchange} · {item.region.toUpperCase()}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 text-sm">{item.code}</span>
+                        <span className="text-xs text-slate-500 truncate">{item.name}</span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">{item.exchange} · {item.region.toUpperCase()}</p>
+                    </div>
+                    {locked && reqPlan ? (
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${PLAN_PILL[reqPlan] || 'bg-slate-100 text-slate-600'}`}>
+                        {PLAN_LABEL[reqPlan]}
+                      </span>
+                    ) : (
+                      <>
+                        <span className={`text-xs font-semibold ${item.mockChange>=0?'text-green-600':'text-red-500'} mr-2`}>
+                          ~{item.mockChange>=0?'+':''}{item.mockChange.toFixed(2)}%
+                        </span>
+                        <button
+                          onClick={() => { addSymbol(item.region, item.code); setTab(item.region); setSearchQuery(''); }}
+                          className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0 active:scale-95 transition"
+                        >
+                          <Plus className="w-4 h-4 text-white"/>
+                        </button>
+                      </>
+                    )}
                   </div>
-                  <span className={`text-xs font-semibold ${item.mockChange>=0?'text-green-600':'text-red-500'} mr-2`}>
-                    ~{item.mockChange>=0?'+':''}{item.mockChange.toFixed(2)}%
-                  </span>
-                  <button
-                    onClick={() => { addSymbol(item.region, item.code); setTab(item.region); setSearchQuery(''); }}
-                    className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0 active:scale-95 transition"
-                  >
-                    <Plus className="w-4 h-4 text-white"/>
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -397,7 +484,7 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }: any) => {
       {/* ── Customize watchlist modal ── */}
       {showCustomizeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-end z-50">
-          <div className="bg-white w-full rounded-t-3xl flex flex-col" style={{maxHeight:'85vh'}}>
+          <div className="bg-white w-full rounded-t-3xl flex flex-col" style={{maxHeight:'90vh'}}>
             {/* Header */}
             <div className="px-6 pt-6 pb-4 flex items-center justify-between flex-shrink-0 border-b border-slate-100">
               <div>
@@ -405,11 +492,7 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }: any) => {
                 <p className="text-xs text-slate-500 mt-0.5">Showing {TAB_LABELS[tab]} tab</p>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => { resetTab(tab); }}
-                  className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center"
-                  title="Reset to defaults"
-                >
+                <button onClick={() => { resetTab(tab); }} className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center" title="Reset to defaults">
                   <RotateCcw className="w-4 h-4 text-slate-600"/>
                 </button>
                 <button onClick={() => setShowCustomizeModal(false)} className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center">
@@ -419,8 +502,14 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }: any) => {
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 pb-8">
+
+              {/* Upgrade banner */}
+              <div className="mt-4">
+                <UpgradeBanner currentPlan={plan}/>
+              </div>
+
               {/* Current watchlist */}
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-4 mb-2">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                 Your watchlist ({watchlists[tab].length})
               </h3>
               {watchlists[tab].length === 0 ? (
@@ -437,10 +526,7 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }: any) => {
                           <span className="font-bold text-slate-900 text-sm">{code}</span>
                           <span className="text-xs text-slate-500 ml-2 truncate">{item.name}</span>
                         </div>
-                        <button
-                          onClick={() => removeSymbol(tab, code)}
-                          className="w-8 h-8 bg-red-50 rounded-full flex items-center justify-center active:scale-95 transition"
-                        >
+                        <button onClick={() => removeSymbol(tab, code)} className="w-8 h-8 bg-red-50 rounded-full flex items-center justify-center active:scale-95 transition">
                           <Trash2 className="w-4 h-4 text-red-500"/>
                         </button>
                       </div>
@@ -465,46 +551,85 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }: any) => {
                 />
               </div>
 
+              {/* Asset list with lock gating */}
               {customizeSearch.trim() === '' ? (
                 <div className="space-y-2">
-                  {STOCKS_CATALOG.filter(c => !watchlists[tab].includes(c.code) && c.region === tab).map(item => (
-                    <div key={item.code} className="bg-slate-50 rounded-xl p-3 flex items-center gap-3">
-                      <StockLogo code={item.code} name={item.name} size={8}/>
-                      <div className="flex-1 min-w-0">
-                        <span className="font-bold text-slate-800 text-sm">{item.code}</span>
-                        <span className="text-xs text-slate-500 ml-2">{item.name}</span>
+                  {STOCKS_CATALOG.filter(c => !watchlists[tab].includes(c.code) && c.region === tab).map(item => {
+                    const locked = !accessibleCodes.has(item.code);
+                    const reqPlan = locked ? getLockedPlan(item.code) : null;
+                    return (
+                      <div key={item.code} className={`bg-slate-50 rounded-xl p-3 flex items-center gap-3 ${locked?'opacity-60':''}`}>
+                        <div className="relative">
+                          <StockLogo code={item.code} name={item.name} size={8}/>
+                          {locked && (
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-slate-600 rounded-full flex items-center justify-center">
+                              <Lock className="w-2 h-2 text-white"/>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-bold text-slate-800 text-sm">{item.code}</span>
+                          <span className="text-xs text-slate-500 ml-2">{item.name}</span>
+                        </div>
+                        {locked && reqPlan ? (
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${PLAN_PILL[reqPlan] || 'bg-slate-100 text-slate-600'}`}>
+                            {PLAN_LABEL[reqPlan]}
+                          </span>
+                        ) : (
+                          <>
+                            <span className="text-xs text-slate-400 mr-1">{item.exchange}</span>
+                            <button onClick={() => { addSymbol(tab, item.code); setCustomizeSearch(''); }}
+                              className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center ml-1 active:scale-95 transition">
+                              <Plus className="w-4 h-4 text-white"/>
+                            </button>
+                          </>
+                        )}
                       </div>
-                      <span className="text-xs text-slate-400">{item.exchange}</span>
-                      <button onClick={() => { addSymbol(tab, item.code); setCustomizeSearch(''); }}
-                        className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center ml-2 active:scale-95 transition">
-                        <Plus className="w-4 h-4 text-white"/>
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="space-y-2">
                   {customizeSuggestions.length === 0 ? (
                     <p className="text-sm text-slate-400 text-center py-4">No results for "{customizeSearch}"</p>
                   ) : (
-                    customizeSuggestions.map(item => (
-                      <div key={item.code} className="bg-slate-50 rounded-xl p-3 flex items-center gap-3">
-                        <StockLogo code={item.code} name={item.name} size={8}/>
-                        <div className="flex-1 min-w-0">
-                          <span className="font-bold text-slate-800 text-sm">{item.code}</span>
-                          <span className="text-xs text-slate-500 ml-2">{item.name}</span>
+                    customizeSuggestions.map(item => {
+                      const locked = !accessibleCodes.has(item.code);
+                      const reqPlan = locked ? getLockedPlan(item.code) : null;
+                      return (
+                        <div key={item.code} className={`bg-slate-50 rounded-xl p-3 flex items-center gap-3 ${locked?'opacity-60':''}`}>
+                          <div className="relative">
+                            <StockLogo code={item.code} name={item.name} size={8}/>
+                            {locked && (
+                              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-slate-600 rounded-full flex items-center justify-center">
+                                <Lock className="w-2 h-2 text-white"/>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="font-bold text-slate-800 text-sm">{item.code}</span>
+                            <span className="text-xs text-slate-500 ml-2">{item.name}</span>
+                          </div>
+                          {locked && reqPlan ? (
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${PLAN_PILL[reqPlan] || 'bg-slate-100 text-slate-600'}`}>
+                              {PLAN_LABEL[reqPlan]}
+                            </span>
+                          ) : (
+                            <>
+                              <span className={`text-xs font-semibold ${item.region==='us'?'bg-blue-50 text-blue-600':item.region==='uk'?'bg-red-50 text-red-600':item.region==='europe'?'bg-yellow-50 text-yellow-700':'bg-purple-50 text-purple-600'} px-2 py-0.5 rounded-full`}>
+                                {item.region.toUpperCase()}
+                              </span>
+                              <button
+                                onClick={() => { addSymbol(item.region, item.code); if(item.region !== tab) setTab(item.region); setCustomizeSearch(''); }}
+                                className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center ml-2 active:scale-95 transition"
+                              >
+                                <Plus className="w-4 h-4 text-white"/>
+                              </button>
+                            </>
+                          )}
                         </div>
-                        <span className={`text-xs font-semibold ${item.region==='us'?'bg-blue-50 text-blue-600':item.region==='uk'?'bg-red-50 text-red-600':item.region==='europe'?'bg-yellow-50 text-yellow-700':'bg-purple-50 text-purple-600'} px-2 py-0.5 rounded-full`}>
-                          {item.region.toUpperCase()}
-                        </span>
-                        <button
-                          onClick={() => { addSymbol(item.region, item.code); if(item.region !== tab) setTab(item.region); setCustomizeSearch(''); }}
-                          className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center ml-2 active:scale-95 transition"
-                        >
-                          <Plus className="w-4 h-4 text-white"/>
-                        </button>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               )}
