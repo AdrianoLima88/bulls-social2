@@ -31,6 +31,14 @@ const CRYPTO_CODES = new Set([
   'W','FLOKI','PEPE','WIF','BONK','NOT','IO','ZK','ENA',
 ]);
 
+// CoinMarketCap IDs for tokens not covered by cryptocurrency-icons@0.18.1 (pre-2022)
+const CMC_IDS: Record<string, number> = {
+  PEPE:24478, BONK:23095, WIF:28752,  FLOKI:10804, NOT:28451,
+  ARB:11841,  OP:11840,   APT:21794,  LDO:8000,    BLUR:20058,
+  JTO:29733,  PYTH:28177, PENDLE:22415,W:29587,    ENA:29908,
+  IO:29921,   ZK:24091,   IMX:10603,  INJ:7226,    RUNE:4157,
+};
+
 const FMP_ALIAS: Record<string, string> = {
   // UK (LSE) → US symbol for logo
   HSBA:'HSBC', ULVR:'UL',    DGE:'DEO',   RIO:'RIO',   GSK:'GSK',
@@ -39,9 +47,9 @@ const FMP_ALIAS: Record<string, string> = {
   PRU:'PUK',   BNP:'BNPQY',  TTE:'TTE',   BMW:'BMWYY',
   VUSA:'VOO',  CSPX:'IVV',   IWDA:'URTH', VWRL:'VT',
   // UK extra
-  BATS:'BTI', STAN:'SCBFF', NWG:'NWG',   LLOY:'LYG',  MNG:'MGPGY',
-  IMB:'IMBBY',SGRO:'SGRPY', CRH:'CRH',   HL:'HRGLY',  RKT:'RBGLY',
-  TSCO:'TSCDY',LAND:'LDSCY',EXPN:'EXPGY',RR:'RYCEY',  LSEG:'LSEG',
+  BATS:'BTI',  STAN:'SCBFF', NWG:'NWG',   LLOY:'LYG',  MNG:'MGPGY',
+  IMB:'IMBBY', SGRO:'SGRPY', CRH:'CRH',   HL:'HRGLY',  RKT:'RBGLY',
+  TSCO:'TSCDY',LAND:'LDSCY', EXPN:'EXPGY',RR:'RYCEY',  LSEG:'LSEG',
   // EU extra
   ALV:'ALIZY', BAS:'BASFY',  VOW3:'VWAGY',ABI:'BUD',   ENI:'E',
   IBE:'IBDRY', STM:'STM',    INGA:'ING',  AIL:'AIQUY', EDF:'ECIFY',
@@ -51,11 +59,21 @@ const FMP_ALIAS: Record<string, string> = {
 
 function logoSources(code: string): string[] {
   const c = code.toUpperCase();
-  if (CRYPTO_CODES.has(c))
-    return [`https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color/${c.toLowerCase()}.svg`];
+  if (CRYPTO_CODES.has(c)) {
+    const srcs = [`https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color/${c.toLowerCase()}.svg`];
+    if (CMC_IDS[c]) srcs.push(`https://s2.coinmarketcap.com/static/img/coins/64x64/${CMC_IDS[c]}.png`);
+    return srcs;
+  }
   const alias = FMP_ALIAS[c];
-  const srcs = [`https://financialmodelingprep.com/image-stock/${c}.png`];
-  if (alias && alias !== c) srcs.push(`https://financialmodelingprep.com/image-stock/${alias}.png`);
+  // Try two FMP URL formats — the CDN sometimes differs by region
+  const srcs = [
+    `https://financialmodelingprep.com/image-stock/${c}.png`,
+    `https://images.financialmodelingprep.com/symbol/${c}.png`,
+  ];
+  if (alias && alias !== c) {
+    srcs.push(`https://financialmodelingprep.com/image-stock/${alias}.png`);
+    srcs.push(`https://images.financialmodelingprep.com/symbol/${alias}.png`);
+  }
   return srcs;
 }
 
