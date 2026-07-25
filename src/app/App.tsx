@@ -49,7 +49,6 @@ const MarketScreen = lazyLoad(() => import('./components/MarketScreen').then(m =
 const CreatePostScreen = lazyLoad(() => import('./components/CreatePostScreen').then(m => ({ default: m.CreatePostScreen })));
 const CommentsScreen = lazyLoad(() => import('./components/CommentsScreen').then(m => ({ default: m.CommentsScreen })));
 const NotificationsScreen = lazyLoad(() => import('./components/NotificationsScreen').then(m => ({ default: m.NotificationsScreen })));
-const SearchScreen = lazyLoad(() => import('./components/SearchScreen').then(m => ({ default: m.SearchScreen })));
 const PortfolioScreen = lazyLoad(() => import('./components/PortfolioScreen').then(m => ({ default: m.PortfolioScreen })));
 const PremiumScreen = lazyLoad(() => import('./components/PremiumScreen').then(m => ({ default: m.PremiumScreen })));
 const BusinessDashboard = lazyLoad(() => import('./components/BusinessDashboard').then(m => ({ default: m.BusinessDashboard })));
@@ -79,7 +78,7 @@ const preloadScreens = () => {
   setTimeout(() => {
     import('./components/ProfileScreenNew');
     import('./components/NotificationsScreen');
-    import('./components/SearchScreen');
+    import('./components/ExploreScreen');
     import('./components/CommentsScreen');
     import('./components/SettingsScreen');
     import('./components/MarketScreen');
@@ -288,12 +287,11 @@ const AppContent = () => {
       <Suspense fallback={<ScreenLoader />}>
         {currentScreen === 'feed' && (
           <FeedScreen
-            onNavigateToSearch={() => navigateTo('search')}
+            onNavigateToSearch={() => navigateTo('explore')}
             onNavigateToNotifications={() => navigateTo('notifications')}
             onNavigateToMarket={() => navigateTo('market')}
             onNavigateToProfile={handleNavigateToProfile}
             onNavigateToPost={handleNavigateToPost}
-            onNavigateToExplore={() => navigateTo('explore')}
             feedFilter={feedFilter}
             setFeedFilter={setFeedFilter}
             onNavigateToLive={() => navigateTo('live')}
@@ -304,7 +302,6 @@ const AppContent = () => {
         )}
         {currentScreen === 'explore' && <ExploreScreen onBack={navigateBack} onNavigateToPost={handleNavigateToPost} onNavigateToProfile={handleNavigateToProfile} />}
         {currentScreen === 'savedPosts' && <SavedPostsScreen onBack={navigateBack} onNavigateToPost={handleNavigateToPost} onNavigateToProfile={handleNavigateToProfile} />}
-        {currentScreen === 'search' && <SearchScreen onBack={navigateBack} onNavigateToProfile={handleNavigateToProfile} />}
         {currentScreen === 'notifications' && <NotificationsScreen onBack={navigateBack} onNavigateToPost={handleNavigateToPostById} onNavigateToProfile={handleNavigateToProfile} onNavigateToLive={handleNavigateToLiveById} />}
         {currentScreen === 'market' && <MarketScreen onBack={navigateBack} onNavigateToCurrencies={() => navigateTo('currency')} onNavigateToSignal={() => navigateTo('bullsSignal')} />}
         {currentScreen === 'portfolio' && <PortfolioScreen onBack={navigateBack} onAddAsset={() => navigateTo('addAsset')} onViewAsset={(asset) => { setSelectedAsset(asset); navigateTo('assetDetail'); }} />}

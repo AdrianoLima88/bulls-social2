@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Bell, Sun, Compass, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users, Lock, UserPlus, Crown, Coffee, ExternalLink } from 'lucide-react';
+import { Search, Bell, Sun, Heart, MessageCircle, Share2, Bookmark, MoreVertical, Copy, Trash2, BarChart3, Building2, Newspaper, GraduationCap, Sparkles, Flag, Users, Lock, UserPlus, Crown, Coffee, ExternalLink } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { ShareModal } from './ShareModal';
 import { MediaViewModal } from './MediaViewModal';
@@ -28,7 +28,6 @@ export const FeedScreen = ({
   onNavigateToMarket,
   onNavigateToProfile,
   onNavigateToPost,
-  onNavigateToExplore,
   feedFilter = 'all',
   setFeedFilter,
   onNavigateToLive,
@@ -108,10 +107,7 @@ export const FeedScreen = ({
       <header className="bg-green-600 px-4 py-3 flex items-center justify-between z-50 flex-shrink-0 shadow-md">
         <h1 className="text-white font-bold text-lg">BullsGo</h1>
         <div className="flex items-center gap-2">
-          <button onClick={onNavigateToExplore} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
-            <Compass className="w-5 h-5 text-white" />
-          </button>
-          <button onClick={onNavigateToSearch} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
+          <button onClick={onNavigateToSearch} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition" title="Explore & Search">
             <Search className="w-5 h-5 text-white" />
           </button>
           <button onClick={() => setShowInviteModal(true)} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
@@ -190,8 +186,8 @@ export const FeedScreen = ({
             <p className="text-slate-600 text-center mb-4">
               {isFollowingTab ? 'Follow other investors to see their posts here.' : 'No posts found in this category.'}
             </p>
-            <button onClick={onNavigateToExplore} className="bg-green-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-700 transition flex items-center gap-2">
-              <Compass className="w-4 h-4" />
+            <button onClick={onNavigateToSearch} className="bg-green-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-700 transition flex items-center gap-2">
+              <Search className="w-4 h-4" />
               {isFollowingTab ? 'Explore profiles' : 'Explore trending content'}
             </button>
           </div>
