@@ -113,8 +113,13 @@ export const FeedScreen = ({
           <button onClick={() => setShowInviteModal(true)} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
             <UserPlus className="w-5 h-5 text-white" />
           </button>
+          {onNavigateToBrief && (
+            <button onClick={onNavigateToBrief} className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center hover:opacity-90 transition shadow-sm" title="BullsBrief">
+              <Sun className="w-5 h-5 text-white" />
+            </button>
+          )}
           {onNavigateToAI && (
-            <button onClick={onNavigateToAI} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition relative" title="BullsAI">
+            <button onClick={onNavigateToAI} className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center hover:opacity-90 transition shadow-sm" title="BullsAI">
               <Sparkles className="w-5 h-5 text-white" />
             </button>
           )}
@@ -130,18 +135,6 @@ export const FeedScreen = ({
       </header>
 
       <StockTicker />
-
-      {/* BullsBrief morning banner */}
-      {onNavigateToBrief && (
-        <button
-          onClick={onNavigateToBrief}
-          className="mx-4 mt-1.5 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl px-3 py-1.5 hover:opacity-90 transition active:scale-95"
-        >
-          <Sun className="w-3.5 h-3.5 text-white flex-shrink-0" />
-          <span className="text-white font-bold text-[11px] flex-1 text-left">BullsBrief — Morning Intel</span>
-          <span className="text-white/80 text-[10px]">→</span>
-        </button>
-      )}
 
 
       <div className="bg-white shadow-sm flex-shrink-0 border-b border-slate-100">
