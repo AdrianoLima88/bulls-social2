@@ -706,3 +706,5 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
       )}
     </div>
   
+  );
+};
