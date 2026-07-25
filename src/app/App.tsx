@@ -68,9 +68,9 @@ const FollowingListScreen = lazyLoad(() => import('./components/FollowingListScr
 const ExploreScreen = lazyLoad(() => import('./components/ExploreScreen').then(m => ({ default: m.ExploreScreen })));
 const SavedPostsScreen = lazyLoad(() => import('./components/SavedPostsScreen').then(m => ({ default: m.SavedPostsScreen })));
 const AcademyScreen = lazyLoad(() => import('./components/AcademyScreen').then(m => ({ default: m.AcademyScreen })));
+const BullsAIScreen = lazyLoad(() => import('./components/BullsAIScreen').then(m => ({ default: m.BullsAIScreen })));
 const HelpCentreScreen = lazyLoad(() => import('./components/HelpCentreScreen').then(m => ({ default: m.HelpCentreScreen })));
 const TermsScreen = lazyLoad(() => import('./components/TermsScreen').then(m => ({ default: m.TermsScreen })));
-const BullsAIScreen = lazyLoad(() => import('./components/BullsAIScreen').then(m => ({ default: m.BullsAIScreen })));
 
 // Preload most used screens after login
 const preloadScreens = () => {
@@ -365,4 +365,93 @@ const AppContent = () => {
         {currentScreen === 'academy' && <AcademyScreen onBack={navigateBack} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'communityGuidelines' && <CommunityGuidelinesScreen onBack={navigateBack} />}
         {currentScreen === 'currency' && <CurrencyScreen onBack={navigateBack} />}
-        {currentScreen === 'languageRegion' && <LanguageRegionScreen on
+        {currentScreen === 'languageRegion' && <LanguageRegionScreen onBack={navigateBack} />}
+        {currentScreen === 'creatorDashboard' && <CreatorDashboard onBack={navigateBack} onNavigateToSchedule={() => alert('Post scheduling coming soon!')} onNavigateToMonetization={() => alert('Monetisation settings coming soon!')} onNavigateToVideoStudio={() => navigateTo('videoStudio')} onNavigateToPremium={() => navigateTo('premium')} />}
+        {currentScreen === 'videoStudio' && <VideoStudio onBack={navigateBack} />}
+        {currentScreen === 'helpCentre' && <HelpCentreScreen onBack={navigateBack} />}
+        {currentScreen === 'terms' && <TermsScreen onBack={navigateBack} />}
+        {currentScreen === 'bullsai' && <BullsAIScreen onBack={navigateBack} />}
+        {currentScreen === 'live' && <LiveScreen onBack={navigateBack} onStartLive={() => { setSelectedScheduledLive(null); navigateTo('startLive'); }} onWatchLive={(live) => { setSelectedPost(live); navigateTo('watchLive'); }} onStartScheduled={(live) => { setSelectedScheduledLive(live); navigateTo('startLive'); }} />}
+        {currentScreen === 'watchLive' && selectedPost && <WatchLiveScreen live={selectedPost} onClose={navigateBack} />}
+        {currentScreen === 'startLive' && <StartLiveScreen onBack={navigateBack} onGoLive={handleGoLive} scheduledLive={selectedScheduledLive} />}
+      </Suspense>
+
+      {showBottomNav && <BottomNav currentScreen={currentScreen} onNavigate={setCurrentScreen} activeLivesCount={activeLives.length} />}
+
+      {/* BullsAI Floating Button */}
+      {showBullsAIButton && (
+        <button
+          onClick={() => navigateTo('bullsai')}
+          className="fixed z-50 right-4"
+          style={{ bottom: '72px' }}
+          aria-label="Open BullsAI"
+        >
+          <div className="relative" style={{ width: 52, height: 52 }}>
+            <div className="absolute inset-0 rounded-full bg-green-500 opacity-20 animate-ping" style={{ animationDuration: '2.5s' }} />
+            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-green-500 to-emerald-700 flex items-center justify-center shadow-xl" style={{ width: 52, height: 52 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z" opacity="0.3"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <div className="absolute left-1/2 -translate-x-1/2 bg-green-600 text-white font-black rounded-full leading-none whitespace-nowrap" style={{ bottom: -4, fontSize: 8, padding: '2px 5px' }}>
+              AI
+            </div>
+          </div>
+        </button>
+      )}
+
+      {/* Chamada de voz ativa */}
+      {(callState === 'calling' || callState === 'connected') && callType === 'voice' && (
+        <Suspense fallback={null}>
+          <VoiceCallScreen
+            onEnd={endCall}
+            userName={remoteUser?.name}
+            userAvatar={remoteUser?.name ? remoteUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?'}
+            localStream={localStream}
+            callStatus={callState}
+          />
+        </Suspense>
+      )}
+
+      {/* Chamada de vídeo ativa */}
+      {(callState === 'calling' || callState === 'connected') && callType === 'video' && (
+        <Suspense fallback={null}>
+          <VideoCallScreen
+            onEnd={endCall}
+            userName={remoteUser?.name}
+            userAvatar={remoteUser?.name ? remoteUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?'}
+            localStream={localStream}
+            remoteStream={remoteStream}
+            callStatus={callState}
+          />
+        </Suspense>
+      )}
+
+      {/* Chamada recebida */}
+      {incomingCall && (
+        <IncomingCallScreen
+          caller={incomingCall.from}
+          callType={incomingCall.type}
+          onAnswer={answerCall}
+          onReject={rejectCall}
+        />
+      )}
+    </div>
+  );
+};
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <AppProvider>
+          <LocaleProvider>
+            <AppContent />
+          </LocaleProvider>
+        </AppProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
