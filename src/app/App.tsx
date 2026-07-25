@@ -70,6 +70,7 @@ const SavedPostsScreen = lazyLoad(() => import('./components/SavedPostsScreen').
 const AcademyScreen = lazyLoad(() => import('./components/AcademyScreen').then(m => ({ default: m.AcademyScreen })));
 const HelpCentreScreen = lazyLoad(() => import('./components/HelpCentreScreen').then(m => ({ default: m.HelpCentreScreen })));
 const TermsScreen = lazyLoad(() => import('./components/TermsScreen').then(m => ({ default: m.TermsScreen })));
+const BullsAIScreen = lazyLoad(() => import('./components/BullsAIScreen').then(m => ({ default: m.BullsAIScreen })));
 
 // Preload most used screens after login
 const preloadScreens = () => {
@@ -278,6 +279,7 @@ const AppContent = () => {
   }
 
   const showBottomNav = ['feed', 'market', 'portfolio', 'myProfile', 'live'].includes(currentScreen);
+  const showBullsAIButton = showBottomNav && currentScreen !== 'bullsai';
 
   return (
     <div className="relative">
@@ -363,68 +365,4 @@ const AppContent = () => {
         {currentScreen === 'academy' && <AcademyScreen onBack={navigateBack} onNavigateToPremium={() => navigateTo('premium')} />}
         {currentScreen === 'communityGuidelines' && <CommunityGuidelinesScreen onBack={navigateBack} />}
         {currentScreen === 'currency' && <CurrencyScreen onBack={navigateBack} />}
-        {currentScreen === 'languageRegion' && <LanguageRegionScreen onBack={navigateBack} />}
-        {currentScreen === 'creatorDashboard' && <CreatorDashboard onBack={navigateBack} onNavigateToSchedule={() => alert('Post scheduling coming soon!')} onNavigateToMonetization={() => alert('Monetisation settings coming soon!')} onNavigateToVideoStudio={() => navigateTo('videoStudio')} onNavigateToPremium={() => navigateTo('premium')} />}
-        {currentScreen === 'videoStudio' && <VideoStudio onBack={navigateBack} />}
-        {currentScreen === 'helpCentre' && <HelpCentreScreen onBack={navigateBack} />}
-        {currentScreen === 'terms' && <TermsScreen onBack={navigateBack} />}
-        {currentScreen === 'live' && <LiveScreen onBack={navigateBack} onStartLive={() => { setSelectedScheduledLive(null); navigateTo('startLive'); }} onWatchLive={(live) => { setSelectedPost(live); navigateTo('watchLive'); }} onStartScheduled={(live) => { setSelectedScheduledLive(live); navigateTo('startLive'); }} />}
-        {currentScreen === 'watchLive' && selectedPost && <WatchLiveScreen live={selectedPost} onClose={navigateBack} />}
-        {currentScreen === 'startLive' && <StartLiveScreen onBack={navigateBack} onGoLive={handleGoLive} scheduledLive={selectedScheduledLive} />}
-      </Suspense>
-
-      {showBottomNav && <BottomNav currentScreen={currentScreen} onNavigate={setCurrentScreen} activeLivesCount={activeLives.length} />}
-
-      {/* Chamada de voz ativa */}
-      {(callState === 'calling' || callState === 'connected') && callType === 'voice' && (
-        <Suspense fallback={null}>
-          <VoiceCallScreen
-            onEnd={endCall}
-            userName={remoteUser?.name}
-            userAvatar={remoteUser?.name ? remoteUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?'}
-            localStream={localStream}
-            callStatus={callState}
-          />
-        </Suspense>
-      )}
-
-      {/* Chamada de vídeo ativa */}
-      {(callState === 'calling' || callState === 'connected') && callType === 'video' && (
-        <Suspense fallback={null}>
-          <VideoCallScreen
-            onEnd={endCall}
-            userName={remoteUser?.name}
-            userAvatar={remoteUser?.name ? remoteUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?'}
-            localStream={localStream}
-            remoteStream={remoteStream}
-            callStatus={callState}
-          />
-        </Suspense>
-      )}
-
-      {/* Chamada recebida */}
-      {incomingCall && (
-        <IncomingCallScreen
-          caller={incomingCall.from}
-          callType={incomingCall.type}
-          onAnswer={answerCall}
-          onReject={rejectCall}
-        />
-      )}
-    </div>
-  );
-};
-
-export default function App() {
-  return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppProvider>
-          <LocaleProvider>
-            <AppContent />
-          </LocaleProvider>
-        </AppProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  );
-}
+        {currentScreen === 'languageRegion' && <LanguageRegionScreen on
