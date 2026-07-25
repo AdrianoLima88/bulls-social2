@@ -294,6 +294,7 @@ export const MarketScreen = ({ onBack, onNavigateToCurrencies }: any) => {
   const assetForModal = selectedAsset ? {
     code: selectedAsset.code.split('.')[0], name: selectedAsset.name,
     price: selectedAsset.price, change: selectedAsset.change,
+    currency: selectedAsset.currency || 'USD',
     volume: '—', description: selectedAsset.description || '', sector: selectedAsset.exchange,
   } : null;
 
