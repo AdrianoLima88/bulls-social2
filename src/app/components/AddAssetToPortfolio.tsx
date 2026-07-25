@@ -340,4 +340,19 @@ export const AddAssetToPortfolio = ({ onBack, onNavigateToPremium }) => {
            : 'Add to Portfolio'}
         </button>
 
-        {/* Tip *
+        {/* Tip */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+          <p className="text-xs text-blue-800">
+            💡 <strong>Tip:</strong>{' '}
+            {assetType === 'stock' && 'Diversify across sectors and geographies to reduce risk.'}
+            {assetType === 'etf' && 'ETFs like VWCE give you global diversification in a single fund.'}
+            {assetType === 'crypto' && 'Crypto is highly volatile. Only invest what you can afford to lose.'}
+            {assetType === 'bond' && 'Bonds and gilts provide stability and predictable income.'}
+          </p>
+        </div>
+
+      </div>
+      )}
+    </div>
+  );
+};
