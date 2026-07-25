@@ -31,7 +31,7 @@ const CRYPTO_CODES = new Set([
   'W','FLOKI','PEPE','WIF','BONK','NOT','IO','ZK','ENA',
 ]);
 
-// CoinMarketCap IDs for tokens not covered by cryptocurrency-icons@0.18.1 (pre-2022)
+// CoinMarketCap IDs for tokens not in cryptocurrency-icons@0.18.1 (package is pre-2022)
 const CMC_IDS: Record<string, number> = {
   PEPE:24478, BONK:23095, WIF:28752,  FLOKI:10804, NOT:28451,
   ARB:11841,  OP:11840,   APT:21794,  LDO:8000,    BLUR:20058,
@@ -39,22 +39,83 @@ const CMC_IDS: Record<string, number> = {
   IO:29921,   ZK:24091,   IMX:10603,  INJ:7226,    RUNE:4157,
 };
 
+// Company domain map → Clearbit logo (most reliable free source, no auth needed)
+// FMP recently started returning invalid images without an API key, so Clearbit is first
+const CLEARBIT: Record<string, string> = {
+  // ── US default watchlist ──
+  AAPL:'apple.com',       MSFT:'microsoft.com',    NVDA:'nvidia.com',
+  GOOGL:'abc.xyz',        AMZN:'aboutamazon.com',  META:'meta.com',
+  TSLA:'tesla.com',       NFLX:'netflix.com',      JPM:'jpmorganchase.com',
+  // ── US blue-chips ──
+  V:'visa.com',           MA:'mastercard.com',     JNJ:'jnj.com',
+  WMT:'walmart.com',      XOM:'exxonmobil.com',    BAC:'bankofamerica.com',
+  HD:'homedepot.com',     LLY:'lilly.com',         AMD:'amd.com',
+  DIS:'disney.com',       ADBE:'adobe.com',        ORCL:'oracle.com',
+  COIN:'coinbase.com',
+  // ── US growth / mid-cap ──
+  UBER:'uber.com',        SPOT:'spotify.com',      ABNB:'airbnb.com',
+  SHOP:'shopify.com',     AVGO:'broadcom.com',     COST:'costco.com',
+  PYPL:'paypal.com',      CRM:'salesforce.com',    INTC:'intel.com',
+  SBUX:'starbucks.com',   PLTR:'palantir.com',     SNAP:'snap.com',
+  PINS:'pinterest.com',   HOOD:'robinhood.com',    SOFI:'sofi.com',
+  F:'ford.com',           GM:'gm.com',             BA:'boeing.com',
+  CAT:'caterpillar.com',  PFE:'pfizer.com',        ABBV:'abbvie.com',
+  MRK:'merck.com',        CVX:'chevron.com',       RTX:'rtx.com',
+  UNH:'unitedhealthgroup.com',
+  // ── Biotech / pharma ──
+  MRNA:'modernatx.com',   GILD:'gilead.com',       BMY:'bms.com',
+  CVS:'cvshealth.com',
+  // ── EV & speculative ──
+  RIVN:'rivian.com',      LCID:'lucidmotors.com',  NIO:'nio.com',
+  RKLB:'rocketlabusa.com',PATH:'uipath.com',       CRWD:'crowdstrike.com',
+  ZS:'zscaler.com',       PANW:'paloaltonetworks.com',
+  DDOG:'datadoghq.com',   SNOW:'snowflake.com',    MDB:'mongodb.com',
+  SMCI:'supermicro.com',  ARM:'arm.com',
+  GME:'gamestop.com',     AMC:'amctheatres.com',
+  SPCE:'virgingalactic.com', TLRY:'tilray.com',    NKLA:'nikolamotor.com',
+  WISH:'wish.com',        AI:'c3.ai',              BBAI:'bigbear.ai',
+  IONQ:'ionq.com',        RGTI:'rigetti.com',      RCAT:'redcatholdings.com',
+  // ── LATAM ADRs ──
+  PBR:'petrobras.com.br', VALE:'vale.com',         ITUB:'itau.com.br',
+  ABEV:'ambev.com.br',
+  // ── APAC ADRs ──
+  TM:'toyota.com',        SONY:'sony.com',         BABA:'alibaba.com',
+  BIDU:'baidu.com',       JD:'jd.com',             PDD:'pddholdings.com',
+  TSM:'tsmc.com',         SE:'sea.com',
+  // ── ETFs ──
+  SPY:'ssga.com',         QQQ:'invesco.com',       IWM:'ishares.com',
+  VTI:'vanguard.com',     GLD:'ssga.com',          SLV:'ishares.com',
+  ARKK:'ark-invest.com',  XLK:'ssga.com',          XLF:'ssga.com',
+  KWEB:'kraneshares.com',
+  // ── REITs ──
+  AMT:'americantower.com',PLD:'prologis.com',      EQIX:'equinix.com',
+  O:'realtyincome.com',   SPG:'simon.com',
+  // ── UK ──
+  SHEL:'shell.com',       AZN:'astrazeneca.com',   HSBA:'hsbc.com',
+  BP:'bp.com',            ULVR:'unilever.com',     RIO:'riotinto.com',
+  DGE:'diageo.com',       GSK:'gsk.com',           VOD:'vodafone.com',
+  BAE:'baesystems.com',   PRU:'prudential.com',    NWG:'natwest.com',
+  LLOY:'lloydsbankinggroup.com', TSCO:'tescoplc.com',
+  EXPN:'experianplc.com', RR:'rolls-royce.com',    CRH:'crh.com',
+  BATS:'bat.com',         LSEG:'lseg.com',
+  // ── Europe ──
+  MC:'lvmh.com',          ASML:'asml.com',         OR:'loreal.com',
+  SAP:'sap.com',          SIE:'siemens.com',       NESN:'nestle.com',
+  NOVN:'novartis.com',    AIR:'airbus.com',        BMW:'bmwgroup.com',
+  BNP:'bnpparibas.com',   TTE:'totalenergies.com', ALV:'allianz.com',
+  BAS:'basf.com',         VOW3:'volkswagenag.com', ABI:'ab-inbev.com',
+  ENI:'eni.com',          IBE:'iberdrola.com',     STM:'st.com',
+  INGA:'ing.com',         AIL:'airliquide.com',    BAYN:'bayer.com',
+  MUV2:'munichre.com',    ADYEN:'adyen.com',       HLAG:'hapag-lloyd.com',
+};
+
 const FMP_ALIAS: Record<string, string> = {
-  // UK (LSE) → US symbol for logo
-  HSBA:'HSBC', ULVR:'UL',    DGE:'DEO',   RIO:'RIO',   GSK:'GSK',
-  SIE:'SIEGY', MC:'LVMUY',   ASML:'ASML', OR:'LRLCY',  SAP:'SAP',
-  NESN:'NSRGY',NOVN:'NVS',   AIR:'EADSY', VOD:'VOD',   BAE:'BAESY',
-  PRU:'PUK',   BNP:'BNPQY',  TTE:'TTE',   BMW:'BMWYY',
-  VUSA:'VOO',  CSPX:'IVV',   IWDA:'URTH', VWRL:'VT',
-  // UK extra
-  BATS:'BTI',  STAN:'SCBFF', NWG:'NWG',   LLOY:'LYG',  MNG:'MGPGY',
-  IMB:'IMBBY', SGRO:'SGRPY', CRH:'CRH',   HL:'HRGLY',  RKT:'RBGLY',
-  TSCO:'TSCDY',LAND:'LDSCY', EXPN:'EXPGY',RR:'RYCEY',  LSEG:'LSEG',
-  // EU extra
-  ALV:'ALIZY', BAS:'BASFY',  VOW3:'VWAGY',ABI:'BUD',   ENI:'E',
-  IBE:'IBDRY', STM:'STM',    INGA:'ING',  AIL:'AIQUY', EDF:'ECIFY',
-  BAYN:'BAYRY',DHER:'DLVRY', MUV2:'MURGY',ADYEN:'ADYEY',
-  UMG:'UMGNF', HLAG:'HLAGF', DHL:'DHLGY', WDP:'WDPPY',
+  HSBA:'HSBC', ULVR:'UL',   DGE:'DEO',  RIO:'RIO',  GSK:'GSK',
+  SIE:'SIEGY', MC:'LVMUY',  ASML:'ASML',OR:'LRLCY', SAP:'SAP',
+  NESN:'NSRGY',NOVN:'NVS',  AIR:'EADSY',VOD:'VOD',  BAE:'BAESY',
+  PRU:'PUK',   BNP:'BNPQY', TTE:'TTE',  BMW:'BMWYY',
+  ALV:'ALIZY', BAS:'BASFY', VOW3:'VWAGY',ABI:'BUD', ENI:'E',
+  IBE:'IBDRY', STM:'STM',   INGA:'ING', BATS:'BTI', LLOY:'LYG',
 };
 
 function logoSources(code: string): string[] {
@@ -64,16 +125,14 @@ function logoSources(code: string): string[] {
     if (CMC_IDS[c]) srcs.push(`https://s2.coinmarketcap.com/static/img/coins/64x64/${CMC_IDS[c]}.png`);
     return srcs;
   }
+  const srcs: string[] = [];
+  const domain = CLEARBIT[c];
+  // Clearbit first — most reliable free logo source for company domains
+  if (domain) srcs.push(`https://logo.clearbit.com/${domain}`);
+  // FMP as backup (free tier may return broken images for some tickers)
+  srcs.push(`https://financialmodelingprep.com/image-stock/${c}.png`);
   const alias = FMP_ALIAS[c];
-  // Try two FMP URL formats — the CDN sometimes differs by region
-  const srcs = [
-    `https://financialmodelingprep.com/image-stock/${c}.png`,
-    `https://images.financialmodelingprep.com/symbol/${c}.png`,
-  ];
-  if (alias && alias !== c) {
-    srcs.push(`https://financialmodelingprep.com/image-stock/${alias}.png`);
-    srcs.push(`https://images.financialmodelingprep.com/symbol/${alias}.png`);
-  }
+  if (alias && alias !== c) srcs.push(`https://financialmodelingprep.com/image-stock/${alias}.png`);
   return srcs;
 }
 
