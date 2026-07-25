@@ -1,248 +1,225 @@
 import React, { useState } from 'react';
-import { X, PlusCircle, TrendingUp, Calendar, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { X, TrendingUp, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import { usePortfolio } from '../../hooks/usePortfolio';
 import { useSubscription } from '../../hooks/useSubscription';
 
 const FREE_ASSET_LIMIT = 5;
 
-const currencySymbol = (c = 'USD') => c === 'GBP' ? '£' : c === 'EUR' ? '€' : '$';
-
-// Map MarketScreen assetType → portfolio DB type
-const toPortfolioType = (assetType: string): string => {
-  if (assetType === 'crypto')        return 'crypto';
-  if (assetType === 'fii')           return 'fii';
-  if (assetType === 'stock')         return 'acao';
-  if (assetType === 'international') return 'stock';   // shown as "INTL" in portfolio
-  return 'stock';
-};
-
-interface Props {
-  asset: {
-    code: string;
-    name: string;
-    price: number;
-    change: number;
-    description?: string;
-    currency?: string;
-  };
-  assetType: 'stock' | 'fii' | 'crypto' | 'international';
+interface AddToPortfolioModalProps {
+  asset: any;
+  assetType: 'stock' | 'fii' | 'crypto' | 'international' | 'etf';
   currency?: string;
   onClose: () => void;
 }
 
-export const AddToPortfolioModal: React.FC<Props> = ({ asset, assetType, currency: currencyProp, onClose }) => {
+const toPortfolioType = (assetType: string): string => {
+  if (assetType === 'crypto')        return 'crypto';
+  if (assetType === 'fii')           return 'fii';
+  if (assetType === 'etf')           return 'etf';
+  if (assetType === 'international') return 'stock';
+  return 'stock';
+};
+
+const currencySymbol = (c = 'USD') =>
+  c === 'GBP' ? '£' : c === 'EUR' ? '€' : '$';
+
+export const AddToPortfolioModal: React.FC<AddToPortfolioModalProps> = ({
+  asset,
+  assetType,
+  currency,
+  onClose,
+}) => {
   const { addAsset, assets } = usePortfolio();
-  const { isPremium } = useSubscription() as any;
+  const { isPremium, isPro, isBusiness } = useSubscription();
+  const isUpgraded = isPremium || isPro || isBusiness;
+  const atFreeLimit = !isUpgraded && assets.length >= FREE_ASSET_LIMIT;
 
-  const atFreeLimit = !isPremium && assets.length >= FREE_ASSET_LIMIT;
+  const resolvedCurrency = currency || asset.currency || 'USD';
+  const sym = currencySymbol(resolvedCurrency);
 
-  const currency   = currencyProp || asset.currency || (assetType === 'crypto' ? 'USD' : 'USD');
-  const sym        = currencySymbol(currency);
-  const portfolioType = toPortfolioType(assetType);
+  const [quantity, setQuantity] = useState('');
+  const [avgPrice, setAvgPrice] = useState(
+    asset.price ? asset.price.toString() : ''
+  );
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+  const [attempted, setAttempted] = useState(false);
 
-  const [quantity,     setQuantity]     = useState('');
-  const [avgPrice,     setAvgPrice]     = useState(asset.price.toFixed(asset.price < 1 ? 4 : 2));
-  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
-  const [saving,       setSaving]       = useState(false);
-  const [saved,        setSaved]        = useState(false);
-  const [error,        setError]        = useState('');
+  const qty = parseFloat(quantity);
+  const avg = parseFloat(avgPrice);
+  const totalInvested = qty > 0 && avg > 0 ? qty * avg : 0;
+  const currentValue = qty > 0 ? qty * asset.price : 0;
+  const profit = currentValue - totalInvested;
+  const profitPct = totalInvested > 0 ? (profit / totalInvested) * 100 : 0;
 
-  const qty       = parseFloat(quantity || '0');
-  const price     = parseFloat(avgPrice || '0');
-  const invested  = qty * price;
-  const currVal   = qty * asset.price;
-  const profit    = currVal - invested;
-  const profitPct = invested > 0 ? (profit / invested) * 100 : 0;
+  const qtyValid = quantity !== '' && qty > 0;
+  const avgValid = avgPrice !== '' && avg > 0;
+  const canSave = qtyValid && avgValid;
 
   const handleAdd = async () => {
-    if (!quantity || qty <= 0)  { toast.error('Enter a valid quantity');      return; }
-    if (!avgPrice || price <= 0){ toast.error('Enter a valid purchase price'); return; }
+    setAttempted(true);
+    if (!canSave) return;
+    if (atFreeLimit) return;
 
     setSaving(true);
     setError('');
 
     const { error: err } = await addAsset({
-      code:      asset.code.toUpperCase(),
-      type:      portfolioType,
-      quantity:  qty,
-      avg_price: price,
-      currency,
+      code: asset.code.split('.')[0].toUpperCase(),
+      type: toPortfolioType(assetType),
+      quantity: qty,
+      avg_price: avg,
     });
 
     setSaving(false);
     if (err) {
-      const msg = typeof err === 'string' ? err : 'Failed to add asset. Please try again.';
-      setError(msg);
-      toast.error(msg);
+      setError(typeof err === 'string' ? err : 'Failed to add asset. Try again.');
     } else {
       setSaved(true);
-      toast.success(`${asset.code} added to portfolio! 📊`);
-      setTimeout(onClose, 1000);
+      setTimeout(() => onClose(), 1400);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-end z-[60]">
+    <div className="fixed inset-0 bg-black/60 flex items-end z-[60] animate-fade-in">
       <div className="bg-white w-full rounded-t-3xl max-h-[88vh] overflow-y-auto">
-
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">Add to Portfolio</h2>
-            <p className="text-xs text-slate-500">{asset.code} · {asset.name}</p>
+            <h2 className="text-xl font-bold text-slate-900">Add to Portfolio</h2>
+            <p className="text-sm text-slate-500">{asset.code} · {asset.name}</p>
           </div>
-          <button onClick={onClose} className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center">
-            <X className="w-5 h-5 text-slate-600"/>
+          <button
+            onClick={onClose}
+            className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center hover:bg-slate-200 transition"
+          >
+            <X className="w-5 h-5 text-slate-600" />
           </button>
         </div>
 
-        {/* Free-tier limit gate */}
-        {atFreeLimit ? (
-          <div className="p-8 text-center">
-            <div className="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertCircle className="w-7 h-7 text-yellow-600"/>
+        <div className="p-5 space-y-5">
+          {/* Free plan limit */}
+          {atFreeLimit && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+              <p className="font-semibold">Free plan limit reached</p>
+              <p className="text-xs mt-1">Upgrade your plan to add more than {FREE_ASSET_LIMIT} assets.</p>
             </div>
-            <h3 className="font-bold text-slate-900 mb-1">Portfolio limit reached</h3>
-            <p className="text-sm text-slate-500 mb-4">
-              Free plan allows up to {FREE_ASSET_LIMIT} assets. Upgrade to add unlimited assets.
-            </p>
-            <button onClick={onClose} className="px-6 py-3 bg-green-600 text-white font-bold rounded-xl">
-              Close
-            </button>
-          </div>
-        ) : (
-          <div className="p-5 space-y-5">
+          )}
 
-            {/* Current price chip */}
-            <div className="bg-slate-50 rounded-2xl px-5 py-4 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-slate-500 mb-0.5">Current Price</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {sym}{asset.price < 1 ? asset.price.toFixed(4) : asset.price.toLocaleString('en-IE', { minimumFractionDigits: 2 })}
+          {/* Current price card */}
+          <div className="bg-slate-50 rounded-2xl p-4">
+            <p className="text-xs text-slate-500 mb-1">Current Price</p>
+            <div className="flex items-end gap-2">
+              <p className="text-2xl font-bold text-slate-900">
+                {sym}{asset.price?.toLocaleString('en-IE', { minimumFractionDigits: 2 })}
+              </p>
+              {asset.change !== undefined && (
+                <p className={`text-sm font-semibold mb-0.5 ${asset.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {asset.change >= 0 ? '+' : ''}{asset.change.toFixed(2)}%
                 </p>
-              </div>
-              <span className={`text-sm font-bold px-3 py-1 rounded-full ${asset.change >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                {asset.change >= 0 ? '+' : ''}{asset.change.toFixed(2)}%
-              </span>
+              )}
             </div>
+          </div>
 
-            {/* Quantity */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Quantity {assetType === 'crypto' ? '(units)' : '(shares)'}
-              </label>
+          {/* Quantity */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+              Quantity (shares)
+            </label>
+            <input
+              type="number"
+              value={quantity}
+              onChange={e => { setQuantity(e.target.value); setError(''); }}
+              placeholder="0"
+              min="0"
+              step={assetType === 'crypto' ? '0.00000001' : '1'}
+              className={`w-full px-4 py-3 bg-white border-2 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition ${
+                attempted && !qtyValid ? 'border-red-400 bg-red-50' : 'border-slate-200'
+              }`}
+            />
+            {attempted && !qtyValid && (
+              <p className="text-xs text-red-500 mt-1">Enter a quantity greater than 0</p>
+            )}
+          </div>
+
+          {/* Avg Price */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+              Average Purchase Price ({sym})
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">{sym}</span>
               <input
                 type="number"
-                value={quantity}
-                onChange={e => setQuantity(e.target.value)}
-                placeholder="0"
+                value={avgPrice}
+                onChange={e => { setAvgPrice(e.target.value); setError(''); }}
+                placeholder="0.00"
                 min="0"
-                step={assetType === 'crypto' ? '0.00000001' : '1'}
-                className="w-full px-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-green-600 focus:bg-white transition font-semibold text-slate-900"
+                step="0.01"
+                className={`w-full pl-8 pr-4 py-3 bg-white border-2 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition ${
+                  attempted && !avgValid ? 'border-red-400 bg-red-50' : 'border-slate-200'
+                }`}
               />
             </div>
-
-            {/* Average Purchase Price */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Average Purchase Price</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">{sym}</span>
-                <input
-                  type="number"
-                  value={avgPrice}
-                  onChange={e => setAvgPrice(e.target.value)}
-                  placeholder="0.00"
-                  step="0.01"
-                  className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-green-600 focus:bg-white transition font-semibold text-slate-900"
-                />
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Price you paid per {assetType === 'crypto' ? 'unit' : 'share'}
-              </p>
-            </div>
-
-            {/* Purchase Date */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4"/>Purchase Date (optional)</span>
-              </label>
-              <input
-                type="date"
-                value={purchaseDate}
-                onChange={e => setPurchaseDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-green-600 focus:bg-white transition font-semibold text-slate-900"
-              />
-            </div>
-
-            {/* Position summary */}
-            {quantity && avgPrice && qty > 0 && price > 0 && (
-              <div className="bg-slate-50 rounded-2xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="w-4 h-4 text-slate-600"/>
-                  <h3 className="font-bold text-slate-800 text-sm">Position Summary</h3>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Quantity</span>
-                    <span className="font-semibold text-slate-900">{qty.toLocaleString()} {assetType === 'crypto' ? 'units' : 'shares'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Avg Price</span>
-                    <span className="font-semibold text-slate-900">{sym}{price.toLocaleString('en-IE', { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Total Invested</span>
-                    <span className="font-semibold text-slate-900">{sym}{invested.toLocaleString('en-IE', { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="border-t border-slate-200 pt-2 flex justify-between">
-                    <span className="text-slate-500">Current Value</span>
-                    <span className="font-semibold text-slate-900">{sym}{currVal.toLocaleString('en-IE', { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-bold text-slate-800">Return</span>
-                    <div className="text-right">
-                      <p className={`font-bold ${profit >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                        {profit >= 0 ? '+' : ''}{sym}{Math.abs(profit).toLocaleString('en-IE', { minimumFractionDigits: 2 })}
-                      </p>
-                      <p className={`text-xs font-semibold ${profitPct >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                        ({profitPct >= 0 ? '+' : ''}{profitPct.toFixed(2)}%)
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {attempted && !avgValid && (
+              <p className="text-xs text-red-500 mt-1">Enter the price you paid per share</p>
             )}
-
-            {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 rounded-xl">
-                <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0"/>
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
-
-            {/* CTA */}
-            <button
-              onClick={handleAdd}
-              disabled={saving || saved || !quantity || !avgPrice || qty <= 0 || price <= 0}
-              className={`w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition ${
-                saved ? 'bg-green-500' :
-                saving || !quantity || qty <= 0 ? 'bg-slate-300' :
-                'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg'
-              }`}
-            >
-              {saved   ? <><CheckCircle className="w-5 h-5"/> Added!</> :
-               saving  ? <><Loader2 className="w-5 h-5 animate-spin"/> Saving…</> :
-                         <><PlusCircle className="w-5 h-5"/> Add to Portfolio</>}
-            </button>
-
-            <p className="text-center text-xs text-slate-400 pb-2">
-              💡 Information shown is for educational purposes. Track your real investments here.
-            </p>
           </div>
-        )}
-      </div>
-    </div>
-  );
-};
+
+          {/* Position Summary */}
+          {totalInvested > 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-bold text-green-700">Position Summary</span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Total Invested</span>
+                  <span className="font-semibold text-slate-900">
+                    {sym}{totalInvested.toLocaleString('en-IE', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Current Value</span>
+                  <span className="font-semibold text-slate-900">
+                    {sym}{currentValue.toLocaleString('en-IE', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-green-200">
+                  <span className="font-bold text-slate-900">Return</span>
+                  <div className="text-right">
+                    <p className={`font-bold ${profit >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                      {profit >= 0 ? '+' : ''}{sym}{Math.abs(profit).toLocaleString('en-IE', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className={`text-xs font-semibold ${profitPct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {profitPct >= 0 ? '+' : ''}{profitPct.toFixed(2)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
+          {/* Success */}
+          {saved && (
+            <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <p className="text-sm text-green-700 font-semibold">{asset.code} added to your portfolio!</p>
+            </div>
+          )}
+
+          {/* Save Button */}
+          <button
+            onClick={handleAdd}
+            disabled={saving || saved || atFreeLimit}
+            className={`w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-

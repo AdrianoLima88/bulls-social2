@@ -73,6 +73,7 @@ export const AddAssetToPortfolio = ({ onBack, onNavigateToPremium }) => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [attempted, setAttempted] = useState(false);
 
   const totalInvested = quantity && avgPrice
     ? parseFloat(quantity) * parseFloat(avgPrice)
@@ -105,6 +106,7 @@ export const AddAssetToPortfolio = ({ onBack, onNavigateToPremium }) => {
   };
 
   const handleSave = async () => {
+    setAttempted(true);
     if (!canSave) return;
     setSaving(true);
     setError('');
@@ -135,8 +137,8 @@ export const AddAssetToPortfolio = ({ onBack, onNavigateToPremium }) => {
           <h1 className="text-white font-bold text-lg">Add Asset</h1>
           <button
             onClick={handleSave}
-            disabled={atFreeLimit || !canSave || saving || saved}
-            className={`text-sm font-bold transition ${!atFreeLimit && canSave && !saving && !saved ? 'text-white' : 'text-white/40'}`}
+            disabled={saving || saved || atFreeLimit}
+            className={`text-sm font-bold transition ${!atFreeLimit && !saving && !saved ? 'text-white' : 'text-white/40'}`}
           >
             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : saved ? '✓' : 'Save'}
           </button>
@@ -258,12 +260,17 @@ export const AddAssetToPortfolio = ({ onBack, onNavigateToPremium }) => {
             <input
               type="number"
               value={quantity}
-              onChange={e => setQuantity(e.target.value)}
+              onChange={e => { setQuantity(e.target.value); }}
               placeholder="0"
               min="0"
               step="any"
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`w-full px-4 py-3 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                attempted && (!quantity || parseFloat(quantity) <= 0) ? 'border-red-400 bg-red-50' : 'border-slate-200'
+              }`}
             />
+            {attempted && (!quantity || parseFloat(quantity) <= 0) && (
+              <p className="text-xs text-red-500 mt-1">Enter a quantity greater than 0</p>
+            )}
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Avg Price ({sym})</p>
@@ -272,13 +279,18 @@ export const AddAssetToPortfolio = ({ onBack, onNavigateToPremium }) => {
               <input
                 type="number"
                 value={avgPrice}
-                onChange={e => setAvgPrice(e.target.value)}
+                onChange={e => { setAvgPrice(e.target.value); }}
                 placeholder="0.00"
                 min="0"
                 step="any"
-                className="w-full pl-7 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                className={`w-full pl-7 pr-4 py-3 bg-white border rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                  attempted && (!avgPrice || parseFloat(avgPrice) <= 0) ? 'border-red-400 bg-red-50' : 'border-slate-200'
+                }`}
               />
             </div>
+            {attempted && (!avgPrice || parseFloat(avgPrice) <= 0) && (
+              <p className="text-xs text-red-500 mt-1">Enter the price you paid per share</p>
+            )}
           </div>
         </div>
 
@@ -316,9 +328,9 @@ export const AddAssetToPortfolio = ({ onBack, onNavigateToPremium }) => {
         {/* Save button */}
         <button
           onClick={handleSave}
-          disabled={!canSave || saving || saved}
+          disabled={saving || saved}
           className={`w-full py-4 rounded-2xl font-bold text-base transition flex items-center justify-center gap-2 ${
-            canSave && !saving && !saved
+            !saving && !saved
               ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
               : 'bg-slate-200 text-slate-400'
           }`}
@@ -328,19 +340,4 @@ export const AddAssetToPortfolio = ({ onBack, onNavigateToPremium }) => {
            : 'Add to Portfolio'}
         </button>
 
-        {/* Tip */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-          <p className="text-xs text-blue-800">
-            💡 <strong>Tip:</strong>{' '}
-            {assetType === 'stock' && 'Diversify across sectors and geographies to reduce risk.'}
-            {assetType === 'etf' && 'ETFs like VWCE give you global diversification in a single fund.'}
-            {assetType === 'crypto' && 'Crypto is highly volatile. Only invest what you can afford to lose.'}
-            {assetType === 'bond' && 'Bonds and gilts provide stability and predictable income.'}
-          </p>
-        </div>
-
-      </div>
-      )}
-    </div>
-  );
-};
+        {/* Tip *
