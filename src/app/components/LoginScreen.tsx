@@ -4,36 +4,33 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const BullsGoLogo = ({ size = 80 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Lime green outer background */}
+    {/* Lime green outer */}
     <rect width="200" height="200" rx="44" fill="#5ab82e"/>
-    {/* Dark inner background */}
-    <rect x="12" y="12" width="176" height="176" rx="30" fill="#1a3828"/>
+    {/* Dark inner — same as app header color */}
+    <rect x="12" y="12" width="176" height="176" rx="30" fill="#14532d"/>
 
-    {/* LEFT HORN — thick crescent sweeping up-left */}
-    <path d="M 70 96 C 56 82 36 66 28 44 C 22 26 40 16 54 28 C 66 38 74 62 74 96 Z" fill="white"/>
-    {/* RIGHT HORN — thick crescent sweeping up-right */}
-    <path d="M 130 96 C 144 82 164 66 172 44 C 178 26 160 16 146 28 C 134 38 126 62 126 96 Z" fill="white"/>
+    {/* ── Bold Letter B ── */}
 
-    {/* BULL HEAD — green oval face */}
-    <ellipse cx="100" cy="122" rx="46" ry="52" fill="#5ab82e"/>
-    {/* LEFT EAR */}
-    <ellipse cx="54" cy="100" rx="14" ry="12" fill="#5ab82e"/>
-    {/* RIGHT EAR */}
-    <ellipse cx="146" cy="100" rx="14" ry="12" fill="#5ab82e"/>
+    {/* White outer B shape */}
+    <path
+      d="M 44 30 L 118 30 Q 160 30 160 65 Q 160 98 118 100 Q 162 104 162 140 Q 162 174 118 174 L 44 174 Z"
+      fill="white"
+    />
 
-    {/* DARK SNOUT */}
-    <ellipse cx="100" cy="150" rx="32" ry="22" fill="#122419"/>
-    {/* LEFT NOSTRIL */}
-    <ellipse cx="86" cy="154" rx="9" ry="10" fill="#0a1810"/>
-    {/* RIGHT NOSTRIL */}
-    <ellipse cx="114" cy="154" rx="9" ry="10" fill="#0a1810"/>
+    {/* Top bowl cutout (dark) */}
+    <path
+      d="M 72 50 L 112 50 Q 136 50 136 65 Q 136 84 112 84 L 72 84 Z"
+      fill="#14532d"
+    />
 
-    {/* LEFT EYE */}
-    <circle cx="80" cy="108" r="8" fill="#122419"/>
-    <circle cx="82" cy="106" r="3" fill="white"/>
-    {/* RIGHT EYE */}
-    <circle cx="120" cy="108" r="8" fill="#122419"/>
-    <circle cx="122" cy="106" r="3" fill="white"/>
+    {/* Bottom bowl cutout (dark) — slightly larger than top */}
+    <path
+      d="M 72 106 L 116 106 Q 142 106 142 140 Q 142 158 116 158 L 72 158 Z"
+      fill="#14532d"
+    />
+
+    {/* Lime green spine */}
+    <rect x="44" y="30" width="28" height="144" fill="#5ab82e"/>
   </svg>
 );
 
@@ -165,17 +162,18 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
+  /* ── Tab styles — active matches the Login button gradient ── */
   const activeTabStyle: React.CSSProperties = {
     flex: 1,
     padding: '10px 0',
-    background: '#ffffff',
-    color: '#111827',
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 60%, #15803d 100%)',
+    color: '#ffffff',
     fontWeight: 700,
     fontSize: 15,
     border: 'none',
     borderRadius: 10,
     cursor: 'pointer',
-    boxShadow: '0 1px 6px rgba(0,0,0,0.10)',
+    boxShadow: '0 4px 14px rgba(22,163,74,0.35)',
     transition: 'all 0.2s ease',
   };
   const inactiveTabStyle: React.CSSProperties = {
@@ -426,7 +424,7 @@ export const LoginScreen: React.FC = () => {
             {loading
               ? 'Please wait…'
               : mode === 'login'
-                ? 'Login'
+                ? 'Login →'
                 : mode === 'register'
                   ? 'Create Account'
                   : 'Send Reset Link'}
