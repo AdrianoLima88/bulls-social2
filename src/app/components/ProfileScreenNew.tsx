@@ -699,4 +699,11 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
             setSelectedMedia(null);
           }}
           onLike={() => handleLike(selectedMedia.post.id)}
-          onComment={() => onNaviga
+          onComment={() => onNavigateToComments && onNavigateToComments(selectedMedia.post)}
+          onShare={() => handleShare(selectedMedia.post)}
+          isLiked={hasLiked(selectedMedia.post.id)}
+        />
+      )}
+    </div>
+  );
+};
