@@ -222,4 +222,18 @@ export const AddToPortfolioModal: React.FC<AddToPortfolioModalProps> = ({
           <button
             onClick={handleAdd}
             disabled={saving || saved || atFreeLimit}
-            className={`w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-
+            className={`w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition ${
+              saving || saved || atFreeLimit
+                ? 'bg-slate-200 text-slate-400'
+                : 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
+            }`}
+          >
+            {saving ? <><Loader2 className="w-5 h-5 animate-spin" /> Saving…</>
+             : saved ? <><CheckCircle className="w-5 h-5" /> Saved!</>
+             : 'Add to Portfolio'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
