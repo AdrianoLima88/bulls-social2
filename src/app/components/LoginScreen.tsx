@@ -2,40 +2,84 @@ import React, { useState } from 'react';
 import { Mail, Lock, User, AtSign, Eye, EyeOff, ArrowRight, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
-// BullsGo Bull Logo
-const BullLogo = ({ className = '' }: { className?: string }) => (
-  <svg viewBox="0 0 60 54" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    {/* Left horn */}
-    <path d="M17 25C17 25 6 19 7 7C10 0 19 4 19 4C19 4 14 13 18 23L17 25Z" fill="white"/>
-    {/* Right horn */}
-    <path d="M43 25C43 25 54 19 53 7C50 0 41 4 41 4C41 4 46 13 42 23L43 25Z" fill="white"/>
-    {/* Ear left */}
-    <ellipse cx="12" cy="31" rx="4.5" ry="5.5" fill="white"/>
-    {/* Ear right */}
-    <ellipse cx="48" cy="31" rx="4.5" ry="5.5" fill="white"/>
-    {/* Head */}
-    <ellipse cx="30" cy="37" rx="19" ry="15" fill="white"/>
-    {/* Snout */}
-    <ellipse cx="30" cy="46" rx="11" ry="7" fill="#bbf7d0"/>
-    {/* Eyes */}
-    <circle cx="22" cy="33" r="3.5" fill="#15803d"/>
-    <circle cx="38" cy="33" r="3.5" fill="#15803d"/>
-    {/* Eye shine */}
-    <circle cx="23.4" cy="31.6" r="1.4" fill="white"/>
-    <circle cx="39.4" cy="31.6" r="1.4" fill="white"/>
-    {/* Nostrils */}
-    <ellipse cx="26" cy="47" rx="2.8" ry="2.2" fill="#15803d"/>
-    <ellipse cx="34" cy="47" rx="2.8" ry="2.2" fill="#15803d"/>
+/* ─── Logo SVG — bull head matching reference image ─── */
+const BullsGoLogo = ({ size = 80 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Lime-green outer rounded square */}
+    <rect width="200" height="200" rx="44" fill="#6dbf3e"/>
+    {/* Dark teal inner square */}
+    <rect x="14" y="14" width="172" height="172" rx="30" fill="#1b4d3e"/>
+
+    {/* ── LEFT HORN ── thick arc sweeping up-left */}
+    <path d="M 80 82
+             C 72 70 52 46 36 26
+             C 52 22 68 50 78 78 Z"
+          fill="white"/>
+
+    {/* ── RIGHT HORN ── mirror */}
+    <path d="M 120 82
+             C 128 70 148 46 164 26
+             C 148 22 132 50 122 78 Z"
+          fill="white"/>
+
+    {/* ── FACE ── lime-green geometric bull head */}
+    <path d="M 76 80
+             Q 65 93 70 110
+             L 74 138
+             Q 81 160 100 163
+             Q 119 160 126 138
+             L 130 110
+             Q 135 93 124 80
+             Q 113 65 100 63
+             Q 87 65 76 80 Z"
+          fill="#7dc42a"/>
+
+    {/* ── DIAGONAL DARK SLASH ── dynamic angular stripe */}
+    <path d="M 76 92 L 122 75 L 126 100 L 80 120 Z"
+          fill="#1b4d3e"/>
+
+    {/* ── SNOUT ── dark oval */}
+    <ellipse cx="100" cy="147" rx="28" ry="19" fill="#163d30"/>
+
+    {/* ── LEFT NOSTRIL ── */}
+    <ellipse cx="87" cy="149" rx="9" ry="10" fill="#0c2920"/>
+
+    {/* ── RIGHT NOSTRIL ── */}
+    <ellipse cx="113" cy="149" rx="9" ry="10" fill="#0c2920"/>
   </svg>
 );
 
-const InputField = ({ icon: Icon, ...props }: any) => (
-  <div className="relative">
-    <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-    <input
-      {...props}
-      className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:outline-none focus:border-green-500 focus:bg-white transition-all duration-200 text-slate-900 placeholder-slate-400 text-sm"
-    />
+/* ─── Reusable input ─── */
+const Field = ({
+  label, icon: Icon, right, type = 'text', value, onChange, placeholder, required, minLength, autoComplete
+}: any) => (
+  <div>
+    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      {label}
+    </label>
+    <div style={{ position: 'relative' }}>
+      <Icon style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#9CA3AF', flexShrink: 0 }} />
+      <input
+        type={type} value={value} onChange={onChange}
+        placeholder={placeholder} required={required} minLength={minLength} autoComplete={autoComplete}
+        style={{
+          width: '100%', boxSizing: 'border-box',
+          paddingLeft: 44, paddingRight: right ? 44 : 14,
+          paddingTop: 14, paddingBottom: 14,
+          background: '#F9FAFB', border: '1.5px solid #E5E7EB',
+          borderRadius: 12, fontSize: 15, color: '#111827',
+          outline: 'none', fontFamily: 'inherit',
+          transition: 'border-color 0.15s, box-shadow 0.15s',
+        }}
+        onFocus={e => { e.target.style.borderColor = '#16a34a'; e.target.style.boxShadow = '0 0 0 3px rgba(22,163,74,0.12)'; e.target.style.background = '#fff'; }}
+        onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.boxShadow = 'none'; e.target.style.background = '#F9FAFB'; }}
+      />
+      {right && (
+        <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}>
+          {right}
+        </div>
+      )}
+    </div>
   </div>
 );
 
@@ -61,202 +105,240 @@ export const LoginScreen: React.FC = () => {
       if (mode === 'forgot') {
         const { error } = await resetPasswordForEmail(email);
         if (error) setError(error.message || 'Could not send reset link');
-        else setInfo("Reset link sent! Check your inbox.");
+        else setInfo('Reset link sent! Check your inbox.');
       } else if (mode === 'login') {
         const { error } = await signIn(email, password);
-        if (error) setError(error.message || 'Failed to login');
+        if (error) setError(error.message || 'Incorrect email or password');
       } else {
         if (!username.startsWith('@')) { setError('Username must start with @'); setLoading(false); return; }
         const { error } = await signUp(email, password, username, name);
         if (error) setError(error.message || 'Failed to create account');
-        else setInfo("Account created! Check your inbox if confirmation is needed.");
+        else setInfo('Account created! Check your inbox if confirmation is needed.');
       }
     } catch { setError('An unexpected error occurred'); }
     finally { setLoading(false); }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(160deg, #052e16 0%, #14532d 45%, #166534 100%)' }}>
+  const BASE: React.CSSProperties = {
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+    minHeight: '100dvh',
+    display: 'flex',
+    flexDirection: 'column',
+    background: 'linear-gradient(175deg, #14532d 0%, #166534 50%, #15803d 100%)',
+  };
 
-      {/* Decorative bg elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-        <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full" style={{ background: 'radial-gradient(circle, rgba(74,222,128,0.15), transparent 70%)' }} />
-        <div className="absolute top-36 -left-16 w-48 h-48 rounded-full" style={{ background: 'radial-gradient(circle, rgba(134,239,172,0.1), transparent 70%)' }} />
-        <svg className="absolute bottom-56 w-full opacity-5" height="60" viewBox="0 0 390 60" preserveAspectRatio="none">
-          <polyline points="0,45 60,30 120,40 180,15 240,28 300,10 360,22 390,18" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+  return (
+    <div style={BASE}>
+
+      {/* ── Decorative background ── */}
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: -60, right: -60, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(74,222,128,0.18) 0%, transparent 70%)' }} />
+        <div style={{ position: 'absolute', top: 100, left: -50, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(134,239,172,0.12) 0%, transparent 70%)' }} />
+        <svg style={{ position: 'absolute', bottom: '45%', width: '100%', opacity: 0.06 }} height="50" viewBox="0 0 390 50" preserveAspectRatio="none">
+          <polyline points="0,38 55,22 110,32 165,10 220,20 275,6 330,16 390,12" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
 
-      {/* Hero top section */}
-      <div className="relative z-10 flex flex-col items-center pt-14 pb-10 px-6">
-        {/* Logo */}
-        <div className="relative mb-5">
-          <div className="w-24 h-24 rounded-3xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(145deg, #22c55e, #16a34a, #15803d)', boxShadow: '0 16px 48px rgba(22,163,74,0.45), 0 0 0 1px rgba(255,255,255,0.08)' }}>
-            <BullLogo className="w-16 h-14" />
-          </div>
-          {/* Glow */}
-          <div className="absolute inset-0 rounded-3xl blur-2xl opacity-40 -z-10 scale-125"
-            style={{ background: 'linear-gradient(145deg, #4ade80, #16a34a)' }} />
+      {/* ── Hero / Logo section ── */}
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 52, paddingBottom: 44, paddingLeft: 24, paddingRight: 24 }}>
+
+        {/* Logo with glow */}
+        <div style={{ position: 'relative', marginBottom: 18 }}>
+          <BullsGoLogo size={88} />
+          <div style={{ position: 'absolute', inset: -8, borderRadius: 52, background: 'radial-gradient(circle, rgba(109,191,62,0.35) 0%, transparent 70%)', zIndex: -1 }} />
         </div>
 
-        <h1 className="text-4xl font-black text-white tracking-tight mb-1 drop-shadow-lg">BullsGo</h1>
-        <p className="text-green-300 text-sm font-medium tracking-widest uppercase">The Social Network for Investors</p>
+        <h1 style={{ margin: '0 0 4px', fontSize: 32, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.5px', textShadow: '0 2px 12px rgba(0,0,0,0.15)' }}>
+          BullsGo
+        </h1>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 500, color: '#86efac', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+          The Social Network for Investors
+        </p>
 
-        {/* Floating badges */}
-        <div className="flex gap-3 mt-5">
-          <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 border border-white/10" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)' }}>
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse block" />
-            <span className="text-white/75 text-xs font-medium">Live Markets</span>
-          </div>
-          <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 border border-white/10" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)' }}>
-            <span className="text-green-400 text-xs">📈</span>
-            <span className="text-white/75 text-xs font-medium">Portfolio Tracker</span>
-          </div>
+        {/* Glassmorphism chips */}
+        <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+          {[
+            { dot: true, label: 'Live Markets' },
+            { label: '📈 Portfolio Tracker' },
+          ].map(({ dot, label }) => (
+            <div key={label} style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 14px', borderRadius: 20,
+              background: 'rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.18)',
+            }}>
+              {dot && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', display: 'block' }} />}
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>{label}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* White card - grows to fill remaining space */}
-      <div className="relative z-10 flex-1 bg-white rounded-t-3xl shadow-2xl px-6 pt-8 pb-10" style={{ minHeight: 0 }}>
+      {/* ── White form card ── */}
+      <div style={{
+        position: 'relative', zIndex: 1, flex: 1,
+        background: '#ffffff',
+        borderRadius: '28px 28px 0 0',
+        padding: '28px 24px 36px',
+        boxShadow: '0 -4px 32px rgba(0,0,0,0.12)',
+      }}>
 
         {mode === 'forgot' ? (
           <>
-            <button onClick={() => switchMode('login')} className="flex items-center gap-1 text-green-600 font-semibold text-sm mb-5 -ml-1">
-              <ChevronLeft className="w-4 h-4" /> Back to login
+            <button
+              onClick={() => switchMode('login')}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: '#16a34a', fontSize: 14, fontWeight: 600, padding: 0, marginBottom: 20, fontFamily: 'inherit' }}
+            >
+              <ChevronLeft style={{ width: 16, height: 16 }} /> Back to login
             </button>
-            <h2 className="text-2xl font-black text-slate-900">Reset Password</h2>
-            <p className="text-slate-500 text-sm mt-1 mb-6">Enter your email and we'll send a link to reset it.</p>
+            <h2 style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 800, color: '#111827' }}>Reset Password</h2>
+            <p style={{ margin: '0 0 24px', fontSize: 14, color: '#6B7280' }}>Enter your email and we'll send you a reset link.</p>
           </>
         ) : (
           <>
-            {/* Pill tab switcher */}
-            <div className="flex bg-slate-100 rounded-2xl p-1 mb-6">
+            {/* ── Segmented control ── */}
+            <div style={{
+              display: 'flex', background: '#F3F4F6', borderRadius: 14,
+              padding: 4, marginBottom: 24,
+            }}>
               {(['login', 'register'] as const).map(m => (
-                <button key={m} onClick={() => switchMode(m)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
-                    mode === m ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                  }`}>
+                <button key={m} onClick={() => switchMode(m)} style={{
+                  flex: 1, padding: '10px 0', borderRadius: 11,
+                  border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700,
+                  fontFamily: 'inherit', transition: 'all 0.2s',
+                  background: mode === m ? '#ffffff' : 'transparent',
+                  color: mode === m ? '#111827' : '#6B7280',
+                  boxShadow: mode === m ? '0 1px 6px rgba(0,0,0,0.10)' : 'none',
+                }}>
                   {m === 'login' ? 'Login' : 'Register'}
                 </button>
               ))}
             </div>
 
-            <div className="mb-5">
-              {mode === 'login' ? (
-                <><h2 className="text-2xl font-black text-slate-900">Welcome back 👋</h2>
-                <p className="text-slate-500 text-sm mt-0.5">Sign in to your BullsGo account</p></>
-              ) : (
-                <><h2 className="text-2xl font-black text-slate-900">Join BullsGo 🚀</h2>
-                <p className="text-slate-500 text-sm mt-0.5">Connect, learn and invest better</p></>
-              )}
+            <div style={{ marginBottom: 22 }}>
+              <h2 style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 800, color: '#111827' }}>
+                {mode === 'login' ? 'Welcome back 👋' : 'Join BullsGo 🚀'}
+              </h2>
+              <p style={{ margin: 0, fontSize: 14, color: '#6B7280' }}>
+                {mode === 'login' ? 'Sign in to your BullsGo account' : 'Connect, learn and invest better'}
+              </p>
             </div>
           </>
         )}
 
         {/* Alert boxes */}
         {error && (
-          <div className="mb-4 p-3.5 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-2">
-            <span className="text-lg leading-none mt-0.5">⚠️</span>
-            <p className="text-red-600 text-sm leading-snug">{error}</p>
+          <div style={{ marginBottom: 16, padding: '12px 14px', background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 12, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+            <p style={{ margin: 0, fontSize: 13, color: '#DC2626', lineHeight: 1.45 }}>{error}</p>
           </div>
         )}
         {info && (
-          <div className="mb-4 p-3.5 bg-green-50 border border-green-100 rounded-2xl flex items-start gap-2">
-            <span className="text-lg leading-none mt-0.5">✅</span>
-            <p className="text-green-700 text-sm leading-snug">{info}</p>
+          <div style={{ marginBottom: 16, padding: '12px 14px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 12, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>✅</span>
+            <p style={{ margin: 0, fontSize: 13, color: '#15803d', lineHeight: 1.45 }}>{info}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {mode === 'register' && (
             <>
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Full Name</label>
-                <InputField icon={User} type="text" value={name} onChange={(e: any) => setName(e.target.value)} placeholder="John Doe" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Username</label>
-                <InputField icon={AtSign} type="text" value={username}
-                  onChange={(e: any) => { let v = e.target.value; if (!v.startsWith('@')) v = '@' + v; setUsername(v); }}
-                  placeholder="@username" required />
-              </div>
+              <Field label="Full Name" icon={User} type="text" value={name} onChange={(e: any) => setName(e.target.value)} placeholder="John Doe" required autoComplete="name" />
+              <Field label="Username" icon={AtSign} type="text" value={username}
+                onChange={(e: any) => { let v = e.target.value; if (!v.startsWith('@')) v = '@' + v; setUsername(v); }}
+                placeholder="@username" required autoComplete="username" />
             </>
           )}
 
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Email</label>
-            <InputField icon={Mail} type="email" value={email} onChange={(e: any) => setEmail(e.target.value)} placeholder="your@email.com" required />
-          </div>
+          <Field label="Email" icon={Mail} type="email" value={email} onChange={(e: any) => setEmail(e.target.value)} placeholder="your@email.com" required autoComplete="email" />
 
           {mode !== 'forgot' && (
             <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Password</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</label>
                 {mode === 'login' && (
-                  <button type="button" onClick={() => switchMode('forgot')} className="text-xs text-green-600 font-bold hover:underline">
+                  <button type="button" onClick={() => switchMode('forgot')}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#16a34a', padding: 0, fontFamily: 'inherit' }}>
                     Forgot password?
                   </button>
                 )}
               </div>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+              <div style={{ position: 'relative' }}>
+                <Lock style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#9CA3AF' }} />
                 <input
                   type={showPwd ? 'text' : 'password'}
-                  value={password} onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••" required minLength={6}
-                  className="w-full pl-12 pr-12 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:outline-none focus:border-green-500 focus:bg-white transition-all duration-200 text-slate-900 placeholder-slate-400 text-sm"
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••" required minLength={6} autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    paddingLeft: 44, paddingRight: 44, paddingTop: 14, paddingBottom: 14,
+                    background: '#F9FAFB', border: '1.5px solid #E5E7EB',
+                    borderRadius: 12, fontSize: 15, color: '#111827',
+                    outline: 'none', fontFamily: 'inherit',
+                    transition: 'border-color 0.15s, box-shadow 0.15s',
+                  }}
+                  onFocus={e => { e.target.style.borderColor = '#16a34a'; e.target.style.boxShadow = '0 0 0 3px rgba(22,163,74,0.12)'; e.target.style.background = '#fff'; }}
+                  onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.boxShadow = 'none'; e.target.style.background = '#F9FAFB'; }}
                 />
                 <button type="button" onClick={() => setShowPwd(!showPwd)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1">
-                  {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 4 }}>
+                  {showPwd ? <EyeOff style={{ width: 18, height: 18 }} /> : <Eye style={{ width: 18, height: 18 }} />}
                 </button>
               </div>
-              {mode === 'register' && <p className="text-xs text-slate-400 mt-1 ml-1">Minimum 6 characters</p>}
+              {mode === 'register' && <p style={{ margin: '4px 0 0 2px', fontSize: 12, color: '#9CA3AF' }}>Minimum 6 characters</p>}
             </div>
           )}
 
           {/* Submit button */}
-          <div className="pt-1">
-            <button
-              type="submit" disabled={loading}
-              className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 transition-all duration-200 active:scale-95"
-              style={{
-                background: loading ? '#94a3b8' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%)',
-                boxShadow: loading ? 'none' : '0 8px 32px rgba(22, 163, 74, 0.40)',
-              }}
-            >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Please wait...</span>
-                </>
-              ) : (
-                <>
-                  <span>{mode === 'login' ? 'Login' : mode === 'register' ? 'Create Account' : 'Send Reset Link'}</span>
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            type="submit" disabled={loading}
+            style={{
+              marginTop: 4,
+              width: '100%', padding: '15px 0', borderRadius: 14,
+              border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+              background: loading ? '#D1FAE5' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 60%, #15803d 100%)',
+              color: loading ? '#6B7280' : '#ffffff',
+              fontSize: 16, fontWeight: 800, fontFamily: 'inherit',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              boxShadow: loading ? 'none' : '0 6px 20px rgba(22,163,74,0.35)',
+              transition: 'all 0.2s',
+            }}
+          >
+            {loading ? (
+              <>
+                <div style={{ width: 18, height: 18, border: '2.5px solid #9CA3AF', borderTopColor: '#16a34a', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                Please wait…
+              </>
+            ) : (
+              <>
+                {mode === 'login' ? 'Login' : mode === 'register' ? 'Create Account' : 'Send Reset Link'}
+                <ArrowRight style={{ width: 18, height: 18 }} />
+              </>
+            )}
+          </button>
         </form>
 
         {mode === 'login' && (
-          <p className="text-center text-sm text-slate-500 mt-5">
+          <p style={{ textAlign: 'center', fontSize: 14, color: '#6B7280', marginTop: 20, marginBottom: 0 }}>
             Don't have an account?{' '}
-            <button onClick={() => switchMode('register')} className="text-green-600 font-black hover:underline">
+            <button onClick={() => switchMode('register')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#16a34a', fontWeight: 800, fontSize: 14, padding: 0, fontFamily: 'inherit' }}>
               Sign up free
             </button>
           </p>
         )}
         {mode === 'register' && (
-          <p className="text-center text-xs text-slate-400 mt-4 leading-relaxed px-2">
-            By signing up, you agree to our{' '}
-            <span className="text-green-600 font-semibold">Terms of Use</span>
+          <p style={{ textAlign: 'center', fontSize: 12, color: '#9CA3AF', marginTop: 16, marginBottom: 0, lineHeight: 1.6, padding: '0 8px' }}>
+            By signing up you agree to our{' '}
+            <span style={{ color: '#16a34a', fontWeight: 600 }}>Terms of Use</span>
             {' '}and{' '}
-            <span className="text-green-600 font-semibold">Privacy Policy</span>
+            <span style={{ color: '#16a34a', fontWeight: 600 }}>Privacy Policy</span>
           </p>
         )}
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 };
