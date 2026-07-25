@@ -8,7 +8,7 @@ import { useSubscription } from '../../hooks/useSubscription';
 
 const PLANS = {
   premium: {
-    name: 'Bulls Premium',
+    name: 'BullsGo Premium',
     icon: Crown,
     gradient: 'from-yellow-400 to-orange-500',
     monthlyPrice: 9.99,
@@ -27,7 +27,7 @@ const PLANS = {
     ],
   },
   pro: {
-    name: 'Bulls Pro',
+    name: 'BullsGo Pro',
     icon: Sparkles,
     gradient: 'from-purple-500 to-pink-500',
     monthlyPrice: 24.99,
@@ -35,7 +35,7 @@ const PLANS = {
     description: 'For creators and educators monetising content',
     badge: null,
     features: [
-      'Everything in Bulls Premium',
+      'Everything in BullsGo Premium',
       'Highlighted verified PRO badge',
       'Detailed audience analytics',
       'Tips & donations from followers',
@@ -46,7 +46,7 @@ const PLANS = {
     ],
   },
   business: {
-    name: 'Bulls Business',
+    name: 'BullsGo Business',
     icon: Building2,
     gradient: 'from-blue-500 to-indigo-600',
     monthlyPrice: 149.99,
@@ -54,7 +54,7 @@ const PLANS = {
     description: 'For companies and IR that want investor attention',
     badge: null,
     features: [
-      'Everything in Bulls Premium',
+      'Everything in BullsGo Premium',
       'Featured balance sheet publications',
       'Company sentiment analytics',
       'Investor interest aggregated data',
@@ -168,7 +168,7 @@ const ManageSubscription: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </div>
             <div>
               <h1 className="text-2xl font-bold">My Subscription</h1>
-              <p className="text-white/80 text-sm">Bulls {PLAN_LABELS[currentPlan]}</p>
+              <p className="text-white/80 text-sm">BullsGo {PLAN_LABELS[currentPlan]}</p>
             </div>
           </div>
         </div>
@@ -180,7 +180,7 @@ const ManageSubscription: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-slate-600">Plan</span>
               <span className={`text-sm font-bold bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
-                Bulls {PLAN_LABELS[currentPlan]}
+                BullsGo {PLAN_LABELS[currentPlan]}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -402,7 +402,7 @@ const SubscribeScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </div>
             <div>
               <h1 className="text-2xl font-bold">Go Premium</h1>
-              <p className="text-white/80 text-sm">Unlock the full power of Bulls</p>
+              <p className="text-white/80 text-sm">Unlock the full power of BullsGo</p>
             </div>
           </div>
         </div>

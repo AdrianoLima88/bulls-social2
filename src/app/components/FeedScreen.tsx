@@ -104,7 +104,7 @@ export const FeedScreen = ({
   return (
     <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
       <header className="bg-green-600 px-4 py-3 flex items-center justify-between z-50 flex-shrink-0 shadow-md">
-        <h1 className="text-white font-bold text-lg">Bulls</h1>
+        <h1 className="text-white font-bold text-lg">BullsGo</h1>
         <div className="flex items-center gap-2">
           <button onClick={onNavigateToExplore} className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition">
             <Compass className="w-5 h-5 text-white" />

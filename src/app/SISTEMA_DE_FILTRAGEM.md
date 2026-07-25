@@ -1,8 +1,8 @@
-# 📊 Sistema de Categorização e Filtragem - Bulls
+# 📊 Sistema de Categorização e Filtragem - BullsGo
 
 ## 🎯 Visão Geral
 
-O Bulls utiliza um sistema inteligente de categorização que identifica e filtra automaticamente posts de diferentes tipos de usuários e conteúdos. O algoritmo categoriza posts em 5 tipos principais:
+O BullsGo utiliza um sistema inteligente de categorização que identifica e filtra automaticamente posts de diferentes tipos de usuários e conteúdos. O algoritmo categoriza posts em 5 tipos principais:
 
 1. **Todos** - Exibe todos os posts
 2. **Análises** - Posts de análise técnica/fundamentalista
@@ -322,4 +322,4 @@ const filteredPosts = feedFilter === 'all'
 
 **✅ Sistema implementado e funcionando!**
 
-Agora o Bulls consegue identificar e filtrar automaticamente posts de empresas, notícias, análises e conteúdo educacional! 🎯🚀
+Agora o BullsGo consegue identificar e filtrar automaticamente posts de empresas, notícias, análises e conteúdo educacional! 🎯🚀

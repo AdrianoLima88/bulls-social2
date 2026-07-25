@@ -87,7 +87,7 @@ export const PlanSelectionScreen: React.FC = () => {
             <TrendingUp className="w-9 h-9 text-green-600" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Choose your plan</h1>
-          <p className="text-green-100">Pick how you want to use Bulls — you can change this anytime in Settings</p>
+          <p className="text-green-100">Pick how you want to use BullsGo — you can change this anytime in Settings</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">

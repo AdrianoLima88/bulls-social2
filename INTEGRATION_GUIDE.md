@@ -1,4 +1,4 @@
-# 🚀 Guia de Integração - Bulls Social Network com Supabase
+# 🚀 Guia de Integração - BullsGo Social Network com Supabase
 
 ## ✅ Hooks Criados
 

@@ -13,7 +13,7 @@ import {
 
 // ─── Color themes ─────────────────────────────────────────────────────────────
 const THEMES = {
-  bulls:   { label: 'Bulls',   bg: '#f0fdf4', colors: ['#16a34a','#4ade80','#166534','#86efac','#15803d'] },
+  bulls:   { label: 'BullsGo',   bg: '#f0fdf4', colors: ['#16a34a','#4ade80','#166534','#86efac','#15803d'] },
   ocean:   { label: 'Ocean',   bg: '#eff6ff', colors: ['#1d4ed8','#60a5fa','#1e40af','#93c5fd','#3b82f6'] },
   sunset:  { label: 'Sunset',  bg: '#fff7ed', colors: ['#ea580c','#fb923c','#c2410c','#fed7aa','#f97316'] },
   violet:  { label: 'Violet',  bg: '#faf5ff', colors: ['#7c3aed','#a78bfa','#5b21b6','#ddd6fe','#8b5cf6'] },

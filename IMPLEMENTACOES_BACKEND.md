@@ -36,7 +36,7 @@
 - Trigger `on_notification_created_push` em `public.notifications` (AFTER INSERT)
 - A cada notificação criada, o Postgres chama (via `pg_net`) a Edge Function `send-notification`
 - A Edge Function envia o push real pelo OneSignal para o celular/PWA do usuário
-- Título "Bulls" + mensagem com o nome de quem curtiu/comentou/seguiu/compartilhou
+- Título "BullsGo" + mensagem com o nome de quem curtiu/comentou/seguiu/compartilhou
 - Testado de ponta a ponta (trigger → pg_net → Edge Function → OneSignal): **funcionando**
 - ⚠️ **Importante para iOS:** push web (OneSignal) só funciona no iPhone se o usuário **adicionar o site à Tela de Início** (Compartilhar → Adicionar à Tela de Início). Direto no Safari normal, o iOS não entrega push de site nenhum — isso é uma limitação do próprio iOS, não do código.
 - ⚠️ O usuário também precisa aceitar a permissão de notificações quando o app perguntar (acontece automaticamente ~3s após o login)

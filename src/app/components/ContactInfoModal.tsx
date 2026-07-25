@@ -197,7 +197,7 @@ export const ContactInfoModal = ({
                   <Calendar className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">Bulls</p>
+                  <p className="text-xs text-slate-500">BullsGo</p>
                   <p className="text-slate-900 font-medium">{joinDate}</p>
                 </div>
               </div>

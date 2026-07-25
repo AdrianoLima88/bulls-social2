@@ -384,7 +384,7 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
             <span className="font-semibold text-slate-800">{viewerLimit.toLocaleString()} viewers</span>.
           </p>
           <p className="text-slate-400 text-xs mb-6">
-            The host can unlock up to 500 concurrent viewers with a <strong>Bulls Pro</strong> subscription.
+            The host can unlock up to 500 concurrent viewers with a <strong>BullsGo Pro</strong> subscription.
           </p>
           <button
             onClick={onClose}

@@ -17,9 +17,9 @@ const UpgradeGate: React.FC<{ onBack: () => void; onNavigateToPremium?: () => vo
       <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
         <Building2 className="w-8 h-8 text-blue-600" />
       </div>
-      <h2 className="text-2xl font-bold text-slate-900 mb-2">Bulls Business</h2>
+      <h2 className="text-2xl font-bold text-slate-900 mb-2">BullsGo Business</h2>
       <p className="text-slate-600 text-sm mb-6">
-        Sentiment analytics, audience insights and sponsored posts are exclusive to the <strong>Bulls Business</strong> plan.
+        Sentiment analytics, audience insights and sponsored posts are exclusive to the <strong>BullsGo Business</strong> plan.
       </p>
       <button
         onClick={onNavigateToPremium}
@@ -175,7 +175,7 @@ export const BusinessDashboard: React.FC<{ onBack: () => void; onNavigateToPremi
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-bold">Bulls Business</h1>
+            <h1 className="text-xl font-bold">BullsGo Business</h1>
             <p className="text-sm text-white/80">Analytics & Insights</p>
           </div>
         </div>
@@ -366,7 +366,7 @@ const SponsoredTab: React.FC = () => {
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-5 text-white flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1"><Megaphone className="w-5 h-5" /><h3 className="text-lg font-bold">Sponsored Posts</h3></div>
-          <p className="text-white/80 text-xs">Reach qualified investors across the Bulls feed</p>
+          <p className="text-white/80 text-xs">Reach qualified investors across the BullsGo feed</p>
         </div>
         <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 bg-white text-blue-600 px-4 py-2.5 rounded-xl font-bold text-sm hover:shadow-lg transition flex-shrink-0">
           <Plus className="w-4 h-4" /> New campaign
@@ -401,7 +401,7 @@ const SponsoredTab: React.FC = () => {
         <div className="bg-white rounded-xl p-8 shadow-sm text-center">
           <Megaphone className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="font-semibold text-slate-700 mb-1">No campaigns yet</p>
-          <p className="text-xs text-slate-500">Create your first campaign to appear in the Bulls feed.</p>
+          <p className="text-xs text-slate-500">Create your first campaign to appear in the BullsGo feed.</p>
         </div>
       ) : (
         <div className="space-y-3">

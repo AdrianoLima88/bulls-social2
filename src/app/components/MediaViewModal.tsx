@@ -39,10 +39,10 @@ export const MediaViewModal = ({ media, post, onClose, onLike, onComment, onShar
 
   const handleCopyLink = () => {
     try {
-      navigator.clipboard.writeText(`https://bulls.app/${post.authorUsername}/post/${post.id}`);
+      navigator.clipboard.writeText(`https://bullsgo.app/${post.authorUsername}/post/${post.id}`);
     } catch {
       const el = document.createElement('input');
-      el.value = `https://bulls.app/${post.authorUsername}/post/${post.id}`;
+      el.value = `https://bullsgo.app/${post.authorUsername}/post/${post.id}`;
       document.body.appendChild(el);
       el.select();
       document.execCommand('copy');

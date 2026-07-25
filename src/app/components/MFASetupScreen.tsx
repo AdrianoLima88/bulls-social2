@@ -28,7 +28,7 @@ export const MFASetupScreen: React.FC<MFASetupScreenProps> = ({ onClose, onEnabl
     try {
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
-        friendlyName: 'Bulls Authenticator',
+        friendlyName: 'BullsGo Authenticator',
       });
 
       if (error) {

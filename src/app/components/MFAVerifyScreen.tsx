@@ -107,7 +107,7 @@ export const MFAVerifyScreen: React.FC<MFAVerifyScreenProps> = ({ onVerified, on
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-2xl mb-4">
             <TrendingUp className="w-12 h-12 text-green-600" />
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Bulls</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">BullsGo</h1>
           <p className="text-green-100">The Social Network for Investors</p>
         </div>
 

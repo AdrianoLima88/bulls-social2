@@ -12,8 +12,8 @@ export const ShareModal = ({ onClose, userName, userHandle, post, postContent })
 
   // Se post foi passado, usar dados do post; senão, usar dados do perfil
   const shareUrl = isPost
-    ? `https://bulls.app/${post.authorUsername}/status/${post.id}`
-    : `https://bulls.app/${userHandle || '@user'}`;
+    ? `https://bullsgo.app/${post.authorUsername}/status/${post.id}`
+    : `https://bullsgo.app/${userHandle || '@user'}`;
 
   const shareText = isPost
     ? `Confira este post de ${post.authorName}: ${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}`
@@ -113,7 +113,7 @@ export const ShareModal = ({ onClose, userName, userHandle, post, postContent })
         await handleShare('email');
         const emailSubject = encodeURIComponent(shareText);
         const profileText = isPost ? 'deste post' : 'do perfil de ' + userName;
-        const emailBody = encodeURIComponent('Olá! Achei que você ia gostar ' + profileText + ' no Bulls: ' + shareUrl);
+        const emailBody = encodeURIComponent('Olá! Achei que você ia gostar ' + profileText + ' no BullsGo: ' + shareUrl);
         window.location.href = 'mailto:?subject=' + emailSubject + '&body=' + emailBody;
       }
     },

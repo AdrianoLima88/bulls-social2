@@ -73,7 +73,7 @@ export const CreatorDashboard = ({
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Creator Dashboard</h2>
           <p className="text-slate-600 text-sm mb-6">
-            Detailed analytics and creator tools are exclusive to <strong>Bulls Pro</strong>.
+            Detailed analytics and creator tools are exclusive to <strong>BullsGo Pro</strong>.
           </p>
           <button
             onClick={onNavigateToPremium}

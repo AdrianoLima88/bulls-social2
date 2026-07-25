@@ -87,7 +87,7 @@ export const AuthScreen = ({ onLogin }) => {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-block">
-            <h1 className="text-6xl font-black text-green-600 mb-2">Bulls</h1>
+            <h1 className="text-6xl font-black text-green-600 mb-2">BullsGo</h1>
             <p className="text-lg text-slate-600 font-semibold">{t('feed.subtitle')}</p>
           </div>
         </div>
@@ -333,7 +333,7 @@ export const AuthScreen = ({ onLogin }) => {
 
         {/* Footer */}
         <p className="text-center text-slate-400 text-xs mt-8">
-          © 2026 Bulls. {t('auth.rights_reserved')}.
+          © 2026 BullsGo. {t('auth.rights_reserved')}.
         </p>
       </div>
     </div>

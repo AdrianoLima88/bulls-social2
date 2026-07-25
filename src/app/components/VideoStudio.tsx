@@ -120,7 +120,7 @@ export const VideoStudio: React.FC<VideoStudioProps> = ({ onBack }) => {
               <ArrowLeft className="w-5 h-5 text-white" />
             </button>
             <div>
-              <h1 className="text-white font-bold text-lg">Bulls Video Studio</h1>
+              <h1 className="text-white font-bold text-lg">BullsGo Video Studio</h1>
               <p className="text-slate-400 text-xs">Crie vídeos profissionais em minutos</p>
             </div>
           </div>

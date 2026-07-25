@@ -83,7 +83,7 @@ const CreateCourseModal: React.FC<{
             </div>
             <div>
               <h2 className="text-lg font-bold">Create Course / Mentoring</h2>
-              <p className="text-white/80 text-sm">Bulls charges 15% commission</p>
+              <p className="text-white/80 text-sm">BullsGo charges 15% commission</p>
             </div>
           </div>
         </div>
@@ -234,7 +234,7 @@ const CreateCourseModal: React.FC<{
           {/* Commission info */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
             <p className="text-xs text-amber-700">
-              <span className="font-bold">Bulls commission: 15%</span> — you receive 85% of what students pay. Payments via Stripe, settled in 2–5 business days.
+              <span className="font-bold">BullsGo commission: 15%</span> — you receive 85% of what students pay. Payments via Stripe, settled in 2–5 business days.
             </p>
           </div>
 
@@ -588,7 +588,7 @@ export const AcademyScreen: React.FC<{
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold">Bulls Academy</h1>
+            <h1 className="text-xl font-bold">BullsGo Academy</h1>
             <p className="text-white/80 text-sm">Investment courses and mentoring</p>
           </div>
           {canCreate && (

@@ -13,7 +13,7 @@ export const PremiumModal = ({ onClose }) => (
 
       <div className="p-6 space-y-4">
         <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl p-6 text-white">
-          <h4 className="font-bold text-xl mb-2">Bulls Premium</h4>
+          <h4 className="font-bold text-xl mb-2">BullsGo Premium</h4>
           <p className="text-white/90 mb-4">Ativo até 05/04/2026</p>
           <p className="text-3xl font-bold">€ 29,90<span className="text-lg font-normal">/mês</span></p>
         </div>

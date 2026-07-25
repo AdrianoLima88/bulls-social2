@@ -190,14 +190,14 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
           </button>
         </div>
 
-        {/* Bulls Academy */}
+        {/* BullsGo Academy */}
         <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl shadow-lg p-5 text-white">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
               <GraduationCap className="w-6 h-6" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-lg">Bulls Academy</h3>
+              <h3 className="font-bold text-lg">BullsGo Academy</h3>
               <p className="text-white/90 text-sm">
                 {(isPro || isBusiness) ? 'Create and manage courses and mentoring' : 'Investment courses and mentoring'}
               </p>
@@ -547,7 +547,7 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-lg">Community Guidelines</h3>
-              <p className="text-white/90 text-sm">Keep Bulls focused on finance</p>
+              <p className="text-white/90 text-sm">Keep BullsGo focused on finance</p>
             </div>
           </div>
           <button
@@ -564,7 +564,7 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">B</div>
             <div>
-              <p className="font-bold text-slate-900">Bulls</p>
+              <p className="font-bold text-slate-900">BullsGo</p>
               <p className="text-xs text-slate-500">Version 1.0.0</p>
             </div>
           </div>

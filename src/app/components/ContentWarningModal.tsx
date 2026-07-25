@@ -34,7 +34,7 @@ export const ContentWarningModal: React.FC<ContentWarningModalProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-bold">Content Fora do Escopo</h2>
-              <p className="text-white/90 text-sm">Bulls é focado em finanças</p>
+              <p className="text-white/90 text-sm">BullsGo é focado em finanças</p>
             </div>
           </div>
         </div>
@@ -68,9 +68,9 @@ export const ContentWarningModal: React.FC<ContentWarningModalProps> = ({
             </div>
           )}
 
-          {/* Bulls Focus */}
+          {/* BullsGo Focus */}
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-6">
-            <h4 className="font-bold text-green-800 mb-2">📊 Foco da Bulls:</h4>
+            <h4 className="font-bold text-green-800 mb-2">📊 Foco da BullsGo:</h4>
             <ul className="space-y-1 text-sm text-green-700">
               <li>• Investments and financial markets</li>
               <li>• Business and entrepreneurship</li>

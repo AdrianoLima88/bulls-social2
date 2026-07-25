@@ -6,11 +6,11 @@ const TERMS_CONTENT = `
 
 ## 1. Acceptance of Terms
 
-By accessing or using the Bulls platform ("Service"), you agree to be bound by these Terms of Use. If you do not agree to these terms, do not use the Service.
+By accessing or using the BullsGo platform ("Service"), you agree to be bound by these Terms of Use. If you do not agree to these terms, do not use the Service.
 
 ## 2. Description of Service
 
-Bulls is a social network designed for investors, financial professionals, and market enthusiasts. The Service includes a news feed, portfolio tracker, live streaming, direct messaging, and financial education tools.
+BullsGo is a social network designed for investors, financial professionals, and market enthusiasts. The Service includes a news feed, portfolio tracker, live streaming, direct messaging, and financial education tools.
 
 ## 3. User Accounts
 
@@ -18,7 +18,7 @@ You must register an account to use most features. You are responsible for maint
 
 ## 4. User Content
 
-You retain ownership of content you post on Bulls. By posting content, you grant Bulls a non-exclusive, worldwide, royalty-free licence to use, display, and distribute that content on the platform. You are solely responsible for ensuring your content complies with applicable laws.
+You retain ownership of content you post on BullsGo. By posting content, you grant BullsGo a non-exclusive, worldwide, royalty-free licence to use, display, and distribute that content on the platform. You are solely responsible for ensuring your content complies with applicable laws.
 
 ## 5. Prohibited Conduct
 
@@ -32,7 +32,7 @@ You agree not to:
 
 ## 6. Financial Disclaimer
 
-Content on Bulls is for informational and educational purposes only. Nothing on the platform constitutes financial, investment, legal, or tax advice. Always consult a qualified financial adviser before making investment decisions. Past performance is not indicative of future results.
+Content on BullsGo is for informational and educational purposes only. Nothing on the platform constitutes financial, investment, legal, or tax advice. Always consult a qualified financial adviser before making investment decisions. Past performance is not indicative of future results.
 
 ## 7. Premium Subscriptions
 
@@ -40,11 +40,11 @@ Paid subscriptions are processed through Stripe. Subscriptions renew automatical
 
 ## 8. Intellectual Property
 
-The Bulls name, logo, and platform design are proprietary to Bulls. You may not copy, modify, or distribute any part of the Service without our written permission.
+The BullsGo name, logo, and platform design are proprietary to BullsGo. You may not copy, modify, or distribute any part of the Service without our written permission.
 
 ## 9. Limitation of Liability
 
-To the maximum extent permitted by law, Bulls shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service. Our total liability to you shall not exceed the amount you paid us in the past 12 months.
+To the maximum extent permitted by law, BullsGo shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service. Our total liability to you shall not exceed the amount you paid us in the past 12 months.
 
 ## 10. Termination
 
@@ -60,7 +60,7 @@ These Terms are governed by the laws of Ireland. Any disputes shall be subject t
 
 ## 13. Contact
 
-For questions about these Terms, contact us at legal@bulls.app.
+For questions about these Terms, contact us at legal@bullsgo.app.
 `;
 
 const PRIVACY_CONTENT = `
@@ -102,7 +102,7 @@ If you are in the European Economic Area, you have the right to:
 • **Restriction** — request that we limit processing of your data
 • **Objection** — object to processing for direct marketing purposes
 
-To exercise your rights, contact privacy@bulls.app or use the in-app controls in Settings.
+To exercise your rights, contact privacy@bullsgo.app or use the in-app controls in Settings.
 
 ## 5. Data Retention
 
@@ -114,11 +114,11 @@ We use industry-standard encryption (TLS in transit, AES-256 at rest) to protect
 
 ## 7. Cookies
 
-Bulls uses essential cookies for authentication and session management. We do not use advertising cookies or sell cookie data to third parties.
+BullsGo uses essential cookies for authentication and session management. We do not use advertising cookies or sell cookie data to third parties.
 
 ## 8. Children's Privacy
 
-The Service is not directed to persons under 18. We do not knowingly collect personal data from minors. If you believe a minor has provided us with personal data, contact us at privacy@bulls.app.
+The Service is not directed to persons under 18. We do not knowingly collect personal data from minors. If you believe a minor has provided us with personal data, contact us at privacy@bullsgo.app.
 
 ## 9. International Transfers
 
@@ -130,9 +130,9 @@ We may update this Privacy Policy. We will notify you of significant changes via
 
 ## 11. Contact & DPO
 
-**Data Controller:** Bulls Technologies Ltd, Dublin, Ireland
-**Email:** privacy@bulls.app
-**For GDPR inquiries:** dpo@bulls.app
+**Data Controller:** BullsGo Technologies Ltd, Dublin, Ireland
+**Email:** privacy@bullsgo.app
+**For GDPR inquiries:** dpo@bullsgo.app
 `;
 
 export const TermsScreen = ({ onBack }: { onBack: () => void }) => {
@@ -215,7 +215,7 @@ export const TermsScreen = ({ onBack }: { onBack: () => void }) => {
 
         <p className="text-center text-xs text-slate-400 mt-4 mb-2">
           Questions? Email{' '}
-          <a href="mailto:legal@bulls.app" className="text-green-600 font-semibold">legal@bulls.app</a>
+          <a href="mailto:legal@bullsgo.app" className="text-green-600 font-semibold">legal@bullsgo.app</a>
         </p>
       </div>
     </div>

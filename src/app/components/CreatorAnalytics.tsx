@@ -24,7 +24,7 @@ const UpgradeGate: React.FC<{ onClose: () => void; onNavigateToPremium?: () => v
       </div>
       <h2 className="text-2xl font-bold text-slate-900 mb-2">Creator Analytics</h2>
       <p className="text-slate-600 text-sm mb-6">
-        Detailed analytics of your audience, revenue and content performance are exclusive to <strong>Bulls Pro</strong>.
+        Detailed analytics of your audience, revenue and content performance are exclusive to <strong>BullsGo Pro</strong>.
       </p>
       <button
         onClick={onNavigateToPremium}
@@ -255,7 +255,7 @@ export const CreatorAnalytics: React.FC<CreatorAnalyticsProps> = ({ onClose, onN
                 <div className="bg-white/5 rounded-xl p-4">
                   <p className="text-white/50 text-xs mb-1">Your share (70%)</p>
                   <p className="text-green-400 text-xl font-bold">€ {(stats.totalRevenue * 0.7).toFixed(2)}</p>
-                  <p className="text-white/40 text-xs mt-1">After Bulls 30% commission</p>
+                  <p className="text-white/40 text-xs mt-1">After BullsGo 30% commission</p>
                 </div>
                 <div className="bg-white/5 rounded-xl p-4">
                   <p className="text-white/50 text-xs mb-1">Peak live viewers</p>

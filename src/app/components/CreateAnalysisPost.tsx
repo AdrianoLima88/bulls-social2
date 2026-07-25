@@ -608,7 +608,7 @@ export const CreateAnalysisPost = ({ onBack, onPublish }) => {
             placeholder={
               postType === 'analysis' 
                 ? 'Describe your investment thesis, technical indicators, fundamentals, risks and opportunities...'
-                : 'Share your opinion or knowledge with the Bulls community...'
+                : 'Share your opinion or knowledge with the BullsGo community...'
             }
             className="w-full h-64 text-slate-700 resize-none focus:outline-none bg-slate-50 rounded-xl p-4"
             maxLength={5000}

@@ -112,7 +112,7 @@ serve(async (req) => {
         line_items: [{
           price_data: {
             currency,
-            product_data: { name: 'Tip for Bulls creator' },
+            product_data: { name: 'Tip for BullsGo creator' },
             unit_amount: Math.round(amount * 100),
           },
           quantity: 1,

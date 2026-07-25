@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Context API - Bulls Social Network
+// Context API - BullsGo Social Network
 // Sistema completo de gerenciamento de estado com suporte a tipos de usuário e posts
 // Tipos
 interface User {

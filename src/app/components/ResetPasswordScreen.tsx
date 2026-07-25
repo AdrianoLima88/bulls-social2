@@ -35,7 +35,7 @@ export const ResetPasswordScreen: React.FC = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-2xl mb-4">
             <TrendingUp className="w-12 h-12 text-green-600" />
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Bulls</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">BullsGo</h1>
         </div>
 
         <div className="bg-white rounded-3xl shadow-2xl p-8">
@@ -47,7 +47,7 @@ export const ResetPasswordScreen: React.FC = () => {
                 onClick={clearPasswordRecovery}
                 className="w-full py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition"
               >
-                Continue to Bulls
+                Continue to BullsGo
               </button>
             </>
           ) : (

@@ -35,7 +35,7 @@ const CATEGORIES: Category[] = [
     faqs: [
       { q: 'How do I add assets to my portfolio?', a: 'Go to the Portfolio tab, tap the "+" button, search for a stock, crypto, or ETF, enter your purchase price and quantity, and confirm.' },
       { q: 'How many assets can I track for free?', a: 'Free accounts can track up to 5 assets. Upgrade to Premium or above to track unlimited assets.' },
-      { q: 'Where does the market data come from?', a: 'Bulls uses real-time and delayed pricing data from leading financial data providers. Prices may be delayed up to 15 minutes for free accounts.' },
+      { q: 'Where does the market data come from?', a: 'BullsGo uses real-time and delayed pricing data from leading financial data providers. Prices may be delayed up to 15 minutes for free accounts.' },
       { q: 'How do I set price alerts?', a: 'Available on Premium and above. Go to the Portfolio, tap an asset, then tap the bell icon to set a target price alert.' },
     ],
   },
@@ -60,7 +60,7 @@ const CATEGORIES: Category[] = [
       { q: 'How do I block someone?', a: 'Go to a user\'s profile or open a conversation, tap the three-dot menu, and select "Block". They will no longer be able to see your profile or contact you.' },
       { q: 'How do I report a post or user?', a: 'Tap the three-dot menu on any post or profile and select "Report". Choose the reason and submit. Our moderation team reviews all reports.' },
       { q: 'What is two-factor authentication?', a: 'Two-factor authentication (2FA) adds a second layer of security to your account. Go to Settings → Privacy & Security → Two-Factor Authentication to enable it.' },
-      { q: 'How does Bulls protect my data?', a: 'All data is encrypted in transit and at rest. We comply with GDPR. You can export or delete all your data at any time from Settings → Data & Privacy.' },
+      { q: 'How does BullsGo protect my data?', a: 'All data is encrypted in transit and at rest. We comply with GDPR. You can export or delete all your data at any time from Settings → Data & Privacy.' },
     ],
   },
   {
@@ -69,10 +69,10 @@ const CATEGORIES: Category[] = [
     bg: 'bg-indigo-100',
     title: 'Subscriptions & Billing',
     faqs: [
-      { q: 'What plans are available?', a: 'Bulls offers Free, Premium, Pro, and Business plans. Each plan unlocks more features such as unlimited portfolio assets, exclusive content tools, advanced analytics, and more.' },
+      { q: 'What plans are available?', a: 'BullsGo offers Free, Premium, Pro, and Business plans. Each plan unlocks more features such as unlimited portfolio assets, exclusive content tools, advanced analytics, and more.' },
       { q: 'How do I upgrade my plan?', a: 'Go to Settings → Account → Subscription, or tap "Premium" anywhere in the app. Select your plan and billing cycle, then complete the secure checkout via Stripe.' },
       { q: 'Can I cancel my subscription?', a: 'Yes, at any time. Go to Settings → Account → Subscription → Manage Subscription. Your access continues until the end of the current billing period.' },
-      { q: 'Are there refunds?', a: 'We offer refunds within 7 days of a charge if you haven\'t used the premium features. Contact support@bulls.app with your order details to request a refund.' },
+      { q: 'Are there refunds?', a: 'We offer refunds within 7 days of a charge if you haven\'t used the premium features. Contact support@bullsgo.app with your order details to request a refund.' },
     ],
   },
 ];
@@ -174,11 +174,11 @@ export const HelpCentreScreen = ({ onBack }: { onBack: () => void }) => {
             </div>
           </div>
           <a
-            href="mailto:support@bulls.app"
+            href="mailto:support@bullsgo.app"
             className="w-full bg-white text-cyan-700 px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-white/90 transition"
           >
             <Mail className="w-5 h-5" />
-            Email support@bulls.app
+            Email support@bullsgo.app
           </a>
           <p className="text-center text-white/70 text-xs mt-2">We reply within 24 hours on business days</p>
         </div>

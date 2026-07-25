@@ -56,7 +56,7 @@ export const MFAManageScreen: React.FC<MFAManageScreenProps> = ({ onClose }) => 
     try {
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
-        friendlyName: 'Bulls Authenticator',
+        friendlyName: 'BullsGo Authenticator',
       });
       if (error) throw error;
       setQrCode(data.totp.qr_code);

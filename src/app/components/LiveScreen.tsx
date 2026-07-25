@@ -84,7 +84,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ onBack, onStartLive, onW
               <Radio className="w-6 h-6" />
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full animate-pulse"></span>
             </div>
-            <h1 className="text-xl font-black">Bulls Live</h1>
+            <h1 className="text-xl font-black">BullsGo Live</h1>
           </div>
           {/* Two action buttons */}
           <div className="flex items-center gap-2">

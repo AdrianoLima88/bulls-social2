@@ -1,4 +1,4 @@
-# 🚀 Bulls Live - Arquitetura de Produção
+# 🚀 BullsGo Live - Arquitetura de Produção
 
 ## 📋 Índice
 1. [Backend Real](#backend-real)
@@ -1156,4 +1156,4 @@ async function processPayoutToCreator(creatorId: string, period: 'weekly' | 'mon
 
 ---
 
-**🎉 Documentação criada! Esta é a arquitetura completa de produção do Bulls Live.**
+**🎉 Documentação criada! Esta é a arquitetura completa de produção do BullsGo Live.**

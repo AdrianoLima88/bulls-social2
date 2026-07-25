@@ -40,7 +40,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
           </div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">Report Submitted</h2>
           <p className="text-slate-500 text-sm mb-2">
-            Thank you for helping keep Bulls safe. Our moderation team will review your report.
+            Thank you for helping keep BullsGo safe. Our moderation team will review your report.
           </p>
           <p className="text-xs text-slate-400 mb-6">
             Content with multiple reports is automatically flagged for priority review.

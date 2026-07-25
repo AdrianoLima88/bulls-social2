@@ -32,7 +32,7 @@ export const InviteModal: React.FC<Props> = ({ onClose, onNavigateToProfile }) =
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-green-600" />
-            <h2 className="text-lg font-bold text-slate-900">Invite to Bulls</h2>
+            <h2 className="text-lg font-bold text-slate-900">Invite to BullsGo</h2>
           </div>
           <button onClick={onClose} className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center">
             <X className="w-5 h-5 text-slate-600" />

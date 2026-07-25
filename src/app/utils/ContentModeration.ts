@@ -1,4 +1,4 @@
-// Sistema de Moderação de Conteúdo - Bulls
+// Sistema de Moderação de Conteúdo - BullsGo
 // Garante que posts sejam apenas sobre finanças, investimentos, negócios e tecnologia
 
 export interface ModerationResult {
@@ -77,7 +77,7 @@ const FORBIDDEN_TOPICS = {
       'impeachment', 'golpe', 'ditadura', 'democracia política',
       'manifestação', 'protesto', 'greve política', 'votação política',
     ],
-    message: 'A Bulls é uma rede social focada em investimentos e negócios. Evite discussões políticas que não estejam diretamente relacionadas à economia ou mercado financeiro.',
+    message: 'A BullsGo é uma rede social focada em investimentos e negócios. Evite discussões políticas que não estejam diretamente relacionadas à economia ou mercado financeiro.',
   },
   sports: {
     keywords: [
@@ -88,7 +88,7 @@ const FORBIDDEN_TOPICS = {
       'vôlei', 'basquete', 'nba', 'nfl', 'fórmula 1', 'f1',
       'mma', 'ufc', 'boxe', 'olimpíadas', 'esporte',
     ],
-    message: 'Conteúdo sobre esportes não é permitido na Bulls. Foque em investimentos, mercado financeiro e negócios.',
+    message: 'Conteúdo sobre esportes não é permitido na BullsGo. Foque em investimentos, mercado financeiro e negócios.',
   },
   entertainment: {
     keywords: [
@@ -98,7 +98,7 @@ const FORBIDDEN_TOPICS = {
       'ator', 'atriz', 'celebridade', 'fofoca', 'famoso',
       'tv', 'globo', 'record', 'sbt', 'streaming de entretenimento',
     ],
-    message: 'A Bulls não permite conteúdo de entretenimento. Compartilhe análises financeiras, insights de mercado ou oportunidades de negócio.',
+    message: 'A BullsGo não permite conteúdo de entretenimento. Compartilhe análises financeiras, insights de mercado ou oportunidades de negócio.',
   },
   religion: {
     keywords: [
@@ -108,7 +108,7 @@ const FORBIDDEN_TOPICS = {
       'deus', 'jesus', 'maria', 'santo', 'bíblia', 'culto', 'missa',
       'oração', 'milagre', 'fé religiosa', 'crença religiosa',
     ],
-    message: 'Discussões religiosas não são permitidas na Bulls. Mantenha o foco em finanças e negócios.',
+    message: 'Discussões religiosas não são permitidas na BullsGo. Mantenha o foco em finanças e negócios.',
   },
   personalLife: {
     keywords: [
@@ -118,7 +118,7 @@ const FORBIDDEN_TOPICS = {
       'beleza', 'moda', 'maquiagem', 'cabelo', 'estética',
       'fofoca', 'treta', 'drama pessoal', 'vida pessoal',
     ],
-    message: 'Conteúdo sobre vida pessoal não é relevante para a comunidade Bulls. Compartilhe conhecimento sobre investimentos e negócios.',
+    message: 'Conteúdo sobre vida pessoal não é relevante para a comunidade BullsGo. Compartilhe conhecimento sobre investimentos e negócios.',
   },
   gambling: {
     keywords: [
@@ -127,7 +127,7 @@ const FORBIDDEN_TOPICS = {
       'blaze', 'betano', 'bet365', 'sportingbet',
       'loteria', 'mega-sena', 'quina', 'lotofácil',
     ],
-    message: 'Apostas e jogos de azar não são investimentos. A Bulls promove educação financeira responsável.',
+    message: 'Apostas e jogos de azar não são investimentos. A BullsGo promove educação financeira responsável.',
   }
 };
 
@@ -227,7 +227,7 @@ export function moderateContent(content: string, ticker?: string): ModerationRes
   // 6. Conteúdo sem indicadores financeiros - bloqueia suavemente
   return {
     isAllowed: false,
-    reason: 'Seu post não parece estar relacionado a finanças, investimentos, negócios ou tecnologia. A Bulls é uma rede social focada no mercado financeiro.',
+    reason: 'Seu post não parece estar relacionado a finanças, investimentos, negócios ou tecnologia. A BullsGo é uma rede social focada no mercado financeiro.',
     suggestedTopics: [
       'Compartilhe uma análise de investimento',
       'Discuta tendências do mercado',
