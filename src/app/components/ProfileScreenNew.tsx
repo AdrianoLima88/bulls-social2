@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Settings, Edit3, MapPin, Link as LinkIcon, Calendar, Heart, MessageCircle, Share2, BarChart3, Play, Mail, MoreVertical, Image as ImageIcon, Trash2, UserX, Flag, Eye, EyeOff, Copy, Send, Plus } from 'lucide-react';
+import { ArrowLeft, Settings, Edit3, MapPin, Link as LinkIcon, Calendar, Heart, MessageCircle, Share2, BarChart3, Play, Mail, MoreVertical, Image as ImageIcon, Trash2, UserX, Flag, Eye, EyeOff, Copy, Send, Plus, Lock, Crown } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { ShareModal } from './ShareModal';
 import { MediaViewModal } from './MediaViewModal';
@@ -13,6 +13,7 @@ import { usePosts } from '../../hooks/usePosts';
 import { useFollows } from '../../hooks/useFollows';
 import { useProfile } from '../../hooks/useProfile';
 import { PlanBadge } from './PlanBadge';
+import { useSubscription } from '../../hooks/useSubscription';
 
 export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings, onEditProfile, onNavigateToCreatePost, onNavigateToComments, onSendMessage, onNavigateToFollowers, onNavigateToFollowing }) => {
   const { currentUser, toggleLikePost, deletePost } = useApp();
@@ -20,6 +21,8 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
   const { hasLiked, toggleLike, deletePost: deleteSupabasePost, likesMap } = usePosts();
   const { isFollowing: checkIsFollowing, toggleFollow } = useFollows();
   const { t } = useLocale();
+  const { isPremium, isPro, isBusiness } = useSubscription();
+  const viewerHasPaidPlan = isPremium || isPro || isBusiness;
   const isOwnProfile = !profileData || profileData.type === 'own';
 
   // Search dados completos do perfil se não for o próprio perfil
@@ -101,198 +104,190 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
   };
 
   // Renderizar post individual
-  const renderPost = (post) => (
-    <div key={post.id} className="border-b border-slate-200 bg-white hover:bg-slate-50 transition">
-      <div className="p-4">
-        {/* Header do Post */}
-        <div className="flex gap-3 mb-3">
-          <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-            {post.authorName.split(' ').map(n => n[0]).join('').substring(0, 2)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1 mb-0.5">
-                  <span className="font-bold text-slate-900 truncate">{post.authorName}</span>
-                  {post.verified && <span className="text-blue-500 flex-shrink-0">✓</span>}
+  const renderPost = (post) => {
+    const isLocked = post.is_premium && !viewerHasPaidPlan && !isOwnProfile;
+    return (
+      <div key={post.id} className="border-b border-slate-200 bg-white hover:bg-slate-50 transition">
+        <div className="p-4">
+          {/* Header do Post */}
+          <div className="flex gap-3 mb-3">
+            <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+              {post.authorName.split(' ').map(n => n[0]).join('').substring(0, 2)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span className="font-bold text-slate-900 truncate">{post.authorName}</span>
+                    {post.verified && <span className="text-blue-500 flex-shrink-0">✓</span>}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <span className="text-slate-500 truncate">{post.authorUsername}</span>
+                    <span className="text-slate-400">·</span>
+                    <span className="text-slate-500 flex-shrink-0">{post.time}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-sm">
-                  <span className="text-slate-500 truncate">{post.authorUsername}</span>
-                  <span className="text-slate-400">·</span>
-                  <span className="text-slate-500 flex-shrink-0">{post.time}</span>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowPostMenu(showPostMenu === post.id ? null : post.id)}
+                    className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full p-1.5 transition"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+
+                  {/* Menu Dropdown */}
+                  {showPostMenu === post.id && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowPostMenu(null)} />
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50">
+                        {isOwnProfile && (
+                          <>
+                            <button
+                              onClick={() => handleDeletePost(post.id)}
+                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-red-50 transition text-left text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              <span className="font-semibold">Delete post</span>
+                            </button>
+                            <div className="border-t border-slate-100 my-1" />
+                          </>
+                        )}
+                        {!isOwnProfile && (
+                          <>
+                            <button
+                              onClick={() => { alert('User blocked'); setShowPostMenu(null); }}
+                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition text-left"
+                            >
+                              <UserX className="w-4 h-4" />
+                              <span className="font-semibold">Bloquear {post.authorUsername}</span>
+                            </button>
+                            <button
+                              onClick={() => { alert('Post denunciado'); setShowPostMenu(null); }}
+                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition text-left text-red-600"
+                            >
+                              <Flag className="w-4 h-4" />
+                              <span className="font-semibold">Denunciar post</span>
+                            </button>
+                            <div className="border-t border-slate-100 my-1" />
+                          </>
+                        )}
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(`https://bulls.com/${post.authorUsername}/status/${post.id}`);
+                            alert('Link copiado!');
+                            setShowPostMenu(null);
+                          }}
+                          className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition text-left"
+                        >
+                          <Copy className="w-4 h-4" />
+                          <span className="font-semibold">Copiar link do post</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
-              <div className="relative">
-                <button
-                  onClick={() => setShowPostMenu(showPostMenu === post.id ? null : post.id)}
-                  className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full p-1.5 transition"
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </button>
 
-                {/* Menu Dropdown */}
-                {showPostMenu === post.id && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setShowPostMenu(null)}
+              {/* Content area — blurred when locked */}
+              <div className={isLocked ? 'blur-md select-none pointer-events-none' : ''}>
+                <p className="text-slate-900 mb-3 leading-relaxed">{post.content}</p>
+
+                {post.media && post.media.length > 0 && (
+                  <div className="mb-3">
+                    <MediaCarousel
+                      media={post.media}
+                      onMediaView={(item) => {
+                        setSelectedMedia({ media: item, post });
+                        setShowMediaViewModal(true);
+                      }}
                     />
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50">
-                      {isOwnProfile && (
-                        <>
-                          <button
-                            onClick={() => {
-                              handleDeletePost(post.id);
-                            }}
-                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-red-50 transition text-left text-red-600"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            <span className="font-semibold">Delete post</span>
-                          </button>
-                          <div className="border-t border-slate-100 my-1" />
-                        </>
-                      )}
-                      {!isOwnProfile && (
-                        <>
-                          <button
-                            onClick={() => {
-                              alert('User blocked');
-                              setShowPostMenu(null);
-                            }}
-                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition text-left"
-                          >
-                            <UserX className="w-4 h-4" />
-                            <span className="font-semibold">Bloquear {post.authorUsername}</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              alert('Post denunciado');
-                              setShowPostMenu(null);
-                            }}
-                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition text-left text-red-600"
-                          >
-                            <Flag className="w-4 h-4" />
-                            <span className="font-semibold">Denunciar post</span>
-                          </button>
-                          <div className="border-t border-slate-100 my-1" />
-                        </>
-                      )}
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(`https://bulls.com/${post.authorUsername}/status/${post.id}`);
-                          alert('Link copiado!');
-                          setShowPostMenu(null);
-                        }}
-                        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition text-left"
-                      >
-                        <Copy className="w-4 h-4" />
-                        <span className="font-semibold">Copiar link do post</span>
-                      </button>
-                    </div>
-                  </>
+                  </div>
+                )}
+
+                {post.charts && post.charts.length > 0 && (
+                  <div className="mb-3">
+                    {post.charts.map((chart, index) => (
+                      <ChartPreview key={`${post.id}-chart-${index}`} chart={chart} uniqueId={`${post.id}-chart-${index}`} />
+                    ))}
+                  </div>
+                )}
+
+                {post.documents && post.documents.length > 0 && (
+                  <div className="mb-3 space-y-2">
+                    {post.documents.map((doc, index) => (
+                      <DocumentPreview key={`${post.id}-doc-${index}`} document={doc} />
+                    ))}
+                  </div>
+                )}
+
+                {post.tags && post.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {post.tags.map((tag, idx) => (
+                      <span key={idx} className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full">#{tag}</span>
+                    ))}
+                  </div>
+                )}
+
+                {post.views && (
+                  <div className="text-slate-500 text-sm mb-2">
+                    {post.views.toLocaleString('en-IE')} views
+                  </div>
                 )}
               </div>
-            </div>
 
-            {/* Content */}
-            <p className="text-slate-900 mb-3 leading-relaxed">{post.content}</p>
-
-            {/* Media — Carousel */}
-            {post.media && post.media.length > 0 && (
-              <div className="mb-3">
-                <MediaCarousel
-                  media={post.media}
-                  onMediaView={(item) => {
-                    setSelectedMedia({ media: item, post });
-                    setShowMediaViewModal(true);
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Charts */}
-            {post.charts && post.charts.length > 0 && (
-              <div className="mb-3">
-                {post.charts.map((chart, index) => (
-                  <ChartPreview key={`${post.id}-chart-${index}`} chart={chart} uniqueId={`${post.id}-chart-${index}`} />
-                ))}
-              </div>
-            )}
-
-            {/* Documentos */}
-            {post.documents && post.documents.length > 0 && (
-              <div className="mb-3 space-y-2">
-                {post.documents.map((doc, index) => (
-                  <DocumentPreview key={`${post.id}-doc-${index}`} document={doc} />
-                ))}
-              </div>
-            )}
-
-            {/* Tags */}
-            {post.tags && post.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {post.tags.map((tag, idx) => (
-                  <span key={idx} className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Statistics */}
-            {post.views && (
-              <div className="text-slate-500 text-sm mb-2">
-                {post.views.toLocaleString('en-IE')} views
-              </div>
-            )}
-
-            {/* Ações */}
-            <div className="flex items-center justify-between max-w-md">
-              <button
-                onClick={() => onNavigateToComments && onNavigateToComments(post)}
-                className="flex items-center gap-2 text-slate-500 hover:text-blue-500 transition group"
-              >
-                <div className="p-2 rounded-full group-hover:bg-blue-50 transition">
-                  <MessageCircle className="w-4 h-4" />
+              {/* Lock overlay */}
+              {isLocked && (
+                <div className="flex flex-col items-center gap-2 py-4 my-2 bg-slate-50 rounded-xl border border-slate-200">
+                  <Lock className="w-6 h-6 text-yellow-600" />
+                  <span className="text-sm font-bold text-slate-900">Premium content</span>
+                  <span className="text-xs text-green-700 font-semibold underline">Upgrade to unlock</span>
                 </div>
-                <span className="text-sm">{post.comments || 0}</span>
-              </button>
+              )}
 
-              <button
-                onClick={() => handleLike(post.id)}
-                className={`flex items-center gap-2 transition group ${
-                  hasLiked(post.id) ? 'text-red-500' : 'text-slate-500 hover:text-red-500'
-                }`}
-              >
-                <div className={`p-2 rounded-full transition ${
-                  hasLiked(post.id) ? 'bg-red-50' : 'group-hover:bg-red-50'
-                }`}>
-                  <Heart className={`w-4 h-4 ${hasLiked(post.id) ? 'fill-red-500' : ''}`} />
-                </div>
-                <span className="text-sm">{hasLiked(post.id) ? (post.likes || 0) + 1 : (post.likes || 0)}</span>
-              </button>
+              {/* Ações */}
+              <div className="flex items-center justify-between max-w-md mt-1">
+                <button
+                  onClick={() => onNavigateToComments && onNavigateToComments(post)}
+                  className="flex items-center gap-2 text-slate-500 hover:text-blue-500 transition group"
+                >
+                  <div className="p-2 rounded-full group-hover:bg-blue-50 transition">
+                    <MessageCircle className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm">{post.comments || 0}</span>
+                </button>
 
-              <button
-                onClick={() => handleShare(post)}
-                className="flex items-center gap-2 text-slate-500 hover:text-green-600 transition group"
-              >
-                <div className="p-2 rounded-full group-hover:bg-green-50 transition">
-                  <Share2 className="w-4 h-4" />
-                </div>
-                <span className="text-sm">{post.shares}</span>
-              </button>
+                <button
+                  onClick={() => handleLike(post.id)}
+                  className={`flex items-center gap-2 transition group ${hasLiked(post.id) ? 'text-red-500' : 'text-slate-500 hover:text-red-500'}`}
+                >
+                  <div className={`p-2 rounded-full transition ${hasLiked(post.id) ? 'bg-red-50' : 'group-hover:bg-red-50'}`}>
+                    <Heart className={`w-4 h-4 ${hasLiked(post.id) ? 'fill-red-500' : ''}`} />
+                  </div>
+                  <span className="text-sm">{hasLiked(post.id) ? (post.likes || 0) + 1 : (post.likes || 0)}</span>
+                </button>
 
-              <button className="flex items-center gap-2 text-slate-500 hover:text-green-600 transition group">
-                <div className="p-2 rounded-full group-hover:bg-green-50 transition">
-                  <BarChart3 className="w-4 h-4" />
-                </div>
-              </button>
+                <button
+                  onClick={() => handleShare(post)}
+                  className="flex items-center gap-2 text-slate-500 hover:text-green-600 transition group"
+                >
+                  <div className="p-2 rounded-full group-hover:bg-green-50 transition">
+                    <Share2 className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm">{post.shares}</span>
+                </button>
+
+                <button className="flex items-center gap-2 text-slate-500 hover:text-green-600 transition group">
+                  <div className="p-2 rounded-full group-hover:bg-green-50 transition">
+                    <BarChart3 className="w-4 h-4" />
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Renderizar grid de mídia (estilo X/Twitter)
   const renderMediaGrid = () => {
@@ -531,13 +526,6 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
                   >
                     <Share2 className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={onNavigateToCreatePost}
-                    className="bg-green-600 text-white px-5 py-2 rounded-full font-bold hover:bg-green-700 transition flex items-center gap-1.5"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    Post
-                  </button>
                 </>
               )}
             </div>
@@ -711,11 +699,4 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
             setSelectedMedia(null);
           }}
           onLike={() => handleLike(selectedMedia.post.id)}
-          onComment={() => onNavigateToComments && onNavigateToComments(selectedMedia.post)}
-          onShare={() => handleShare(selectedMedia.post)}
-          isLiked={hasLiked(selectedMedia.post.id)}
-        />
-      )}
-    </div>
-  );
-};
+          onComment={() => onNaviga
