@@ -44,11 +44,11 @@ const REGION_DEFAULTS: Record<Region, { currency: Currency; marketCode: string; 
 const TRANSLATIONS: Record<Language, Record<string, string>> = {
   'pt-BR': {
     'nav.feed': 'Feed',
-    'nav.market': 'Market',
-    'nav.portfolio': 'Portfolio',
-    'nav.profile': 'Profile',
+    'nav.market': 'Mercado',
+    'nav.portfolio': 'Carteira',
+    'nav.profile': 'Perfil',
     'feed.title': 'BullsGo',
-    'feed.subtitle': 'Market Financeiro',
+    'feed.subtitle': 'Mercado Financeiro',
     'feed.filter.all': 'Todos',
     'feed.filter.following': 'Seguindo',
     'feed.filter.trending': 'Em Alta',
@@ -56,22 +56,22 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'feed.analyses': 'Análises',
     'feed.companies': 'Companys',
     'feed.news': 'Notícias',
-    'feed.education': 'Education',
-    'market.title': 'Market',
-    'market.liveQuotes': 'Market ao Vivo',
+    'feed.education': 'Educação',
+    'market.title': 'Mercado',
+    'market.liveQuotes': 'Mercado ao Vivo',
     'market.realTime': 'Cotações em tempo real',
     'market.viewAll': 'Ver todas',
     'market.stocks': 'Ações',
     'market.fiis': 'FIIs',
     'market.crypto': 'Cripto',
     'market.international': 'Internacional',
-    'market.search': 'Search ativos...',
-    'portfolio.title': 'Minha Portfolio',
+    'market.search': 'Buscar ativos...',
+    'portfolio.title': 'Minha Carteira',
     'portfolio.total': 'Patrimônio Total',
     'portfolio.totalInvested': 'Total Investido',
     'portfolio.profit': 'Lucro',
     'portfolio.profitLoss': 'Lucro/Prejuízo',
-    'portfolio.addAsset': 'Add Ativo',
+    'portfolio.addAsset': 'Adicionar Ativo',
     'portfolio.myAssets': 'Meus Ativos',
     'portfolio.performance': 'Desempenho',
     'portfolio.distribution': 'Distribuição',
@@ -112,7 +112,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'settings.notificationsDesc': 'Gerencie alertas e notificações',
     'settings.privacy': 'Privacidade',
     'settings.privacyDesc': 'Controle de privacidade e segurança',
-    'settings.language': 'Language e Região',
+    'settings.language': 'Idioma e Região',
     'settings.languageDesc': 'Escolha seu idioma e mercado local',
     'settings.premium': 'BullsGo Premium',
     'settings.premiumDesc': 'Recursos exclusivos e análises',
@@ -120,20 +120,20 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'settings.guidelines': 'Diretrizes da Comunidade',
     'settings.about': 'Sobre',
     'settings.logout': 'Sign out',
-    'settings.selectLanguage': 'Selecionar Language',
-    'settings.selectRegion': 'Selecionar Região/Market',
+    'settings.selectLanguage': 'Selecionar Idioma',
+    'settings.selectRegion': 'Selecionar Região',
     'settings.selectCurrency': 'Moeda Preferida',
-    'settings.interfaceLanguage': 'Language da Interface',
+    'settings.interfaceLanguage': 'Idioma da Interface',
     'settings.interfaceLanguageDesc': 'Todos os menus, botões e elementos da interface serão exibidos no idioma selecionado.',
-    'settings.marketRegion': 'Região do Market',
+    'settings.marketRegion': 'Região do Mercado',
     'settings.marketRegionDesc': 'Escolha seu mercado local para ver ações, notícias e dados financeiros relevantes da sua região.',
     'settings.displayCurrency': 'Moeda de Exibição',
     'settings.displayCurrencyDesc': 'Todos os preços e valores serão exibidos na moeda de sua preferência. As taxas de câmbio são atualizadas em tempo real.',
     'settings.currentConfiguration': 'Configuração Atual',
-    'settings.currentLanguage': 'Language:',
-    'settings.currentRegion': 'Região/Market:',
+    'settings.currentLanguage': 'Idioma:',
+    'settings.currentRegion': 'Região:',
     'settings.currentCurrency': 'Moeda:',
-    'search.title': 'Search',
+    'search.title': 'Buscar',
     'search.placeholder': 'Buscar pessoas, posts, tópicos...',
     'search.recent': 'Buscas Recentes',
     'search.trending': 'Assuntos do momento',
@@ -148,28 +148,28 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'search.falling': 'Em queda',
     'search.new': 'Novo',
     'search.searching': 'Buscando...',
-    'notifications.title': 'Notifications',
-    'createPost.title': 'New Post',
+    'notifications.title': 'Notificações',
+    'createPost.title': 'Nova Publicação',
     'currency.title': 'Cotações de Moedas',
     'currency.subtitle': 'Acompanhe o câmbio em tempo real',
-    'currency.search': 'Search moeda...',
+    'currency.search': 'Buscar moeda...',
     'currency.buy': 'Compra',
     'currency.sell': 'Venda',
-    'common.back': 'Back',
-    'common.save': 'Save',
-    'common.cancel': 'Cancel',
-    'common.confirm': 'Confirm',
-    'common.loading': 'Loading...',
+    'common.back': 'Voltar',
+    'common.save': 'Salvar',
+    'common.cancel': 'Cancelar',
+    'common.confirm': 'Confirmar',
+    'common.loading': 'Carregando...',
     'common.error': 'Erro',
     'common.success': 'Sucesso',
     'common.apply': 'Aplicar',
     'common.clearFilters': 'Limpar filtros',
     'post.sponsored': 'Patrocinado',
-    'post.save': 'Save post',
+    'post.save': 'Salvar post',
     'post.unsave': 'Remove dos salvos',
     'post.copyLink': 'Copiar link',
     'post.report': 'Reportar post',
-    'post.delete': 'Delete post',
+    'post.delete': 'Excluir post',
     'post.deleteConfirm': 'Tem certeza que deseja excluir este post?',
     'post.linkCopied': 'Link copiado!',
     'post.reported': 'Post reportado aos moderadores',
@@ -209,8 +209,8 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'education.level': 'Nível',
     'education.topic': 'Tópico',
     'education.title': 'Título da Education',
-    'common.publish': 'Publish',
-    'common.search': 'Search',
+    'common.publish': 'Publicar',
+    'common.search': 'Buscar',
     'common.title': 'Título',
     'create.newAnalysis': 'Nova Análise',
     'create.opinionTitle': 'Título da Opinião',
@@ -250,8 +250,8 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'post.analysis_badge': 'ANÁLISE',
     'post.company_badge': 'EMPRESA',
     'post.opinion_badge': 'OPINIÃO',
-    'portfolio.addAssetTitle': 'Add Ativo',
-    'portfolio.add': 'Add',
+    'portfolio.addAssetTitle': 'Adicionar Ativo',
+    'portfolio.add': 'Adicionar',
     'portfolio.searchPlaceholder': 'Ex: AAPL, TSLA...',
     'portfolio.searchCryptoPlaceholder': 'Ex: BTC, ETH...',
     'editProfile.title': 'Edit Profile',
@@ -291,9 +291,9 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'common.like': 'Curtir',
     'common.comment': 'Comentar',
     'common.share': 'Compartilhar',
-    'common.follow': 'Follow',
-    'common.following': 'Following',
-    'common.edit': 'Edit',
+    'common.follow': 'Seguir',
+    'common.following': 'Seguindo',
+    'common.edit': 'Editar',
     'common.message': 'Mensagem',
     'post.readMore': 'Leia a matéria completa',
     'post.verified': 'Verificado',
@@ -302,7 +302,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'post.popular': 'Popular',
     'post.views': 'views',
     'post.whatYouWillLearn': 'O que você vai aprender:',
-    'post.startLearning': 'Start Learning Now',
+    'post.startLearning': 'Começar a Aprender',
     'post.free': 'Gratuito',
     'post.educationalMaterial': 'Material Educacional Completo',
     'post.idealFor': 'Ideal para',
@@ -368,7 +368,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'settings.displayCurrency': 'Display Currency',
     'settings.displayCurrencyDesc': 'All prices and values will be displayed in your preferred currency. Exchange rates are updated in real-time.',
     'settings.currentConfiguration': 'Current Configuration',
-    'settings.currentLanguage': 'Language:',
+    'settings.currentLanguage': 'Idioma:',
     'settings.currentRegion': 'Region/Market:',
     'settings.currentCurrency': 'Currency:',
     'search.title': 'Search',
@@ -567,9 +567,9 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
   },
   'es-ES': {
     'nav.feed': 'Feed',
-    'nav.market': 'Market',
+    'nav.market': 'Mercado',
     'nav.portfolio': 'Cartera',
-    'nav.profile': 'Profile',
+    'nav.profile': 'Perfil',
     'feed.title': 'BullsGo',
     'feed.subtitle': 'Market Financiero',
     'feed.filter.all': 'Todos',
@@ -580,15 +580,15 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'feed.companies': 'Companys',
     'feed.news': 'Noticias',
     'feed.education': 'Educación',
-    'market.title': 'Market',
-    'market.liveQuotes': 'Market en Vivo',
+    'market.title': 'Mercado',
+    'market.liveQuotes': 'Mercado en Vivo',
     'market.realTime': 'Cotizaciones en tiempo real',
     'market.viewAll': 'Ver todo',
     'market.stocks': 'Acciones',
     'market.fiis': 'REITs',
     'market.crypto': 'Cripto',
     'market.international': 'Internacional',
-    'market.search': 'Search activos...',
+    'market.search': 'Buscar activos...',
     'portfolio.title': 'Mi Cartera',
     'portfolio.total': 'Total Invertido',
     'portfolio.profit': 'Ganancia',
@@ -599,20 +599,20 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'profile.edit': 'Edit Profile',
     'profile.settings': 'Configuración',
     'settings.title': 'Configuración',
-    'settings.language': 'Language y Región',
+    'settings.language': 'Idioma y Región',
     'settings.languageDesc': 'Elige tu idioma y mercado local',
-    'settings.selectLanguage': 'Seleccionar Language',
-    'settings.selectRegion': 'Seleccionar Región/Market',
+    'settings.selectLanguage': 'Seleccionar Idioma',
+    'settings.selectRegion': 'Seleccionar Región',
     'settings.selectCurrency': 'Moneda Preferida',
-    'settings.interfaceLanguage': 'Language de Interfaz',
+    'settings.interfaceLanguage': 'Idioma de Interfaz',
     'settings.interfaceLanguageDesc': 'Todos los menús, botones y elementos de interfaz se mostrarán en el idioma seleccionado.',
-    'settings.marketRegion': 'Región del Market',
+    'settings.marketRegion': 'Región del Mercado',
     'settings.marketRegionDesc': 'Elige tu mercado local para ver acciones, noticias y datos financieros relevantes de tu región.',
     'settings.displayCurrency': 'Moneda de Visualización',
     'settings.displayCurrencyDesc': 'Todos los precios y valores se mostrarán en tu moneda preferida. Los tipos de cambio se actualizan en tiempo real.',
     'settings.currentConfiguration': 'Configuración Actual',
     'settings.currentLanguage': 'Language:',
-    'settings.currentRegion': 'Región/Market:',
+    'settings.currentRegion': 'Región:',
     'settings.currentCurrency': 'Moneda:',
     'search.title': 'Buscar',
     'search.placeholder': 'Buscar personas, posts, temas...',
@@ -636,8 +636,8 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'currency.sell': 'Venta',
     'common.back': 'Volver',
     'common.save': 'Guardar',
-    'common.cancel': 'Cancel',
-    'common.confirm': 'Confirm',
+    'common.cancel': 'Cancelar',
+    'common.confirm': 'Confirmar',
     'common.loading': 'Cargando...',
     'common.error': 'Error',
     'common.success': 'Éxito',
@@ -1003,60 +1003,3 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const setLanguage = (lang: Language) => {
     setLocale(prev => ({ ...prev, language: lang }));
   };
-
-  const setRegion = (region: Region) => {
-    const defaults = REGION_DEFAULTS[region];
-    setLocale(prev => ({
-      ...prev,
-      region,
-      currency: defaults.currency,
-      marketCode: defaults.marketCode,
-    }));
-  };
-
-  const setCurrency = (currency: Currency) => {
-    setLocale(prev => ({ ...prev, currency }));
-  };
-
-  const t = (key: string): string => {
-    const translation = TRANSLATIONS[locale.language]?.[key];
-    if (translation) return translation;
-    
-    const fallback = TRANSLATIONS['en-US']?.[key];
-    if (fallback) return fallback;
-    return key;
-  };
-
-  const formatCurrency = (value: number): string => {
-    try {
-      return new Intl.NumberFormat(locale.language, {
-        style: 'currency',
-        currency: locale.currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(value);
-    } catch {
-      return `${locale.currency} ${value.toFixed(2)}`;
-    }
-  };
-
-  const formatNumber = (value: number): string => {
-    try {
-      return new Intl.NumberFormat(locale.language).format(value);
-    } catch {
-      return value.toString();
-    }
-  };
-
-  return (
-    <LocaleContext.Provider value={{ locale, setLanguage, setRegion, setCurrency, t, formatCurrency, formatNumber }}>
-      {children}
-    </LocaleContext.Provider>
-  );
-};
-
-export const useLocale = () => {
-  const context = useContext(LocaleContext);
-  if (!context) throw new Error('useLocale must be used within a LocaleProvider');
-  return context;
-};

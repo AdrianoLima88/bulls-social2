@@ -430,7 +430,7 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
                 <span className="text-sm font-semibold text-slate-900">{t('settings.language')}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-500">
-                    {locale.language === 'en-US' || locale.language === 'en-IE' ? 'English' : locale.language}
+                    {({'pt-BR':'Português','en-US':'English','es-ES':'Español','fr-FR':'Français','de-DE':'Deutsch','it-IT':'Italiano','ja-JP':'日本語','zh-CN':'中文','ar-SA':'العربية','ru-RU':'Русский','ko-KR':'한국어'} as Record<string,string>)[locale.language] ?? locale.language}
                   </span>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </div>
