@@ -13,6 +13,7 @@ import { identifyUser, logoutOneSignal } from '../utils/OneSignalInit';
 
 // Critical screens — loaded immediately
 import { LoginScreen } from './components/LoginScreen';
+import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { FeedScreen } from './components/FeedScreen';
 import { MFAVerifyScreen } from './components/MFAVerifyScreen';
 import { ResetPasswordScreen } from './components/ResetPasswordScreen';
@@ -430,6 +431,7 @@ export default function App() {
         <AppProvider>
           <LocaleProvider>
             <AppContent />
+            <CookieConsentBanner />
           </LocaleProvider>
         </AppProvider>
       </AuthProvider>
