@@ -190,7 +190,7 @@ async function fetchForex(): Promise<ForexRate[]> {
 // ─────────────────────────────────────────────────────────────
 // HOOK PRINCIPAL
 // ─────────────────────────────────────────────────────────────
-export function useMarket(tab: MarketTab) {
+export function useMarket(tab: MarketTab, _watchlist?: string[]) {
   const [assets, setAssets] = useState<MarketAsset[]>([]);
   const [forex, setForex] = useState<ForexRate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -350,13 +350,204 @@ export function getAllMockAssets(): MarketAsset[] {
   ];
 }
 
-// ─────────────────────────────────────────────────────────────
-// ÍNDICES EUROPEUS (estáticos com label, para o header)
-// Num próximo passo podem ser buscados via Finnhub também
-// ─────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────�
+
 export const MARKET_INDICES: MarketIndex[] = [
   { name: 'FTSE 100',  value: '8,421',  change: '+0.84%', positive: true  },
   { name: 'Euro Stoxx 50', value: '5,124', change: '+1.12%', positive: true  },
   { name: 'DAX',       value: '18,765', change: '-0.23%', positive: false },
   { name: 'S&P 500',   value: '5,487',  change: '+0.56%', positive: true  },
 ];
+
+// ─────────────────────────────────────────────────────────────
+// PLAN GATING
+// ─────────────────────────────────────────────────────────────
+export type UserPlan = 'free' | 'pro' | 'premium' | 'business';
+
+export const STOCKS_CATALOG: { code: string; name: string; tab: MarketTab }[] = [
+  { code: 'AAPL',  name: 'Apple',            tab: 'us' },
+  { code: 'MSFT',  name: 'Microsoft',        tab: 'us' },
+  { code: 'NVDA',  name: 'NVIDIA',           tab: 'us' },
+  { code: 'GOOGL', name: 'Alphabet',         tab: 'us' },
+  { code: 'AMZN',  name: 'Amazon',           tab: 'us' },
+  { code: 'META',  name: 'Meta',             tab: 'us' },
+  { code: 'TSLA',  name: 'Tesla',            tab: 'us' },
+  { code: 'NFLX',  name: 'Netflix',          tab: 'us' },
+  { code: 'JPM',   name: 'JPMorgan',         tab: 'us' },
+  { code: 'V',     name: 'Visa',             tab: 'us' },
+  { code: 'BTC',   name: 'Bitcoin',          tab: 'crypto' },
+  { code: 'ETH',   name: 'Ethereum',         tab: 'crypto' },
+  { code: 'BNB',   name: 'BNB',             tab: 'crypto' },
+  { code: 'SOL',   name: 'Solana',           tab: 'crypto' },
+  { code: 'XRP',   name: 'XRP',             tab: 'crypto' },
+  { code: 'SHEL.L', name: 'Shell',           tab: 'uk' },
+  { code: 'AZN.L',  name: 'AstraZeneca',     tab: 'uk' },
+  { code: 'HSBA.L', name: 'HSBC Holdings',   tab: 'uk' },
+  { code: 'BP.L',   name: 'BP',              tab: 'uk' },
+  { code: 'ULVR.L', name: 'Unilever',        tab: 'uk' },
+  { code: 'MC.PA',   name: 'LVMH',           tab: 'europe' },
+  { code: 'ASML.AS', name: 'ASML Holding',   tab: 'europe' },
+  { code: 'OR.PA',   name: "L'Oreal",        tab: 'europe' },
+  { code: 'SAP.DE',  name: 'SAP',            tab: 'europe' },
+  { code: 'SIE.DE',  name: 'Siemens',        tab: 'europe' },
+  { code: 'MA',    name: 'Mastercard',        tab: 'us' },
+  { code: 'JNJ',   name: 'Johnson & Johnson', tab: 'us' },
+  { code: 'WMT',   name: 'Walmart',           tab: 'us' },
+  { code: 'PG',    name: 'Procter & Gamble',  tab: 'us' },
+  { code: 'HD',    name: 'Home Depot',        tab: 'us' },
+  { code: 'BAC',   name: 'Bank of America',   tab: 'us' },
+  { code: 'KO',    name: 'Coca-Cola',         tab: 'us' },
+  { code: 'DIS',   name: 'Disney',            tab: 'us' },
+  { code: 'PYPL',  name: 'PayPal',            tab: 'us' },
+  { code: 'INTC',  name: 'Intel',             tab: 'us' },
+  { code: 'AMD',   name: 'AMD',               tab: 'us' },
+  { code: 'QCOM',  name: 'Qualcomm',          tab: 'us' },
+  { code: 'ORCL',  name: 'Oracle',            tab: 'us' },
+  { code: 'CRM',   name: 'Salesforce',        tab: 'us' },
+  { code: 'IBM',   name: 'IBM',               tab: 'us' },
+  { code: 'GS',    name: 'Goldman Sachs',     tab: 'us' },
+  { code: 'MS',    name: 'Morgan Stanley',    tab: 'us' },
+  { code: 'C',     name: 'Citigroup',         tab: 'us' },
+  { code: 'WFC',   name: 'Wells Fargo',       tab: 'us' },
+  { code: 'XOM',   name: 'ExxonMobil',        tab: 'us' },
+  { code: 'CVX',   name: 'Chevron',           tab: 'us' },
+  { code: 'BA',    name: 'Boeing',            tab: 'us' },
+  { code: 'GE',    name: 'GE Aerospace',      tab: 'us' },
+  { code: 'CAT',   name: 'Caterpillar',       tab: 'us' },
+  { code: 'MMM',   name: '3M',                tab: 'us' },
+  { code: 'ADA',   name: 'Cardano',           tab: 'crypto' },
+  { code: 'DOT',   name: 'Polkadot',          tab: 'crypto' },
+  { code: 'AVAX',  name: 'Avalanche',         tab: 'crypto' },
+  { code: 'DOGE',  name: 'Dogecoin',          tab: 'crypto' },
+  { code: 'LINK',  name: 'Chainlink',         tab: 'crypto' },
+  { code: 'UNI',   name: 'Uniswap',           tab: 'crypto' },
+  { code: 'ATOM',  name: 'Cosmos',            tab: 'crypto' },
+  { code: 'LTC',   name: 'Litecoin',          tab: 'crypto' },
+  { code: 'MATIC', name: 'Polygon',           tab: 'crypto' },
+  { code: 'NEAR',  name: 'NEAR Protocol',     tab: 'crypto' },
+  { code: 'RIO.L',  name: 'Rio Tinto',        tab: 'uk' },
+  { code: 'DGE.L',  name: 'Diageo',           tab: 'uk' },
+  { code: 'GSK.L',  name: 'GSK',              tab: 'uk' },
+  { code: 'LLOY.L', name: 'Lloyds Banking',   tab: 'uk' },
+  { code: 'VOD.L',  name: 'Vodafone',         tab: 'uk' },
+  { code: 'BARC.L', name: 'Barclays',         tab: 'uk' },
+  { code: 'NWG.L',  name: 'NatWest',          tab: 'uk' },
+  { code: 'STAN.L', name: 'Standard Chartered', tab: 'uk' },
+  { code: 'BT.A.L', name: 'BT Group',         tab: 'uk' },
+  { code: 'BATS.L', name: 'BAT',              tab: 'uk' },
+  { code: 'AIR.PA',  name: 'Airbus',          tab: 'europe' },
+  { code: 'NESN.SW', name: 'Nestle',          tab: 'europe' },
+  { code: 'NOVN.SW', name: 'Novartis',        tab: 'europe' },
+  { code: 'TTE.PA',  name: 'TotalEnergies',   tab: 'europe' },
+  { code: 'BNP.PA',  name: 'BNP Paribas',     tab: 'europe' },
+  { code: 'SAN.PA',  name: 'Sanofi',          tab: 'europe' },
+  { code: 'BAYN.DE', name: 'Bayer',           tab: 'europe' },
+  { code: 'BMW.DE',  name: 'BMW',             tab: 'europe' },
+  { code: 'VOW3.DE', name: 'Volkswagen',      tab: 'europe' },
+  { code: 'ALV.DE',  name: 'Allianz',         tab: 'europe' },
+  { code: 'MUV2.DE', name: 'Munich Re',       tab: 'europe' },
+  { code: 'DTE.DE',  name: 'Deutsche Telekom', tab: 'europe' },
+  { code: 'HEIA.AS', name: 'Heineken',        tab: 'europe' },
+  { code: 'PHIA.AS', name: 'Philips',         tab: 'europe' },
+  { code: 'KER.PA',  name: 'Kering',          tab: 'europe' },
+  { code: 'RI.PA',   name: 'Pernod Ricard',   tab: 'europe' },
+  { code: 'GLE.PA',  name: 'Societe Generale', tab: 'europe' },
+  { code: 'CS.PA',   name: 'AXA',             tab: 'europe' },
+  { code: 'RWE.DE',  name: 'RWE',             tab: 'europe' },
+  { code: 'EON.DE',  name: 'E.ON',            tab: 'europe' },
+  { code: 'SHOP',  name: 'Shopify',            tab: 'us' },
+  { code: 'ABNB',  name: 'Airbnb',             tab: 'us' },
+  { code: 'UBER',  name: 'Uber',               tab: 'us' },
+  { code: 'SNAP',  name: 'Snap',               tab: 'us' },
+  { code: 'PINS',  name: 'Pinterest',           tab: 'us' },
+  { code: 'ROKU',  name: 'Roku',               tab: 'us' },
+  { code: 'ZM',    name: 'Zoom',               tab: 'us' },
+  { code: 'SPOT',  name: 'Spotify',             tab: 'us' },
+  { code: 'COIN',  name: 'Coinbase',            tab: 'us' },
+  { code: 'SQ',    name: 'Block',               tab: 'us' },
+  { code: 'PLTR',  name: 'Palantir',            tab: 'us' },
+  { code: 'AI',    name: 'C3.ai',               tab: 'us' },
+  { code: 'ARB',   name: 'Arbitrum',            tab: 'crypto' },
+  { code: 'OP',    name: 'Optimism',            tab: 'crypto' },
+  { code: 'APT',   name: 'Aptos',              tab: 'crypto' },
+  { code: 'LDO',   name: 'Lido DAO',           tab: 'crypto' },
+  { code: 'MKR',   name: 'Maker',              tab: 'crypto' },
+  { code: 'AAVE',  name: 'Aave',               tab: 'crypto' },
+  { code: 'INJ',   name: 'Injective',          tab: 'crypto' },
+  { code: 'RUNE',  name: 'THORChain',          tab: 'crypto' },
+  { code: 'FIL',   name: 'Filecoin',           tab: 'crypto' },
+  { code: 'PEPE',  name: 'Pepe',               tab: 'crypto' },
+  { code: 'WIF',   name: 'dogwifhat',          tab: 'crypto' },
+  { code: 'BONK',  name: 'Bonk',               tab: 'crypto' },
+  { code: 'ENA',   name: 'Ethena',             tab: 'crypto' },
+];
+
+export const PLAN_CATALOG_SIZES: Record<UserPlan, number> = {
+  free:     20,
+  pro:      100,
+  premium:  300,
+  business: Infinity,
+};
+
+export function getCatalogForPlan(plan: UserPlan): { code: string; name: string; tab: MarketTab }[] {
+  const size = PLAN_CATALOG_SIZES[plan];
+  return size === Infinity ? STOCKS_CATALOG : STOCKS_CATALOG.slice(0, size);
+}
+
+export function getRequiredPlan(index: number): string {
+  if (index < PLAN_CATALOG_SIZES.free)    return 'Free';
+  if (index < PLAN_CATALOG_SIZES.pro)     return 'Pro';
+  if (index < PLAN_CATALOG_SIZES.premium) return 'Premium';
+  return 'Business';
+}
+
+export const DEFAULT_WATCHLISTS: Record<MarketTab, string[]> = {
+  uk:     ['SHEL.L', 'AZN.L', 'HSBA.L', 'BP.L', 'ULVR.L', 'RIO.L', 'DGE.L', 'GSK.L'],
+  europe: ['MC.PA', 'ASML.AS', 'OR.PA', 'SAP.DE', 'SIE.DE', 'NESN.SW', 'NOVN.SW', 'AIR.PA'],
+  us:     ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NFLX', 'JPM'],
+  crypto: ['BINANCE:BTCUSDT', 'BINANCE:ETHUSDT', 'BINANCE:BNBUSDT', 'BINANCE:SOLUSDT'],
+};
+
+const WATCHLIST_KEY = 'bullsWatchlists';
+
+function loadWatchlists(): Record<MarketTab, string[]> {
+  try {
+    const raw = localStorage.getItem(WATCHLIST_KEY);
+    if (raw) return { ...DEFAULT_WATCHLISTS, ...JSON.parse(raw) };
+  } catch { /* ignore */ }
+  return { ...DEFAULT_WATCHLISTS };
+}
+
+function saveWatchlists(wl: Record<MarketTab, string[]>) {
+  try { localStorage.setItem(WATCHLIST_KEY, JSON.stringify(wl)); } catch { /* ignore */ }
+}
+
+export function useWatchlist() {
+  const [watchlists, setWatchlists] = useState<Record<MarketTab, string[]>>(loadWatchlists);
+
+  const addSymbol = (tab: MarketTab, code: string) => {
+    setWatchlists(prev => {
+      const next = { ...prev, [tab]: prev[tab].includes(code) ? prev[tab] : [...prev[tab], code] };
+      saveWatchlists(next);
+      return next;
+    });
+  };
+
+  const removeSymbol = (tab: MarketTab, code: string) => {
+    setWatchlists(prev => {
+      const next = { ...prev, [tab]: prev[tab].filter(c => c !== code) };
+      saveWatchlists(next);
+      return next;
+    });
+  };
+
+  const resetTab = (tab: MarketTab) => {
+    setWatchlists(prev => {
+      const next = { ...prev, [tab]: DEFAULT_WATCHLISTS[tab] };
+      saveWatchlists(next);
+      return next;
+    });
+  };
+
+  return { watchlists, addSymbol, removeSymbol, resetTab };
+}
