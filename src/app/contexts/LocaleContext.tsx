@@ -82,11 +82,11 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'portfolio.empty': 'Sua carteira está vazia',
     'portfolio.startAdding': 'Comece adicionando seus ativos',
     'profile.posts': 'Posts',
-    'profile.followers': 'Followers',
-    'profile.following': 'Following',
-    'profile.edit': 'Edit Profile',
-    'profile.settings': 'Settings',
-    'profile.follow': 'Follow',
+    'profile.followers': 'Seguidores',
+    'profile.following': 'Seguindo',
+    'profile.edit': 'Editar Perfil',
+    'profile.settings': 'Configurações',
+    'profile.follow': 'Seguir',
     'profile.unfollow': 'Deixar de seguir',
     'profile.sendMessage': 'Enviar Mensagem',
     'profile.sendTip': 'Enviar Gorjeta',
@@ -95,12 +95,22 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'profile.likes': 'Curtidas',
     'profile.pinned': 'Fixados',
     'profile.noPosts': 'Nenhum post ainda',
-    'settings.title': 'Settings',
-    'settings.account': 'Account',
+    'profile.joined': 'Entrou em',
+    'profile.showEmail': 'Exibir email no perfil',
+    'common.view': 'Visualizar',
+    'common.download': 'Baixar',
+    'document.textFile': 'Documento de texto',
+    'document.attachment': 'Arquivo anexado',
+    'create.postType': 'Tipo de publicação',
+    'common.share': 'Compartilhar',
+    'common.like': 'Curtir',
+    'common.comment': 'Comentar',
+    'settings.title': 'Configurações',
+    'settings.account': 'Conta',
     'settings.accountDesc': 'Informações pessoais e preferências',
-    'settings.notifications': 'Notifications',
+    'settings.notifications': 'Notificações',
     'settings.notificationsDesc': 'Gerencie alertas e notificações',
-    'settings.privacy': 'Privacy',
+    'settings.privacy': 'Privacidade',
     'settings.privacyDesc': 'Controle de privacidade e segurança',
     'settings.language': 'Language e Região',
     'settings.languageDesc': 'Escolha seu idioma e mercado local',
@@ -521,6 +531,13 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'common.following': 'Following',
     'common.edit': 'Edit',
     'common.message': 'Message',
+    'common.view': 'View',
+    'common.download': 'Download',
+    'document.textFile': 'Text document',
+    'document.attachment': 'Attached file',
+    'profile.joined': 'Joined',
+    'profile.showEmail': 'Show email on profile',
+    'create.postType': 'Post type',
     'post.readMore': 'Read full article',
     'post.verified': 'Verified',
     'post.official': 'Official',
@@ -753,6 +770,9 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'common.like': 'Like',
     'common.comment': 'Comment',
     'common.share': 'Share',
+    'common.download': 'Descargar',
+    'document.textFile': 'Documento de texto',
+    'document.attachment': 'Archivo adjunto',
     'common.follow': 'Follow',
     'common.following': 'Following',
     'common.edit': 'Edit',
@@ -798,6 +818,9 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'common.back': 'Retour',
     'common.save': 'Enregistrer',
     'common.cancel': 'Annuler',
+    'common.download': 'Télécharger',
+    'document.textFile': 'Document texte',
+    'document.attachment': 'Fichier joint',
   },
   'de-DE': {
     'nav.feed': 'Feed',
@@ -999,58 +1022,4 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const translation = TRANSLATIONS[locale.language]?.[key];
     if (translation) return translation;
     
-    const fallback = TRANSLATIONS['en-US']?.[key];
-    if (fallback) return fallback;
-    
-    return key;
-  };
-
-  const formatCurrency = (value: number): string => {
-    const currencySymbols: Record<Currency, string> = {
-      BRL: 'R$',
-      USD: '$',
-      EUR: '€',
-      GBP: '£',
-      JPY: '¥',
-      CNY: '¥',
-      MXN: 'Mex$',
-      ARS: 'AR$',
-    };
-
-    const symbol = currencySymbols[locale.currency] || '$';
-    
-    if (locale.currency === 'JPY' || locale.currency === 'CNY') {
-      return `${symbol} ${value.toLocaleString(locale.language, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-    }
-    
-    return `${symbol} ${value.toLocaleString(locale.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-
-  const formatNumber = (value: number): string => {
-    return value.toLocaleString(locale.language);
-  };
-
-  return (
-    <LocaleContext.Provider
-      value={{
-        locale,
-        setLanguage,
-        setRegion,
-        setCurrency,
-        t,
-        formatCurrency,
-        formatNumber,
-      }}
-    >
-      {children}
-    </LocaleContext.Provider>
-  );
-};
-
-export const useLocale = (): LocaleContextType => {
-  const context = useContext(LocaleContext);
-  if (!context) {
-    throw new Error('useLocale must be used within LocaleProvider');
-  }
-  return context;
-};
+    const fallback = T

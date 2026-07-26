@@ -2,10 +2,12 @@ import React, { useState, useRef } from 'react';
 import { ArrowLeft, Camera, MapPin, Link as LinkIcon, Mail, Briefcase, GraduationCap, User, Eye, X, Upload } from 'lucide-react';
 import { useImageUpload } from '../../hooks/useImageUpload';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLocale } from '../contexts/LocaleContext';
 
 export const EditProfileScreen = ({ onBack, onSave, initialData }) => {
   const { uploadImage, uploading } = useImageUpload();
   const { profile } = useAuth();
+  const { t } = useLocale();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   // Estados do formulário - inicializados com os dados do perfil
@@ -336,7 +338,7 @@ export const EditProfileScreen = ({ onBack, onSave, initialData }) => {
                 className="w-4 h-4 text-green-600 rounded"
               />
               <label htmlFor="showEmail" className="text-sm text-slate-600">
-                Exibir email no perfil
+                {t('profile.showEmail')}
               </label>
             </div>
           </div>

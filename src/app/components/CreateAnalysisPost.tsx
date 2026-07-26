@@ -69,7 +69,7 @@ export const CreateAnalysisPost = ({ onBack, onPublish }) => {
       <div className="flex-1 overflow-y-auto p-4 pb-24">
         {/* Post Type */}
         <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-          <p className="text-slate-700 font-semibold mb-3">Tipo de publicação</p>
+          <p className="text-slate-700 font-semibold mb-3">{t('create.postType')}</p>
           <div className="flex gap-2">
             <button 
               onClick={() => setPostType('analysis')}

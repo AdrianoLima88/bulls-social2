@@ -151,7 +151,7 @@ export const Post = ({
             className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition"
           >
             <Share2 className="w-5 h-5" />
-            <span className="text-sm font-semibold">Compartilhar</span>
+            <span className="text-sm font-semibold">{t('common.share')}</span>
           </button>
         </div>
       </div>
@@ -297,7 +297,7 @@ export const Post = ({
             className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition"
           >
             <Share2 className="w-5 h-5" />
-            <span className="text-sm font-semibold">Compartilhar</span>
+            <span className="text-sm font-semibold">{t('common.share')}</span>
           </button>
         </div>
       </div>
@@ -467,7 +467,7 @@ export const Post = ({
             className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition"
           >
             <Share2 className="w-5 h-5" />
-            <span className="text-sm font-semibold">Compartilhar</span>
+            <span className="text-sm font-semibold">{t('common.share')}</span>
           </button>
         </div>
       </div>
@@ -624,7 +624,7 @@ export const Post = ({
             className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition"
           >
             <Share2 className="w-5 h-5" />
-            <span className="text-sm font-semibold">Compartilhar</span>
+            <span className="text-sm font-semibold">{t('common.share')}</span>
           </button>
         </div>
       </div>

@@ -559,7 +559,7 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
               )}
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                Entrou em {profile.joinDate}
+                {t('profile.joined')} {profile.joinDate}
               </div>
             </div>
 

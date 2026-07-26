@@ -1,7 +1,9 @@
 import React from 'react';
 import { FileText, Download, Eye } from 'lucide-react';
+import { useLocale } from '../contexts/LocaleContext';
 
 export const DocumentPreview = ({ document }) => {
+  const { t } = useLocale();
   const { type, title, content, size } = document;
 
   const formatFileSize = (bytes) => {
@@ -13,7 +15,6 @@ export const DocumentPreview = ({ document }) => {
 
   const handleDownload = () => {
     if (type === 'text') {
-      // Criar arquivo de texto para download
       const blob = new Blob([content], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -22,15 +23,15 @@ export const DocumentPreview = ({ document }) => {
       a.click();
       URL.revokeObjectURL(url);
     } else {
-      alert('Download simulado: ' + title);
+      alert('Download: ' + title);
     }
   };
 
   const handleView = () => {
     if (type === 'text') {
-      alert('Content do documento:\n\n' + content);
+      alert('Document content:\n\n' + content);
     } else {
-      alert('Visualizar: ' + title);
+      alert('View: ' + title);
     }
   };
 
@@ -42,14 +43,14 @@ export const DocumentPreview = ({ document }) => {
           <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
             <FileText className="w-7 h-7 text-blue-600" />
           </div>
-          
+
           {/* Info */}
           <div className="flex-1 min-w-0">
             <h4 className="font-bold text-slate-900 mb-1 truncate">{title}</h4>
             <p className="text-sm text-slate-500 mb-3">
-              {type === 'text' ? 'Documento de texto' : 'Arquivo anexado'} • {formatFileSize(size)}
+              {type === 'text' ? t('document.textFile') : t('document.attachment')} • {formatFileSize(size)}
             </p>
-            
+
             {/* Actions */}
             <div className="flex gap-2">
               <button
@@ -57,20 +58,20 @@ export const DocumentPreview = ({ document }) => {
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition text-sm font-semibold"
               >
                 <Eye className="w-4 h-4" />
-                Visualizar
+                {t('common.view')}
               </button>
               <button
                 onClick={handleDownload}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-semibold"
               >
                 <Download className="w-4 h-4" />
-                Baixar
+                {t('common.download')}
               </button>
             </div>
           </div>
         </div>
-        
-        {/* Preview do conteúdo para documentos de texto */}
+
+        {/* Text document preview */}
         {type === 'text' && content && (
           <div className="mt-4 pt-4 border-t border-slate-200">
             <p className="text-sm text-slate-600 line-clamp-3">
