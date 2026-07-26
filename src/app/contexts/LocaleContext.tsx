@@ -1022,4 +1022,41 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const translation = TRANSLATIONS[locale.language]?.[key];
     if (translation) return translation;
     
-    const fallback = T
+    const fallback = TRANSLATIONS['en-US']?.[key];
+    if (fallback) return fallback;
+    return key;
+  };
+
+  const formatCurrency = (value: number): string => {
+    try {
+      return new Intl.NumberFormat(locale.language, {
+        style: 'currency',
+        currency: locale.currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);
+    } catch {
+      return `${locale.currency} ${value.toFixed(2)}`;
+    }
+  };
+
+  const formatNumber = (value: number): string => {
+    try {
+      return new Intl.NumberFormat(locale.language).format(value);
+    } catch {
+      return value.toString();
+    }
+  };
+
+  return (
+    <LocaleContext.Provider value={{ locale, setLanguage, setRegion, setCurrency, t, formatCurrency, formatNumber }}>
+      {children}
+    </LocaleContext.Provider>
+  );
+};
+
+export const useLocale = () => {
+  const context = useContext(LocaleContext);
+  if (!context) throw new Error('useLocale must be used within a LocaleProvider');
+  return context;
+};
