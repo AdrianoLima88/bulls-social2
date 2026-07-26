@@ -28,7 +28,7 @@ export const ShareModal = ({ onClose, userName, userHandle, post, postContent, p
         .select('shares_count, views_count')
         .eq('author_id', profileUserId)
         .then(({ data, error }) => {
-          if (!error && data) {
+          if (!error && data && data.length > 0) {
             const totals = data.reduce(
               (acc, p) => ({
                 shares: acc.shares + (p.shares_count ?? 0),
@@ -37,8 +37,13 @@ export const ShareModal = ({ onClose, userName, userHandle, post, postContent, p
               { shares: 0, views: 0 }
             );
             setStats(totals);
+          } else {
+            setStats({ shares: 0, views: 0 });
           }
         });
+    } else {
+      // No post and no profileUserId — show zeros
+      setStats({ shares: 0, views: 0 });
     }
   }, [isPost, post, profileUserId]);
 
