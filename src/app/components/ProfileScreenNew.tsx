@@ -685,6 +685,7 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
         <ShareModal
           userName={profile.name}
           userHandle={profile.username}
+          profileUserId={profile.id}
           onClose={() => setShowShareProfileModal(false)}
         />
       )}

@@ -1,14 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Link as LinkIcon, Mail, MessageCircle, Facebook, Twitter, Linkedin, Instagram, Copy, Check, QrCode, Send } from 'lucide-react';
 import { useShares } from '../../hooks/useShares';
+import { supabase } from '../../utils/supabase/client';
 
-export const ShareModal = ({ onClose, userName, userHandle, post, postContent }) => {
+function formatCount(n: number): string {
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  return n.toString();
+}
+
+export const ShareModal = ({ onClose, userName, userHandle, post, postContent, profileUserId = null }) => {
   const [copied, setCopied] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
+  const [stats, setStats] = useState<{ shares: number; views: number } | null>(null);
   const { sharePost } = useShares();
 
-  // Determinar se está compartilhando post ou perfil
   const isPost = !!post;
+
+  useEffect(() => {
+    if (isPost && post) {
+      // Use post's own counters directly
+      setStats({ shares: post.shares_count ?? 0, views: post.views_count ?? 0 });
+    } else if (profileUserId) {
+      // Aggregate shares + views across all posts by this user
+      supabase
+        .from('posts')
+        .select('shares_count, views_count')
+        .eq('author_id', profileUserId)
+        .then(({ data, error }) => {
+          if (!error && data) {
+            const totals = data.reduce(
+              (acc, p) => ({
+                shares: acc.shares + (p.shares_count ?? 0),
+                views: acc.views + (p.views_count ?? 0),
+              }),
+              { shares: 0, views: 0 }
+            );
+            setStats(totals);
+          }
+        });
+    }
+  }, [isPost, post, profileUserId]);
 
   // Se post foi passado, usar dados do post; senão, usar dados do perfil
   const shareUrl = isPost
@@ -261,19 +293,30 @@ export const ShareModal = ({ onClose, userName, userHandle, post, postContent })
           </div>
         </div>
 
-        {/* Statistics de Compartilhamento */}
+        {/* Statistics */}
         <div className="p-6 pb-32 border-t border-slate-200 bg-slate-50">
           <h3 className="font-semibold text-slate-700 mb-3">📊 Statistics</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-green-600">234</p>
-              <p className="text-xs text-slate-600">Shares</p>
+          {stats === null ? (
+            <div className="grid grid-cols-2 gap-3">
+              {[0, 1].map(i => (
+                <div key={i} className="bg-white rounded-xl p-3 text-center animate-pulse">
+                  <div className="h-7 bg-slate-200 rounded w-12 mx-auto mb-1" />
+                  <div className="h-3 bg-slate-100 rounded w-10 mx-auto" />
+                </div>
+              ))}
             </div>
-            <div className="bg-white rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-blue-600">1.2k</p>
-              <p className="text-xs text-slate-600">Views</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-xl p-3 text-center">
+                <p className="text-2xl font-bold text-green-600">{formatCount(stats.shares)}</p>
+                <p className="text-xs text-slate-600">Shares</p>
+              </div>
+              <div className="bg-white rounded-xl p-3 text-center">
+                <p className="text-2xl font-bold text-blue-600">{formatCount(stats.views)}</p>
+                <p className="text-xs text-slate-600">Views</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
