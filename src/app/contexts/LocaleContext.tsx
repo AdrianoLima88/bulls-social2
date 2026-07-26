@@ -231,7 +231,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'auth.forgot_password': 'Esqueci minha senha',
     'auth.agree_terms': 'Concordo com os Termos de Uso',
     'auth.privacy_policy': 'Política de Privacy',
-    'auth.login_button': 'Entrar na Bulls',
+    'auth.login_button': 'Entrar no BullsGo',
     'auth.signup_button': 'Criar Account',
     'auth.continue_with': 'Ou continue com',
     'auth.rights_reserved': 'Todos os direitos reservados',
@@ -910,7 +910,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
 const detectBrowserLanguage = (): Language => {
   const browserLang = navigator.language || 'en-US';
   
-  if (browserLang.startsWith('pt')) return 'en-US';
+  if (browserLang.startsWith('pt')) return 'pt-BR';
   if (browserLang.startsWith('es')) return 'es-ES';
   if (browserLang.startsWith('fr')) return 'fr-FR';
   if (browserLang.startsWith('de')) return 'de-DE';
@@ -945,12 +945,27 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.error('Failed to load locale from localStorage', e);
     }
     
-    // Default to en-US / IE for European launch
+    // Auto-detect language from browser on first launch
+    const detectedLang = detectBrowserLanguage();
+    const langDefaults: Record<Language, { region: Region; currency: Currency; marketCode: string }> = {
+      'pt-BR': { region: 'BR', currency: 'BRL', marketCode: 'B3' },
+      'en-US': { region: 'EU', currency: 'EUR', marketCode: 'LSE' },
+      'es-ES': { region: 'LATAM', currency: 'USD', marketCode: 'LATAM' },
+      'fr-FR': { region: 'EU', currency: 'EUR', marketCode: 'EURONEXT' },
+      'de-DE': { region: 'EU', currency: 'EUR', marketCode: 'EURONEXT' },
+      'it-IT': { region: 'EU', currency: 'EUR', marketCode: 'EURONEXT' },
+      'ja-JP': { region: 'JP', currency: 'JPY', marketCode: 'TSE' },
+      'zh-CN': { region: 'CN', currency: 'CNY', marketCode: 'SSE' },
+      'ar-SA': { region: 'GLOBAL', currency: 'USD', marketCode: 'GLOBAL' },
+      'ru-RU': { region: 'GLOBAL', currency: 'USD', marketCode: 'GLOBAL' },
+      'ko-KR': { region: 'GLOBAL', currency: 'USD', marketCode: 'GLOBAL' },
+    };
+    const d = langDefaults[detectedLang];
     return {
-      language: 'en-US',
-      region: 'IE',
-      currency: 'EUR',
-      marketCode: 'LSE',
+      language: detectedLang,
+      region: d.region,
+      currency: d.currency,
+      marketCode: d.marketCode,
     };
   });
 

@@ -70,7 +70,7 @@ export const ContentWarningModal: React.FC<ContentWarningModalProps> = ({
 
           {/* BullsGo Focus */}
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-6">
-            <h4 className="font-bold text-green-800 mb-2">📊 Foco da BullsGo:</h4>
+            <h4 className="font-bold text-green-800 mb-2">📊 Foco do BullsGo:</h4>
             <ul className="space-y-1 text-sm text-green-700">
               <li>• Investments and financial markets</li>
               <li>• Business and entrepreneurship</li>

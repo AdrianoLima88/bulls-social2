@@ -5,7 +5,7 @@ export const useShares = () => {
   const { user } = useAuth();
 
   // Registrar compartilhamento
-  const sharePost = async (postId: string, platform: string = 'bulls') => {
+  const sharePost = async (postId: string, platform: string = 'bullsgo') => {
     if (!user) {
       console.log('📤 Compartilhamento registrado (visitante):', { postId, platform });
       return { error: null };

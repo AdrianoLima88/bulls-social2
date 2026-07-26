@@ -43,7 +43,7 @@ begin
     ),
     body := jsonb_build_object(
       'user_id', NEW.user_id::text,
-      'title', 'BullsGo',
+      'title', 'Bulls',
       'message', msg,
       'type', NEW.type
     ),

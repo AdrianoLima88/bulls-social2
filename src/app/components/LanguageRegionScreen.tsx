@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Globe, DollarSign, TrendingUp, Check, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Globe, DollarSign, TrendingUp, Check, ChevronRight, Filter } from 'lucide-react';
 import { useLocale, Language, Region, Currency } from '../contexts/LocaleContext';
+import { useFeedLanguageFilter, FEED_LANG_OPTIONS, FeedLang } from '../../hooks/useFeedLanguageFilter';
 
 const LANGUAGES: { code: Language; name: string; nativeName: string; flag: string }[] = [
   { code: 'pt-BR', name: 'Portuguese (Brazil)', nativeName: 'Português (Brasil)', flag: '🇧🇷' },
@@ -40,6 +41,7 @@ const CURRENCIES: { code: Currency; name: string; symbol: string }[] = [
 
 export const LanguageRegionScreen = ({ onBack }) => {
   const { locale, setLanguage, setRegion, setCurrency, t } = useLocale();
+  const { isLangEnabled, toggleLang, feedLangs } = useFeedLanguageFilter();
   const [activeTab, setActiveTab] = useState<'language' | 'region' | 'currency'>('language');
 
   const handleLanguageChange = (lang: Language) => {
@@ -150,6 +152,44 @@ export const LanguageRegionScreen = ({ onBack }) => {
                 )}
               </button>
             ))}
+
+            {/* Feed Language Filter */}
+            <div className="mt-6 bg-white rounded-2xl p-4 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Filter className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Feed Languages</p>
+                  <p className="text-xs text-slate-500">Which languages to show in your feed</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {FEED_LANG_OPTIONS.map(opt => (
+                  <button
+                    key={opt.code}
+                    onClick={() => toggleLang(opt.code)}
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-50 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{opt.flag}</span>
+                      <span className="text-sm font-semibold text-slate-900">{opt.label}</span>
+                    </div>
+                    <div className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${isLangEnabled(opt.code) ? 'bg-green-500' : 'bg-slate-200'}`}>
+                      <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${isLangEnabled(opt.code) ? 'translate-x-5' : 'translate-x-0'}`} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {feedLangs && feedLangs.length < FEED_LANG_OPTIONS.length && (
+                <p className="text-xs text-amber-600 mt-2 text-center">
+                  Showing posts in {feedLangs.length} language{feedLangs.length !== 1 ? 's' : ''}
+                </p>
+              )}
+              {!feedLangs && (
+                <p className="text-xs text-slate-400 mt-2 text-center">Showing all languages</p>
+              )}
+            </div>
           </div>
         )}
 

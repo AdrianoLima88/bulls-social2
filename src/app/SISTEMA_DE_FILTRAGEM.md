@@ -1,4 +1,4 @@
-# 📊 Sistema de Categorização e Filtragem - BullsGo
+# 📊 Sistema de Categorização e Filtragem - Bulls
 
 ## 🎯 Visão Geral
 

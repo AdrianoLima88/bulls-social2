@@ -161,18 +161,14 @@ export const PortfolioScreen = ({ onBack, onAddAsset, onViewAsset }) => {
                         </div>
                       </div>
                       <span className={`text-xs px-2 py-1 rounded-full font-bold ${
-                        (item.type === 'acao' || item.type === 'stock') ? 'bg-blue-100 text-blue-700' :
+                        item.type === 'acao' ? 'bg-blue-100 text-blue-700' :
                         item.type === 'fii' ? 'bg-green-100 text-green-700' :
                         item.type === 'crypto' ? 'bg-orange-100 text-orange-700' :
-                        (item.type === 'etf') ? 'bg-teal-100 text-teal-700' :
                         'bg-purple-100 text-purple-700'
                       }`}>
-                        {(item.type === 'acao' || item.type === 'stock') ? 'STOCK' :
+                        {item.type === 'acao' ? 'STOCK' :
                          item.type === 'fii' ? 'REIT' :
                          item.type === 'crypto' ? 'CRYPTO' :
-                         item.type === 'etf' ? 'ETF' :
-                         item.type === 'bond' ? 'BOND' :
-                         (item.type === 'internacional' || item.type === 'international') ? 'INTL' :
                          'FIXED INCOME'}
                       </span>
                     </div>

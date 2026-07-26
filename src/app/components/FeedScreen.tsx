@@ -12,6 +12,7 @@ import { PaywallModal } from './PaywallModal';
 import { ReportModal } from './ReportModal';
 import { TipModal } from './TipModal';
 import { usePosts } from '../../hooks/usePosts';
+import { useFeedLanguageFilter } from '../../hooks/useFeedLanguageFilter';
 import { useFollowingFeed } from '../../hooks/useFollowingFeed';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -35,7 +36,8 @@ export const FeedScreen = ({
   onNavigateToBrief,
   onNavigateToAI,
 }: any) => {
-  const { posts: supabasePosts, loading: postsLoading, toggleLike, deletePost: deleteSupabasePost, hasLiked } = usePosts();
+  const { feedLangs } = useFeedLanguageFilter();
+  const { posts: supabasePosts, loading: postsLoading, toggleLike, deletePost: deleteSupabasePost, hasLiked } = usePosts(feedLangs);
   const { posts: followingSupabasePosts, loading: followingLoading } = useFollowingFeed();
   const { user } = useAuth();
   const { unreadCount } = useNotifications();

@@ -635,3 +635,4 @@ export const SettingsScreen = ({ onBack, onLogout, onNavigateToPremium, onNaviga
     </div>
   );
 };
+                 

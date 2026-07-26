@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useId } from 'react';
 import { supabase } from '../utils/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
+import { detectPostLanguage } from '../utils/detectPostLanguage';
 
 export interface Post {
   id: string;
@@ -18,6 +19,7 @@ export interface Post {
   is_pinned: boolean;
   is_premium: boolean;
   is_featured: boolean;
+  language?: string;
   created_at: string;
   updated_at: string;
   profiles?: {
@@ -46,6 +48,7 @@ const POST_SELECT = `
   is_pinned,
   is_premium,
   is_featured,
+  language,
   created_at,
   updated_at,
   profiles:author_id (
@@ -60,23 +63,31 @@ const POST_SELECT = `
 
 const PAGE_SIZE = 20;
 
-export const usePosts = () => {
+export const usePosts = (languageFilter?: string[] | null) => {
   const instanceId = useId();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [likesMap, setLikesMap] = useState<Record<string, boolean>>({});
   const { user } = useAuth();
 
+  // Stable key for the filter so useCallback re-runs when it changes
+  const filterKey = languageFilter ? languageFilter.slice().sort().join(',') : '';
+
   // Fetch posts with pagination
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('posts')
         .select(POST_SELECT)
         .order('created_at', { ascending: false })
         .limit(PAGE_SIZE);
 
+      if (languageFilter && languageFilter.length > 0) {
+        query = query.in('language', languageFilter);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       setPosts(data || []);
     } catch (error) {
@@ -84,7 +95,8 @@ export const usePosts = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterKey]);
 
   // Fetch likes only for current user
   const fetchLikes = useCallback(async () => {
@@ -127,6 +139,7 @@ export const usePosts = () => {
     if (!user) return { error: 'Not authenticated' };
 
     try {
+      const detectedLang = detectPostLanguage(postData.content || '');
       const { data, error } = await supabase
         .from('posts')
         .insert({
@@ -139,6 +152,7 @@ export const usePosts = () => {
           tags: postData.tags,
           is_premium: postData.is_premium ?? false,
           is_featured: postData.is_featured ?? false,
+          language: detectedLang,
           likes_count: 0,
           comments_count: 0,
           shares_count: 0,

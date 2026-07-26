@@ -16,7 +16,7 @@ export const CommunityGuidelinesScreen = ({ onBack }) => {
           </button>
           <div>
             <h1 className="text-xl font-bold">{COMMUNITY_GUIDELINES.title}</h1>
-            <p className="text-sm text-white/90">Mantenha a BullsGo focada em finanças</p>
+            <p className="text-sm text-white/90">Mantenha o BullsGo focado em finanças</p>
           </div>
         </div>
       </header>
@@ -29,7 +29,7 @@ export const CommunityGuidelinesScreen = ({ onBack }) => {
               <Shield className="w-7 h-7" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Bem-vindo à BullsGo!</h2>
+              <h2 className="text-lg font-bold">Bem-vindo ao BullsGo!</h2>
               <p className="text-white/90 text-sm">Uma comunit focada em investimentos</p>
             </div>
           </div>
@@ -182,7 +182,7 @@ export const CommunityGuidelinesScreen = ({ onBack }) => {
 
         {/* Final Message */}
         <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-5 text-white text-center">
-          <h3 className="font-bold text-lg mb-2">💚 Obrigado por fazer parte da BullsGo!</h3>
+          <h3 className="font-bold text-lg mb-2">💚 Obrigado por fazer parte do BullsGo!</h3>
           <p className="text-white/90 text-sm">
             Juntos construímos a melhor comunit de investidores do Brasil.
           </p>

@@ -88,7 +88,7 @@ const FORBIDDEN_TOPICS = {
       'vôlei', 'basquete', 'nba', 'nfl', 'fórmula 1', 'f1',
       'mma', 'ufc', 'boxe', 'olimpíadas', 'esporte',
     ],
-    message: 'Conteúdo sobre esportes não é permitido na BullsGo. Foque em investimentos, mercado financeiro e negócios.',
+    message: 'Conteúdo sobre esportes não é permitido no BullsGo. Foque em investimentos, mercado financeiro e negócios.',
   },
   entertainment: {
     keywords: [
@@ -108,7 +108,7 @@ const FORBIDDEN_TOPICS = {
       'deus', 'jesus', 'maria', 'santo', 'bíblia', 'culto', 'missa',
       'oração', 'milagre', 'fé religiosa', 'crença religiosa',
     ],
-    message: 'Discussões religiosas não são permitidas na BullsGo. Mantenha o foco em finanças e negócios.',
+    message: 'Discussões religiosas não são permitidas no BullsGo. Mantenha o foco em finanças e negócios.',
   },
   personalLife: {
     keywords: [
@@ -279,7 +279,7 @@ export function isHashtagAllowed(hashtag: string): boolean {
  * Diretrizes da comunidade
  */
 export const COMMUNITY_GUIDELINES = {
-  title: 'Diretrizes da Comunidade Bulls',
+  title: 'Diretrizes da Comunidade BullsGo',
   sections: [
     {
       title: '✅ Permitido',

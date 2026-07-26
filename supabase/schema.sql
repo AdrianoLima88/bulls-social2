@@ -1,4 +1,4 @@
--- BullsGo Social Network - Database Schema
+-- Bulls Social Network - Database Schema
 -- Execute this SQL in your Supabase SQL Editor
 
 -- Enable UUID extension

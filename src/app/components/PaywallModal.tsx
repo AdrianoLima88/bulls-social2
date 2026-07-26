@@ -17,7 +17,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ featureName, onUpgra
             <Lock className="w-10 h-10" />
           </div>
           <h2 className="text-2xl font-bold mb-2">Premium Feature</h2>
-          <p className="text-white/90">Unlock Bulls' full potential</p>
+          <p className="text-white/90">Unlock BullsGo' full potential</p>
         </div>
 
         <div className="p-8">

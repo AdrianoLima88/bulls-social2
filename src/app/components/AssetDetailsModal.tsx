@@ -222,8 +222,7 @@ export const AssetDetailsModal: React.FC<AssetDetailsModalProps> = ({ asset, ass
       {showAddToPortfolioModal && (
         <AddToPortfolioModal 
           asset={asset} 
-          assetType={assetType}
-          currency={asset.currency || (assetType === 'crypto' ? 'USD' : assetType === 'stock' ? 'EUR' : 'USD')}
+          assetType={assetType} 
           onClose={() => setShowAddToPortfolioModal(false)}
         />
       )}

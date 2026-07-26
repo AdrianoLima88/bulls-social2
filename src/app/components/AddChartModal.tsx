@@ -65,7 +65,7 @@ export const AddChartModal = ({ onClose, onAddChart }) => {
   const [series2Label, setSeries2Label] = useState('Series 2');
   const [showSeries2, setShowSeries2] = useState(false);
   const [points, setPoints] = useState(DEFAULT_POINTS);
-  const [theme, setTheme] = useState<keyof typeof THEMES>('bulls');
+  const [theme, setTheme] = useState<keyof typeof THEMES>('bullsgo');
   const [unit, setUnit] = useState('');
   const [showGrid, setShowGrid] = useState(true);
   const [smoothCurve, setSmoothCurve] = useState(true);
