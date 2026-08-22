@@ -55,7 +55,7 @@ const ScheduledCountdown: React.FC<{ scheduledAt: string | null }> = ({ schedule
 };
 
 // ─── Category chips ────────────────────────────────────────────────────────────
-const CATEGORIES = ['All', 'Stock Analysis', 'Crypto', 'Options', 'Earnings', 'Market Open', 'Forex', 'Education', 'Macro'];
+const CATEGORIES = ['All', 'Stock Analysis', 'Crypto', 'Options', 'Earnings', 'Forex', 'Education'];
 
 // ─── Avatar fallback ──────────────────────────────────────────────────────────
 const Avatar = ({ src, name, size = 10 }: { src?: string | null; name?: string; size?: number }) => (
@@ -237,7 +237,7 @@ const ScheduledCard = ({ live, isOwn, isSubscribed, onStartScheduled, onToggleSu
 );
 
 // ─── Empty states ─────────────────────────────────────────────────────────────
-const EmptyLive = ({ onStartLive }: { onStartLive: () => void }) => (
+const EmptyLive = ({ onSchedule }: { onSchedule: () => void }) => (
   <div className="flex flex-col items-center justify-center py-20 px-8 text-center">
     <div className="relative mb-6">
       <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-900/40 to-emerald-900/20 flex items-center justify-center border border-green-800/30">
@@ -248,12 +248,12 @@ const EmptyLive = ({ onStartLive }: { onStartLive: () => void }) => (
       </div>
     </div>
     <p className="text-white font-black text-xl mb-2">No one is live right now</p>
-    <p className="text-[#9ea3b0] text-sm mb-6">Be the first to go live and share your market insights</p>
+    <p className="text-[#9ea3b0] text-sm mb-6">Use the <span className="text-red-400 font-bold">Go Live</span> button above to start broadcasting</p>
     <button
-      onClick={onStartLive}
-      className="px-8 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-full text-sm flex items-center gap-2 transition shadow-lg shadow-green-900/30"
+      onClick={onSchedule}
+      className="px-8 py-3 bg-[#9147ff] hover:bg-[#7d3bdb] text-white font-bold rounded-full text-sm flex items-center gap-2 transition"
     >
-      <Radio className="w-4 h-4" /> Go Live Now
+      <Clock className="w-4 h-4" /> Schedule a Stream
     </button>
   </div>
 );
@@ -386,7 +386,7 @@ export const LiveScreen: React.FC<LiveScreenProps> = ({ onBack, onStartLive, onW
           </div>
         ) : selectedTab === 'active' ? (
           filteredActive.length === 0 ? (
-            <EmptyLive onStartLive={onStartLive} />
+            <EmptyLive onSchedule={() => setShowScheduleModal(true)} />
           ) : (
             <>
               {/* Featured */}
