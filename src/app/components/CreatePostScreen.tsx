@@ -138,7 +138,7 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
 
   const handlePublish = async () => {
     // Company (financial report) path
-    if (postType === 'company') {
+    if (postType === 'financial') {
       if (!finCanPublish) { alert('Please fill in all required financial fields.'); return; }
       setPublishing(true);
       const content = encodeFinancialReport(buildFinData());
@@ -199,7 +199,7 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
     }
   };
 
-  const canPublish = postType === 'company'
+  const canPublish = postType === 'financial'
     ? (!!finCanPublish && !publishing)
     : ((postContent.trim() || selectedMedia.length > 0 || selectedCharts.length > 0 || selectedDocuments.length > 0) && !uploading && !publishing);
 
@@ -236,14 +236,22 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
               </button>
             ))}
             <button onClick={() => setPostType('generic')}
-              className={`py-2 px-4 rounded-lg font-semibold transition col-span-2 ${postType === 'generic' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+              className={`py-2 px-4 rounded-lg font-semibold transition ${postType === 'generic' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
               🌐 General
+            </button>
+            {/* Financial Statement — Business only */}
+            <button
+              onClick={() => setPostType('financial')}
+              className={`py-2 px-4 rounded-lg font-semibold transition relative ${postType === 'financial' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+            >
+              📑 Financial Statement
+              {!isBusiness && <Crown className="w-2.5 h-2.5 text-amber-500 absolute top-1 right-1" />}
             </button>
           </div>
         </div>
 
         {/* ── Company (Financial Report) — Business only ── */}
-        {postType === 'company' && !isBusiness && (
+        {postType === 'financial' && !isBusiness && (
           <div className="bg-white rounded-xl p-6 mb-4 shadow-sm flex flex-col items-center text-center gap-4">
             <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center">
               <Lock className="w-8 h-8 text-slate-400" />
@@ -264,7 +272,7 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
           </div>
         )}
 
-        {postType === 'company' && isBusiness && (
+        {postType === 'financial' && isBusiness && (
           <div className="space-y-3 mb-4">
             {/* Company info */}
             <div className="bg-white rounded-xl p-4 shadow-sm">
@@ -467,7 +475,7 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
               postType === 'analysis' ? 'Share your market analysis or stock breakdown...' :
               postType === 'news' ? 'Share a relevant market news or update...' :
               postType === 'education' ? 'Teach something new about investing or markets...' :
-              postType === 'company' ? 'Comment on a company, earnings or latest results...' :
+              postType === 'financial' ? 'Comment on a company, earnings or latest results...' :
               'What are you thinking about the markets?'
             }
             className="w-full h-40 resize-none outline-none text-slate-900 text-lg"
@@ -656,7 +664,7 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
             {postType === 'analysis' && 'Analyses with data and charts get 3x more engagement!'}
             {postType === 'news' && 'Share breaking market news to grow your audience!'}
             {postType === 'education' && 'Educational content generates more qualified followers!'}
-            {postType === 'company' && 'Company analysis helps investors make better decisions!'}
+            {postType === 'financial' && 'Company analysis helps investors make better decisions!'}
             {postType === 'generic' && 'Share your market thoughts and connect with investors!'}
           </p>
         </div>

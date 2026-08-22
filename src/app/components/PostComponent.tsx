@@ -476,8 +476,8 @@ export const Post = ({
   }
 
   // Post de Empresa
-  if (type === 'company') {
-    // ── Financial report card (Business posts) ──────────────────────────────
+  // ── Financial Statement card (Business posts) ───────────────────────────
+  if (type === 'financial') {
     const finData = parseFinancialReport(content);
     if (finData) {
       return (
@@ -517,6 +517,10 @@ export const Post = ({
       );
     }
 
+    return null; // financial type with no parseable data
+  }
+
+  if (type === 'company') {
     return (
       <div className="bg-white rounded-2xl shadow-md mb-4 overflow-hidden border-l-4 border-blue-600">
         {/* Header do Post */}
