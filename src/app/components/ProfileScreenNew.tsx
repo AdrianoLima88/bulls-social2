@@ -191,7 +191,7 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
 
               {/* Content area — blurred when locked */}
               <div className={isLocked ? 'blur-md select-none pointer-events-none' : ''}>
-                {post.type === 'financial'
+                {(post.type === 'financial' || (post.type === 'company' && post.content?.startsWith('__FIN__')))
                   ? <div className="mb-3"><FinancialReportCard data={parseFinancialReport(post.content)!} /></div>
                   : <p className="text-slate-900 mb-3 leading-relaxed">{post.content}</p>
                 }

@@ -142,7 +142,7 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
       if (!finCanPublish) { alert('Please fill in all required financial fields.'); return; }
       setPublishing(true);
       const content = encodeFinancialReport(buildFinData());
-      const { error } = await createPost({ type: 'company', content, is_featured: isFeaturedPost });
+      const { error } = await createPost({ type: 'financial', content, is_featured: isFeaturedPost });
       setPublishing(false);
       if (error) alert('❌ Failed to publish report. Please try again.');
       else onBack();
