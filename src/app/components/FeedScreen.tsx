@@ -11,6 +11,7 @@ import { PlanBadge } from './PlanBadge';
 import { PaywallModal } from './PaywallModal';
 import { ReportModal } from './ReportModal';
 import { TipModal } from './TipModal';
+import { FinancialReportCard, parseFinancialReport } from './FinancialReportCard';
 import { usePosts } from '../../hooks/usePosts';
 import { useFeedLanguageFilter } from '../../hooks/useFeedLanguageFilter';
 import { useFollowingFeed } from '../../hooks/useFollowingFeed';
@@ -428,9 +429,15 @@ const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave,
 
       <div className="relative">
         <div className={isLocked ? 'blur-md select-none pointer-events-none' : ''}>
-          <button onClick={() => onNavigateToPost(post)} className="w-full text-left">
-            <p className="text-slate-800 mb-3">{post.content}</p>
-          </button>
+          {post.type === 'financial' ? (
+            <div className="mb-3">
+              <FinancialReportCard data={parseFinancialReport(post.content)!} />
+            </div>
+          ) : (
+            <button onClick={() => onNavigateToPost(post)} className="w-full text-left">
+              <p className="text-slate-800 mb-3">{post.content}</p>
+            </button>
+          )}
           {post.media && post.media.length > 0 && (
             <div className="mb-3">
               <MediaCarousel media={post.media} onMediaView={(item) => onMediaView(item, post)} />

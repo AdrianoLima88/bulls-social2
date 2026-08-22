@@ -10,6 +10,7 @@ import { useLocale } from '../contexts/LocaleContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUserPosts } from '../../hooks/useUserPosts';
 import { usePosts } from '../../hooks/usePosts';
+import { FinancialReportCard, parseFinancialReport } from './FinancialReportCard';
 import { useFollows } from '../../hooks/useFollows';
 import { useProfile } from '../../hooks/useProfile';
 import { PlanBadge } from './PlanBadge';
@@ -190,7 +191,10 @@ export const ProfileScreen = ({ profileData, userProfileData, onBack, onSettings
 
               {/* Content area — blurred when locked */}
               <div className={isLocked ? 'blur-md select-none pointer-events-none' : ''}>
-                <p className="text-slate-900 mb-3 leading-relaxed">{post.content}</p>
+                {post.type === 'financial'
+                  ? <div className="mb-3"><FinancialReportCard data={parseFinancialReport(post.content)!} /></div>
+                  : <p className="text-slate-900 mb-3 leading-relaxed">{post.content}</p>
+                }
 
                 {post.media && post.media.length > 0 && (
                   <div className="mb-3">
