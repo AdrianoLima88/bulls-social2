@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   ArrowLeft, Send, Sparkles, RefreshCw, TrendingUp, TrendingDown,
   AlertCircle, Loader2, Copy, Check, Paperclip, Image, Video,
-  FileText, X, Sun, Moon,
+  FileText, X, Sun, Moon, Mic,
 } from 'lucide-react';
 import { useBullsAI, AIMessage } from '../../hooks/useBullsAI';
 import { usePortfolio } from '../../hooks/usePortfolio';
@@ -234,6 +234,32 @@ export const BullsAIScreen = ({ onBack }: { onBack: () => void }) => {
   const { isDark, setTheme, theme } = useTheme();
 
   const [input, setInput] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  const toggleListen = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+    const recognition = new SR();
+    recognitionRef.current = recognition;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (e: any) => {
+      const transcript = e.results[0][0].transcript as string;
+      setInput(prev => prev ? `${prev} ${transcript}` : transcript);
+    };
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+    recognition.start();
+    setIsListening(true);
+  };
+
   const [showContext, setShowContext] = useState(true);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
@@ -452,6 +478,21 @@ export const BullsAIScreen = ({ onBack }: { onBack: () => void }) => {
               }}
             />
           </div>
+
+          {/* Mic button (voice-to-text) */}
+          <button
+            onClick={toggleListen}
+            className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition ${
+              isListening
+                ? 'bg-red-500 shadow-lg shadow-red-500/30 animate-pulse'
+                : isDark
+                  ? 'bg-[#111c2b] border border-white/8 hover:bg-[#1a2b3c]'
+                  : 'bg-slate-100 border border-slate-200 hover:bg-green-100'
+            }`}
+            title={isListening ? 'Stop recording' : 'Voice input'}
+          >
+            <Mic className={`w-4 h-4 ${isListening ? 'text-white' : 'text-green-600'}`} />
+          </button>
 
           {/* Send button */}
           <button

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Send, Image as ImageIcon, Smile, Paperclip, Phone, Video, Info, File } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ArrowLeft, Send, Image as ImageIcon, Smile, Paperclip, Phone, Video, Info, File, Mic, MicOff, Play, Pause, Square } from 'lucide-react';
+import { useAudioRecorder, formatAudioDuration } from '../../hooks/useAudioRecorder';
 import { ContactInfoModal }  from './ContactInfoModal';
 import { AttachmentModal }   from './AttachmentModal';
 import { EmojiPicker }       from './EmojiPicker';
@@ -31,6 +32,52 @@ type Message = {
     size: number;
     url: string | null;
   };
+  audio?: {
+    url: string;
+    duration: number;
+  };
+};
+
+// ── Audio player bubble ─────────────────────────────────────────
+const AudioBubble = ({ url, duration, isMe }: { url: string; duration: number; isMe: boolean }) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const toggle = () => {
+    if (!audioRef.current) return;
+    if (playing) { audioRef.current.pause(); setPlaying(false); }
+    else { audioRef.current.play(); setPlaying(true); }
+  };
+
+  return (
+    <div className={`flex items-center gap-3 rounded-2xl px-4 py-3 min-w-[180px] ${isMe ? 'bg-green-600 text-white rounded-br-md' : 'bg-white text-slate-900 rounded-bl-md shadow-sm'}`}>
+      <audio
+        ref={audioRef}
+        src={url}
+        onTimeUpdate={e => setProgress((e.currentTarget.currentTime / (e.currentTarget.duration || 1)) * 100)}
+        onEnded={() => { setPlaying(false); setProgress(0); }}
+      />
+      <button onClick={toggle} className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${isMe ? 'bg-white/20 hover:bg-white/30' : 'bg-green-100 hover:bg-green-200'} transition`}>
+        {playing
+          ? <Pause className={`w-4 h-4 ${isMe ? 'text-white' : 'text-green-600'}`} />
+          : <Play className={`w-4 h-4 ${isMe ? 'text-white' : 'text-green-600'}`} />}
+      </button>
+      <div className="flex-1 min-w-0">
+        {/* Waveform placeholder */}
+        <div className={`flex items-end gap-0.5 h-6 mb-1`}>
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div
+              key={i}
+              className={`w-1 rounded-full transition-all ${(i / 20) * 100 <= progress ? (isMe ? 'bg-white' : 'bg-green-500') : (isMe ? 'bg-white/40' : 'bg-slate-300')}`}
+              style={{ height: `${20 + Math.sin(i * 1.3) * 10 + Math.cos(i * 0.7) * 8}%` }}
+            />
+          ))}
+        </div>
+        <p className={`text-xs ${isMe ? 'text-white/70' : 'text-slate-400'}`}>{formatAudioDuration(duration)}</p>
+      </div>
+    </div>
+  );
 };
 
 const mkInitials = (name: string) =>
@@ -61,6 +108,20 @@ export const DirectMessageScreen = ({
   const [showEmojiPicker,     setShowEmojiPicker]      = useState(false);
   const [attachmentType,      setAttachmentType]       = useState<'media' | 'file'>('media');
   const [messages,            setMessages]             = useState<Message[]>([]);
+
+  const { state: recState, duration: recDuration, recording, error: recError, startRecording, stopRecording, reset: resetRec } = useAudioRecorder();
+
+  const handleSendAudio = () => {
+    if (!recording) return;
+    setMessages(prev => [...prev, {
+      id: Date.now(),
+      text: '',
+      sender: 'me',
+      time: now(),
+      audio: { url: recording.url, duration: recording.duration },
+    }]);
+    resetRec();
+  };
 
   const now = () =>
     new Date().toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' });
@@ -187,6 +248,11 @@ export const DirectMessageScreen = ({
                     </div>
                   </div>
                 )}
+                {msg.audio && (
+                  <div className="mb-1">
+                    <AudioBubble url={msg.audio.url} duration={msg.audio.duration} isMe={msg.sender === 'me'} />
+                  </div>
+                )}
                 {msg.text && (
                   <div className={`rounded-2xl px-4 py-2 ${msg.sender === 'me' ? 'bg-green-600 text-white rounded-br-md' : 'bg-white text-slate-900 rounded-bl-md shadow-sm'}`}>
                     <p className="text-sm leading-relaxed">{msg.text}</p>
@@ -220,6 +286,32 @@ export const DirectMessageScreen = ({
 
       {/* Input */}
       <div className="bg-white border-t border-slate-200 p-4">
+        {/* Recording preview */}
+        {recState === 'stopped' && recording && (
+          <div className="flex items-center gap-3 mb-3 px-3 py-2 bg-green-50 rounded-2xl border border-green-200">
+            <AudioBubble url={recording.url} duration={recording.duration} isMe={true} />
+            <div className="flex gap-2 ml-auto">
+              <button onClick={resetRec} className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center hover:bg-red-100 transition">
+                <Square className="w-3.5 h-3.5 text-slate-600" />
+              </button>
+              <button onClick={handleSendAudio} className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-700 transition">
+                <Send className="w-3.5 h-3.5 text-white" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Recording indicator */}
+        {recState === 'recording' && (
+          <div className="flex items-center gap-3 mb-3 px-4 py-2 bg-red-50 rounded-2xl border border-red-200">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-sm font-semibold text-red-600">Recording… {formatAudioDuration(recDuration)}</span>
+            <button onClick={stopRecording} className="ml-auto w-8 h-8 bg-red-100 rounded-full flex items-center justify-center hover:bg-red-200 transition">
+              <Square className="w-3.5 h-3.5 text-red-600" />
+            </button>
+          </div>
+        )}
+
         <div className="flex items-end gap-2">
           <div className="flex gap-2">
             <button onClick={() => { setAttachmentType('media'); setShowAttachmentModal(true); }} className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center hover:bg-slate-200 transition">
@@ -234,9 +326,10 @@ export const DirectMessageScreen = ({
               value={message}
               onChange={e => setMessage(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Type a message..."
+              placeholder={recState === 'recording' ? 'Recording audio…' : 'Type a message...'}
               rows={1}
-              className="w-full px-4 py-3 bg-slate-100 rounded-2xl text-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-green-600 max-h-32"
+              disabled={recState === 'recording'}
+              className="w-full px-4 py-3 bg-slate-100 rounded-2xl text-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-green-600 max-h-32 disabled:opacity-50"
               style={{ minHeight: '44px' }}
             />
             <div className="relative">
@@ -251,14 +344,27 @@ export const DirectMessageScreen = ({
               )}
             </div>
           </div>
-          <button
-            onClick={handleSend}
-            disabled={!message.trim()}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition ${message.trim() ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg' : 'bg-slate-200 text-slate-400'}`}
-          >
-            <Send className="w-5 h-5" />
-          </button>
+          {/* Mic button (shown when no text typed) */}
+          {!message.trim() && recState === 'idle' && (
+            <button
+              onClick={startRecording}
+              className="w-12 h-12 rounded-full flex items-center justify-center bg-slate-100 hover:bg-green-100 transition"
+            >
+              <Mic className="w-5 h-5 text-green-600" />
+            </button>
+          )}
+          {/* Send button (shown when text typed or stopped) */}
+          {(message.trim() || recState === 'stopped') && (
+            <button
+              onClick={handleSend}
+              disabled={!message.trim()}
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition ${message.trim() ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg' : 'bg-slate-200 text-slate-400'}`}
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          )}
         </div>
+        {recError && <p className="text-xs text-red-500 mt-1 px-2">{recError}</p>}
       </div>
 
       {/* ContactInfoModal */}
