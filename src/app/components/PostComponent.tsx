@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Share2, Bookmark, BarChart3, TrendingUp, TrendingDown, ChevronRight, Eye, DollarSign, Target, Activity, Award, Building2, Briefcase } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
+import { FinancialReportCard, parseFinancialReport } from './FinancialReportCard';
 
 export const Post = ({ 
   author, 
@@ -476,6 +477,46 @@ export const Post = ({
 
   // Post de Empresa
   if (type === 'company') {
+    // ── Financial report card (Business posts) ──────────────────────────────
+    const finData = parseFinancialReport(content);
+    if (finData) {
+      return (
+        <div className="mb-4">
+          {/* Author row */}
+          <div className="flex items-center gap-3 px-1 mb-2">
+            <button onClick={onAuthorClick} className="w-9 h-9 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+              {companyLogo || author?.[0] || '?'}
+            </button>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-slate-900 text-sm">{author}</p>
+              <p className="text-xs text-slate-400">{role} · {time}</p>
+            </div>
+            <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full tracking-wide">BUSINESS</span>
+          </div>
+
+          <FinancialReportCard data={finData} />
+
+          {/* Actions */}
+          <div className="flex items-center gap-4 px-1 mt-2">
+            <button onClick={() => setLiked(!liked)} className="flex items-center gap-1.5 text-slate-400 hover:text-red-500 transition">
+              <Heart className={`w-5 h-5 ${liked ? 'fill-red-500 text-red-500' : ''}`} />
+              <span className="text-sm">{(likes || 0) + (liked ? 1 : 0)}</span>
+            </button>
+            <button onClick={onCommentClick} className="flex items-center gap-1.5 text-slate-400 hover:text-green-600 transition">
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-sm">{comments}</span>
+            </button>
+            <button onClick={onShareClick} className="flex items-center gap-1.5 text-slate-400 hover:text-green-600 transition">
+              <Share2 className="w-5 h-5" />
+            </button>
+            <button onClick={() => setSaved(!saved)} className="ml-auto text-slate-400 hover:text-green-600 transition">
+              <Bookmark className={`w-5 h-5 ${saved ? 'fill-green-600 text-green-600' : ''}`} />
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="bg-white rounded-2xl shadow-md mb-4 overflow-hidden border-l-4 border-blue-600">
         {/* Header do Post */}

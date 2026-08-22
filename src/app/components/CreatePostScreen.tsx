@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Image as ImageIcon, BarChart3, FileText, Video, Smile, XCircle, TrendingUp, File, Loader2, Lock, Crown, Sparkles } from 'lucide-react';
+import { X, Image as ImageIcon, BarChart3, FileText, Video, Smile, XCircle, TrendingUp, File, Loader2, Lock, Crown, Sparkles, Building2, Eye } from 'lucide-react';
 import { useLocale } from '../contexts/LocaleContext';
 import { AddChartModal } from './AddChartModal';
 import { AddDocumentModal } from './AddDocumentModal';
@@ -9,6 +9,7 @@ import { usePosts } from '../../hooks/usePosts';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../hooks/useSubscription';
 import { supabase } from '../../utils/supabase/client';
+import { FinancialReportCard, encodeFinancialReport, type FinancialReportData } from './FinancialReportCard';
 
 export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium }) => {
   const { user, profile } = useAuth();
@@ -31,6 +32,42 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
   const [publishing, setPublishing] = useState(false);
   const fileInputRef = useRef(null);
   const videoInputRef = useRef(null);
+
+  // ── Financial Report state (Company tab, Business only) ──────────────────
+  const [finTicker, setFinTicker] = useState('');
+  const [finCompanyName, setFinCompanyName] = useState('');
+  const [finQuarter, setFinQuarter] = useState<'Q1'|'Q2'|'Q3'|'Q4'>('Q1');
+  const [finYear, setFinYear] = useState(new Date().getFullYear());
+  const [finResult, setFinResult] = useState<'beat'|'inline'|'miss'>('beat');
+  const [finRevVal, setFinRevVal] = useState('');
+  const [finRevUnit, setFinRevUnit] = useState('B');
+  const [finRevYoy, setFinRevYoy] = useState('');
+  const [finNiVal, setFinNiVal] = useState('');
+  const [finNiUnit, setFinNiUnit] = useState('B');
+  const [finNiYoy, setFinNiYoy] = useState('');
+  const [finEpsVal, setFinEpsVal] = useState('');
+  const [finEpsYoy, setFinEpsYoy] = useState('');
+  const [finGmVal, setFinGmVal] = useState('');
+  const [finGmYoy, setFinGmYoy] = useState('');
+  const [finHighlight, setFinHighlight] = useState('');
+  const [showFinPreview, setShowFinPreview] = useState(false);
+
+  const buildFinData = (): FinancialReportData => ({
+    ticker: finTicker,
+    companyName: finCompanyName,
+    quarter: finQuarter,
+    year: finYear,
+    result: finResult,
+    highlight: finHighlight || undefined,
+    metrics: {
+      revenue:     { value: parseFloat(finRevVal) || 0, unit: finRevUnit, yoy: parseFloat(finRevYoy) || 0 },
+      netIncome:   { value: parseFloat(finNiVal)  || 0, unit: finNiUnit,  yoy: parseFloat(finNiYoy)  || 0 },
+      eps:         { value: parseFloat(finEpsVal) || 0, yoy: parseFloat(finEpsYoy) || 0 },
+      grossMargin: { value: parseFloat(finGmVal)  || 0, yoy: parseFloat(finGmYoy)  || 0 },
+    },
+  });
+
+  const finCanPublish = finTicker.trim() && finCompanyName.trim() && finRevVal && finNiVal && finEpsVal && finGmVal;
 
   const moderateContent = (content: string) => {
     const blockedKeywords = ['futebol', 'política', 'religião', 'música', 'partid'];
@@ -100,6 +137,18 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
   };
 
   const handlePublish = async () => {
+    // Company (financial report) path
+    if (postType === 'company') {
+      if (!finCanPublish) { alert('Please fill in all required financial fields.'); return; }
+      setPublishing(true);
+      const content = encodeFinancialReport(buildFinData());
+      const { error } = await createPost({ type: 'company', content, is_featured: isFeaturedPost });
+      setPublishing(false);
+      if (error) alert('❌ Failed to publish report. Please try again.');
+      else onBack();
+      return;
+    }
+
     if (!postContent.trim() && selectedMedia.length === 0 && selectedCharts.length === 0 && selectedDocuments.length === 0) {
       alert('Please add some content or media to your post!');
       return;
@@ -150,7 +199,9 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
     }
   };
 
-  const canPublish = (postContent.trim() || selectedMedia.length > 0 || selectedCharts.length > 0 || selectedDocuments.length > 0) && !uploading && !publishing;
+  const canPublish = postType === 'company'
+    ? (!!finCanPublish && !publishing)
+    : ((postContent.trim() || selectedMedia.length > 0 || selectedCharts.length > 0 || selectedDocuments.length > 0) && !uploading && !publishing);
 
   return (
     <div className="h-screen bg-slate-50 flex flex-col">
@@ -191,7 +242,210 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
           </div>
         </div>
 
+        {/* ── Company (Financial Report) — Business only ── */}
+        {postType === 'company' && !isBusiness && (
+          <div className="bg-white rounded-xl p-6 mb-4 shadow-sm flex flex-col items-center text-center gap-4">
+            <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center">
+              <Lock className="w-8 h-8 text-slate-400" />
+            </div>
+            <div>
+              <p className="font-black text-slate-900 text-lg">Business Plan Required</p>
+              <p className="text-slate-500 text-sm mt-1">
+                Publishing official financial reports is exclusively available for Business account holders.
+              </p>
+            </div>
+            <button
+              onClick={() => onNavigateToPremium?.()}
+              className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold px-8 py-3 rounded-xl shadow-lg flex items-center gap-2"
+            >
+              <Crown className="w-4 h-4" />
+              Upgrade to Business
+            </button>
+          </div>
+        )}
+
+        {postType === 'company' && isBusiness && (
+          <div className="space-y-3 mb-4">
+            {/* Company info */}
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="w-4 h-4 text-slate-500" />
+                <h3 className="font-bold text-slate-900">Company Info</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block">TICKER *</label>
+                  <input
+                    value={finTicker}
+                    onChange={e => setFinTicker(e.target.value.toUpperCase())}
+                    placeholder="AAPL"
+                    maxLength={8}
+                    className="w-full px-3 py-2.5 bg-slate-50 rounded-xl font-black text-slate-900 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block">COMPANY NAME *</label>
+                  <input
+                    value={finCompanyName}
+                    onChange={e => setFinCompanyName(e.target.value)}
+                    placeholder="Apple Inc."
+                    className="w-full px-3 py-2.5 bg-slate-50 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Period + Result */}
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <h3 className="font-bold text-slate-900 mb-3">Reporting Period & Result</h3>
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                {/* Quarter */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-2 block">QUARTER</label>
+                  <div className="grid grid-cols-4 gap-1">
+                    {(['Q1','Q2','Q3','Q4'] as const).map(q => (
+                      <button key={q} onClick={() => setFinQuarter(q)}
+                        className={`py-2 rounded-lg font-bold text-sm transition ${finQuarter === q ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Year */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-2 block">YEAR</label>
+                  <input
+                    type="number"
+                    value={finYear}
+                    onChange={e => setFinYear(parseInt(e.target.value) || new Date().getFullYear())}
+                    className="w-full px-3 py-2.5 bg-slate-50 rounded-xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500"
+                    min={2000} max={2099}
+                  />
+                </div>
+              </div>
+              {/* Result */}
+              <label className="text-xs font-semibold text-slate-500 mb-2 block">EARNINGS RESULT</label>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { id: 'beat',   label: '🚀 Beat',    active: 'bg-emerald-600 text-white' },
+                  { id: 'inline', label: '⚖️ In-line', active: 'bg-amber-500 text-white'   },
+                  { id: 'miss',   label: '⛔ Miss',    active: 'bg-red-500 text-white'     },
+                ] as const).map(r => (
+                  <button key={r.id} onClick={() => setFinResult(r.id)}
+                    className={`py-2.5 rounded-xl font-bold text-sm transition ${finResult === r.id ? r.active : 'bg-slate-100 text-slate-600'}`}>
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Key Metrics */}
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <h3 className="font-bold text-slate-900 mb-3">Key Metrics</h3>
+              <div className="space-y-3">
+                {/* Revenue */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1.5 block">REVENUE *</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-1 flex gap-1">
+                      <input value={finRevVal} onChange={e => setFinRevVal(e.target.value)} placeholder="12.5"
+                        type="number" className="w-full px-3 py-2.5 bg-slate-50 rounded-xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500" />
+                      <select value={finRevUnit} onChange={e => setFinRevUnit(e.target.value)}
+                        className="px-2 py-2.5 bg-slate-50 rounded-xl text-slate-900 font-bold focus:outline-none">
+                        <option>B</option><option>M</option><option>K</option>
+                      </select>
+                    </div>
+                    <div className="col-span-2 flex items-center gap-2">
+                      <span className="text-slate-400 text-xs font-semibold">YoY %</span>
+                      <input value={finRevYoy} onChange={e => setFinRevYoy(e.target.value)} placeholder="+12.3"
+                        type="number" className="flex-1 px-3 py-2.5 bg-slate-50 rounded-xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500" />
+                    </div>
+                  </div>
+                </div>
+                {/* Net Income */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1.5 block">NET INCOME *</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-1 flex gap-1">
+                      <input value={finNiVal} onChange={e => setFinNiVal(e.target.value)} placeholder="3.2"
+                        type="number" className="w-full px-3 py-2.5 bg-slate-50 rounded-xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500" />
+                      <select value={finNiUnit} onChange={e => setFinNiUnit(e.target.value)}
+                        className="px-2 py-2.5 bg-slate-50 rounded-xl text-slate-900 font-bold focus:outline-none">
+                        <option>B</option><option>M</option><option>K</option>
+                      </select>
+                    </div>
+                    <div className="col-span-2 flex items-center gap-2">
+                      <span className="text-slate-400 text-xs font-semibold">YoY %</span>
+                      <input value={finNiYoy} onChange={e => setFinNiYoy(e.target.value)} placeholder="+8.1"
+                        type="number" className="flex-1 px-3 py-2.5 bg-slate-50 rounded-xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500" />
+                    </div>
+                  </div>
+                </div>
+                {/* EPS */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1.5 block">EPS *</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <input value={finEpsVal} onChange={e => setFinEpsVal(e.target.value)} placeholder="1.52"
+                      type="number" className="px-3 py-2.5 bg-slate-50 rounded-xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500" />
+                    <div className="col-span-2 flex items-center gap-2">
+                      <span className="text-slate-400 text-xs font-semibold">YoY %</span>
+                      <input value={finEpsYoy} onChange={e => setFinEpsYoy(e.target.value)} placeholder="+15.2"
+                        type="number" className="flex-1 px-3 py-2.5 bg-slate-50 rounded-xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500" />
+                    </div>
+                  </div>
+                </div>
+                {/* Gross Margin */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1.5 block">GROSS MARGIN (%) *</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <input value={finGmVal} onChange={e => setFinGmVal(e.target.value)} placeholder="43.6"
+                      type="number" className="px-3 py-2.5 bg-slate-50 rounded-xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500" />
+                    <div className="col-span-2 flex items-center gap-2">
+                      <span className="text-slate-400 text-xs font-semibold">pp change</span>
+                      <input value={finGmYoy} onChange={e => setFinGmYoy(e.target.value)} placeholder="-0.5"
+                        type="number" className="flex-1 px-3 py-2.5 bg-slate-50 rounded-xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-green-500" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Management highlight */}
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <label className="text-xs font-semibold text-slate-500 mb-1.5 block">MANAGEMENT HIGHLIGHT (optional)</label>
+              <textarea
+                value={finHighlight}
+                onChange={e => setFinHighlight(e.target.value)}
+                placeholder="e.g. Record revenue driven by strong services growth and international expansion…"
+                rows={3}
+                maxLength={200}
+                className="w-full bg-slate-50 rounded-xl px-3 py-2.5 text-slate-900 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <p className="text-right text-xs text-slate-400 mt-1">{finHighlight.length}/200</p>
+            </div>
+
+            {/* Live Preview toggle */}
+            {finTicker && finRevVal && (
+              <div>
+                <button
+                  onClick={() => setShowFinPreview(p => !p)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 rounded-xl text-slate-700 font-semibold text-sm hover:bg-slate-200 transition"
+                >
+                  <Eye className="w-4 h-4" />
+                  {showFinPreview ? 'Hide Preview' : 'Preview Card'}
+                </button>
+                {showFinPreview && (
+                  <div className="mt-3">
+                    <FinancialReportCard data={buildFinData()} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Text Editor */}
+        {postType !== 'company' && (
         <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
           <div className="flex gap-3 mb-3">
             <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden">
@@ -310,6 +564,7 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
           <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => handleFileChange(e, 'image')} className="hidden" />
           <input ref={videoInputRef} type="file" accept="video/*" onChange={(e) => handleFileChange(e, 'video')} className="hidden" />
         </div>
+        )} {/* end postType !== 'company' */}
 
         {/* Media Preview */}
         {selectedMedia.length > 0 && (
