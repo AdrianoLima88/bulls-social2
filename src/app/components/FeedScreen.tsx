@@ -386,8 +386,8 @@ const PostCard = ({ post, onNavigateToProfile, onNavigateToPost, onLike, onSave,
           }
         </button>
         <button onClick={handleProfileClick} className="flex-1 text-left min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <h4 className="font-bold text-slate-900 truncate">{post.authorName}</h4>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <h4 className="font-bold text-slate-900 truncate min-w-0">{post.authorName}</h4>
             {post.verified && <span className="text-blue-500 text-sm flex-shrink-0">✓</span>}
             <PlanBadge plan={post.authorPlan} size="sm" />
             {!post.isSponsored && <PostTypeBadge postType={post.type} size="sm" />}

@@ -74,7 +74,7 @@ export const UserTypeBadge: React.FC<UserTypeBadgeProps> = ({
 };
 
 interface PostTypeBadgeProps {
-  postType: 'analysis' | 'opinion' | 'education' | 'media' | 'company' | 'news';
+  postType: string;
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -114,6 +114,20 @@ export const PostTypeBadge: React.FC<PostTypeBadgeProps> = ({ postType, size = '
           label: 'Opinion',
           bgColor: 'bg-slate-100',
           textColor: 'text-slate-700',
+          borderColor: 'border-slate-200',
+        };
+      case 'financial':
+        return {
+          label: 'Financials',
+          bgColor: 'bg-emerald-100',
+          textColor: 'text-emerald-700',
+          borderColor: 'border-emerald-200',
+        };
+      case 'generic':
+        return {
+          label: 'General',
+          bgColor: 'bg-slate-100',
+          textColor: 'text-slate-500',
           borderColor: 'border-slate-200',
         };
       default:
