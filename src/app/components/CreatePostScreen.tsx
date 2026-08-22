@@ -231,20 +231,20 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
               { id: 'company', label: '🏢 Company' },
             ].map(type => (
               <button key={type.id} onClick={() => setPostType(type.id)}
-                className={`py-2 px-4 rounded-lg font-semibold transition ${postType === type.id ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                className={`py-2 px-3 rounded-lg font-semibold text-sm transition ${postType === type.id ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
                 {type.label}
               </button>
             ))}
             <button onClick={() => setPostType('generic')}
-              className={`py-2 px-4 rounded-lg font-semibold transition ${postType === 'generic' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+              className={`py-2 px-3 rounded-lg font-semibold text-sm transition ${postType === 'generic' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
               🌐 General
             </button>
             {/* Financial Statement — Business only */}
             <button
               onClick={() => setPostType('financial')}
-              className={`py-2 px-4 rounded-lg font-semibold transition relative ${postType === 'financial' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+              className={`py-2 px-3 rounded-lg font-semibold text-sm transition relative ${postType === 'financial' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}
             >
-              📑 Financial Statement
+              📑 Financials
               {!isBusiness && <Crown className="w-2.5 h-2.5 text-amber-500 absolute top-1 right-1" />}
             </button>
           </div>
@@ -453,7 +453,7 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
         )}
 
         {/* Text Editor */}
-        {postType !== 'company' && (
+        {postType !== 'financial' && (
         <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
           <div className="flex gap-3 mb-3">
             <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 overflow-hidden">
@@ -572,7 +572,7 @@ export const CreatePostScreen = ({ onBack, onViewGuidelines, onNavigateToPremium
           <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => handleFileChange(e, 'image')} className="hidden" />
           <input ref={videoInputRef} type="file" accept="video/*" onChange={(e) => handleFileChange(e, 'video')} className="hidden" />
         </div>
-        )} {/* end postType !== 'company' */}
+        )} {/* end postType !== 'financial' */}
 
         {/* Media Preview */}
         {selectedMedia.length > 0 && (
