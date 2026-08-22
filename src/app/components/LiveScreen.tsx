@@ -248,13 +248,7 @@ const EmptyLive = ({ onSchedule }: { onSchedule: () => void }) => (
       </div>
     </div>
     <p className="text-white font-black text-xl mb-2">No one is live right now</p>
-    <p className="text-[#9ea3b0] text-sm mb-6">Use the <span className="text-red-400 font-bold">Go Live</span> button above to start broadcasting</p>
-    <button
-      onClick={onSchedule}
-      className="px-8 py-3 bg-[#9147ff] hover:bg-[#7d3bdb] text-white font-bold rounded-full text-sm flex items-center gap-2 transition"
-    >
-      <Clock className="w-4 h-4" /> Schedule a Stream
-    </button>
+    <p className="text-[#9ea3b0] text-sm">Use the <span className="text-red-400 font-bold">Go Live</span> button above to start broadcasting</p>
   </div>
 );
 

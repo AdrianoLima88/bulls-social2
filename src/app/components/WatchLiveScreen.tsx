@@ -405,9 +405,11 @@ export const WatchLiveScreen: React.FC<WatchLiveScreenProps> = ({ live, onClose 
           <button onClick={handleCopyLink} className="py-2.5 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition text-sm">Copy Link</button>
           <button onClick={() => { window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(liveUrl)}`, '_blank'); setShowShareModal(false); }}
             className="py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition text-sm">Facebook</button>
-          <button onClick={() => { window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(liveUrl)}&text=${encodeURIComponent(live.title)}`, '_blank'); setShowShareModal(false); }}
-            className="py-2.5 bg-sky-500 text-white font-bold rounded-lg hover:bg-sky-600 transition text-sm">Twitter</button>
-          <button onClick={() => setShowShareModal(false)} className="py-2.5 bg-slate-200 text-slate-700 font-bold rounded-lg hover:bg-slate-300 transition text-sm">Close</button>
+          <button onClick={() => { window.open(`https://x.com/intent/tweet?url=${encodeURIComponent(liveUrl)}&text=${encodeURIComponent(live.title)}`, '_blank'); setShowShareModal(false); }}
+            className="py-2.5 bg-black text-white font-bold rounded-lg hover:bg-zinc-800 transition text-sm">X (Twitter)</button>
+          <button onClick={() => { window.open(`https://wa.me/?text=${encodeURIComponent(live.title + ' ' + liveUrl)}`, '_blank'); setShowShareModal(false); }}
+            className="py-2.5 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition text-sm">WhatsApp</button>
+          <button onClick={() => setShowShareModal(false)} className="col-span-2 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-lg hover:bg-slate-200 transition text-sm">Close</button>
         </div>
       </div>
     </div>
